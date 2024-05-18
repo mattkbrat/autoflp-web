@@ -11,6 +11,7 @@ const times = [
 	"nine",
 	"ten",
 	"eleven",
+	"midnight",
 ];
 
 /* makes fuzzy time */
@@ -35,7 +36,7 @@ export class Time {
 		if (this.mins >= 37) {
 			hours++;
 		}
-		return hours === 0 ? "oh" : hours > 12 ? times[hours - 12] : times[hours];
+		return hours >= 12 ? times[hours - 12] : times[hours];
 	}
 
 	get mins() {
