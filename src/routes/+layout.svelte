@@ -26,7 +26,11 @@ import {
 	arrow,
 } from "@floating-ui/dom";
 import { storePopup } from "@skeletonlabs/skeleton";
+import { onMount } from "svelte";
 storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
+
+import { Time } from "$lib/fuzzy-time";
+let time: Time | null = null;
 
 const routes: {
 	route: string;
@@ -45,25 +49,77 @@ const routes: {
 		route: "/accounts",
 	},
 ];
+
+let now = new Date();
+let fuzzy = "";
+
+$: if (now && time) {
+	time.update(now);
+	fuzzy = time.fuzzyTime;
+}
+
+$: fuzzy = time ? time.fuzzyTime : "";
+let interval: number | null = null;
+
+const timeCb = () => {
+	now = new Date();
+};
+
+const handleInterval = (clear = false) => {
+	if (clear) {
+		return interval && window.clearInterval(interval);
+	}
+	interval = window.setInterval(timeCb, 1000);
+};
+
+onMount(() => {
+	time = new Time();
+	// const elemenet = document.getElementById('fuzzy-clock-string');
+	// if (!elemenet) return;
+
+	// elemenet.onmouseover = () => handleInterval();
+	// elemenet.onmouseleave = () => handleInterval(true);
+
+	setInterval(handleInterval, 1000);
+});
 </script>
 
-<div class="flex flex-col gap-4 2xl:flex-row w-screen">
-  <nav>
-    <ul class="flex flex-row 2xl:flex-col gap-4 2xl:my-auto 2xl:h-screen">
+<div class="flex flex-col gap-4 w-screen 2xl:flex-row">
+  <nav class="fixed">
+    <ul class="flex flex-row gap-4 2xl:flex-col 2xl:my-auto 2xl:h-screen">
       {#each routes as route}
         <a
-          class="flex-1 text-center uppercase hover:opacity-25 bg-surface-200 text-black py-4 text-lg font-bold items-center flex cursor-pointer"
+          class="flex flex-1 items-center py-4 w-10 text-lg font-bold text-center text-black uppercase cursor-pointer hover:opacity-25 bg-surface-200"
           href={route.route}
         >
-          <li class="text-center w-full 2xl:text-right 2xl:-rotate-90">
+          <li class="w-full text-center 2xl:vertical-writing-lr 2xl:orientation-sideways 2xl:rotate-180 2xl:pl-2">
             {route.title || route.route.slice(1)}
           </li>
         </a>
       {/each}
     </ul>
   </nav>
-    <main class="bg-surface-800/75 py-8 mx-16 self-center min-h-screen flex flex-col flex-1">
+  <main
+    class="flex flex-col flex-1 gap-y-4 self-center px-4 py-8 min-h-screen lg:mx-16 bg-surface-800/75"
+  >
+  <section id="title" class="flex flex-col gap-y-2">
+
+    <h1 class="text-4xl font-black">AutoFLP</h1>
+    <div class="flex flex-row flex-wrap justify-between">
+
+    <span class="text-lg">
+      Auto Dealer Management Software for Family Owned Businesses
+    </span>
+    <span class="flex relative flex-col flex-1 text-right opacity-75 cursor-pointer group" id="fuzzy-clock-string">
+      {fuzzy}
+      <span class="hidden absolute left-0 top-8 flex-col w-full text-sm transition-all group-hover:flex">
+        {now.toLocaleDateString()}
+        {now.toLocaleTimeString()}
+      </span> 
+    </span>
+    </div>
+  </section>
 
     <slot />
-    </main>
+  </main>
 </div>
