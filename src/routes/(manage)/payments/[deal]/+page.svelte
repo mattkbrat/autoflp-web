@@ -1,10 +1,7 @@
 
 <script lang="ts">
 import { page } from "$app/stores";
-import type { Payment } from "$lib/types";
-export let data: {
-	payments: Payment[];
-};
+export let data;
 
 const currencyFormat = new Intl.NumberFormat("en-US", {
 	style: "currency",

@@ -2,10 +2,10 @@ import { Entity, type Opt, PrimaryKey, Property } from "@mikro-orm/core";
 
 @Entity()
 export class Inventory {
-	@PrimaryKey({ type: "string" })
+	@Property({ type: "string" }) // TODO: Find a better way to do this
 	id!: string;
 
-	@Property({ type: "string" })
+	@PrimaryKey({ type: "string" })
 	vin!: string;
 
 	@Property({ type: "string" })

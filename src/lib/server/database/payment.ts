@@ -1,5 +1,5 @@
 import { orm } from ".";
-import { Payment, type Payment as PaymentType } from "./models-bk/paymentent";
+import { Payment } from "./models/Payment";
 
 export const getPaymentsByDeal = async (deal: string) => {
 	return orm.em.findAll(Payment, {

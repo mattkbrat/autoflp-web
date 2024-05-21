@@ -30,6 +30,7 @@ export class Deal {
 
 	@ManyToOne({
 		entity: () => Inventory,
+		index: "vin",
 		fieldName: "inventory",
 		updateRule: "cascade",
 		deleteRule: "cascade",
