@@ -1,11 +1,11 @@
 import { DATABASE_URL } from "$env/static/private";
-import Database from "better-sqlite3";
+import { BetterSqliteDriver } from "@mikro-orm/better-sqlite";
+import { MikroORM } from "@mikro-orm/core";
+import { Payment } from "./models/payment";
 
-export const db = () => {
-	console.log(DATABASE_URL);
-	const db = new Database(DATABASE_URL, {
-		readonly: false,
-	});
-
-	return db;
-};
+export const orm = await MikroORM.init<BetterSqliteDriver>({
+	driver: BetterSqliteDriver,
+	dbName: DATABASE_URL,
+	entities: [Payment],
+	serialization: { forceObject: true },
+});

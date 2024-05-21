@@ -1,8 +1,10 @@
-import type { Payment } from "$lib/types";
-import { db } from ".";
+import { orm } from ".";
+import { Payment, type Payment as PaymentType } from "./models/payment";
 
-export const getPaymentsByDeal = (deal: string): Payment[] => {
-	return db()
-		.prepare("SELECT * FROM payment WHERE deal = ? order by date desc")
-		.all(deal) as Payment[];
+export const getPaymentsByDeal = async (deal: string) => {
+	return orm.em.findAll(Payment, {
+		where: {
+			deal,
+		},
+	});
 };

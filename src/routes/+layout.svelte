@@ -1,14 +1,14 @@
 <script lang="ts">
 import "../app.postcss";
 
+import { storeHighlightJs } from "@skeletonlabs/skeleton";
 // Highlight JS
 import hljs from "highlight.js/lib/core";
-import "highlight.js/styles/github-dark.css";
-import { storeHighlightJs } from "@skeletonlabs/skeleton";
 import css from "highlight.js/lib/languages/css";
 import javascript from "highlight.js/lib/languages/javascript";
 import typescript from "highlight.js/lib/languages/typescript";
 import xml from "highlight.js/lib/languages/xml"; // for HTML
+import "highlight.js/styles/github-dark.css";
 
 hljs.registerLanguage("xml", xml); // for HTML
 hljs.registerLanguage("css", css);
@@ -53,7 +53,7 @@ const routes: {
 let now = new Date();
 let fuzzy = "";
 
-$: if (now && time) {
+if (now && time) {
 	time.update(now);
 	fuzzy = time.fuzzyTime;
 }

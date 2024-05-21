@@ -1,8 +1,9 @@
-import { db } from "$lib/server/database/index.js";
-import { getPaymentsByDeal } from "$lib/server/database/payment.js";
+import { getPaymentsByDeal } from "$lib/server/database/payment";
+import { serialize } from "@mikro-orm/core";
+export const load = async ({ params }) => {
+	const payments = await getPaymentsByDeal(params.deal);
 
-export const load = ({ params }) => {
 	return {
-		payments: getPaymentsByDeal(params.deal),
+		payments: serialize(payments),
 	};
 };
