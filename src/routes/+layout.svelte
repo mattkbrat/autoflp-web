@@ -9,7 +9,7 @@ import javascript from "highlight.js/lib/languages/javascript";
 import typescript from "highlight.js/lib/languages/typescript";
 import xml from "highlight.js/lib/languages/xml"; // for HTML
 import "highlight.js/styles/github-dark.css";
-
+import { page } from "$app/stores";
 hljs.registerLanguage("xml", xml); // for HTML
 hljs.registerLanguage("css", css);
 hljs.registerLanguage("javascript", javascript);
@@ -79,11 +79,14 @@ onMount(() => {
 </script>
 
 <div class="flex flex-col gap-4 w-screen 2xl:flex-row">
-  <nav class="2xl:fixed">
+  <nav class="2xl:fixed print:hidden">
     <ul class="flex flex-row gap-4 2xl:flex-col 2xl:my-auto 2xl:h-screen">
       {#each routes as route}
+      {@const isSelected = $page.url.pathname.startsWith(route.route)}
         <a
-          class="flex flex-1 items-center py-4 w-10 text-lg font-bold text-center text-black uppercase cursor-pointer hover:opacity-25 bg-surface-200"
+          class="flex flex-1 items-center py-4 w-10 text-lg font-bold text-center text-black uppercase cursor-pointer hover:opacity-25 "
+          class:bg-surface-200={isSelected}
+          class:bg-surface-500={!isSelected}
           href={route.route}
         >
           <li class="w-full text-center 2xl:vertical-writing-lr 2xl:orientation-sideways 2xl:rotate-180 2xl:pl-2">
@@ -94,7 +97,7 @@ onMount(() => {
     </ul>
   </nav>
   <main
-    class="flex flex-col flex-1 gap-y-4 self-center px-4 py-8 min-h-screen lg:mx-16 bg-surface-800/75"
+    class="flex flex-col flex-1 gap-y-4 self-center px-4 py-8 min-h-screen lg:mx-16"
   >
   <section id="title" class="flex flex-col gap-y-2 content-end border-b-2 border-b-primary-100">
 
@@ -104,7 +107,7 @@ onMount(() => {
     <span class="text-lg">
       Auto Dealer Management Software for Family Owned Businesses
     </span>
-    <span class="flex relative flex-col flex-1 self-end pl-8 text-right opacity-75 cursor-pointer group" id="fuzzy-clock-string">
+    <span class="flex relative flex-col flex-1 self-end pl-8 text-right opacity-75 cursor-pointer group print:hidden" id="fuzzy-clock-string">
       {fuzzy}
       <span class="hidden absolute left-0 top-8 flex-col w-full text-sm transition-all group-hover:flex">
         {now.toLocaleDateString()}
