@@ -48,6 +48,9 @@ const routes: {
 	{
 		route: "/accounts",
 	},
+	{
+		route: "/inventory",
+	},
 ];
 
 let now = new Date();

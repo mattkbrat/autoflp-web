@@ -1,3 +1,3 @@
 import { accountDeals, deals } from "./deals";
-
-export { deals, accountDeals };
+import { allInventory } from "./inventory";
+export { deals, accountDeals, allInventory };
