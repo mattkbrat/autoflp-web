@@ -1,6 +1,14 @@
+import type { AsyncReturnType } from "$lib/types";
 import { orm } from ".";
 import { Account } from "./models/Account";
 import { Deal } from "./models/Deal";
+
+export type DealShortDetails = {
+	lastName: string;
+	firstName: string;
+	deal: string;
+	account: string;
+};
 
 export const getDealIds = async () => {
 	return orm.em.findAll(Deal, {
@@ -28,6 +36,8 @@ export const getAccountsWithDeals = async () => {
 	);
 };
 
+export type AccountsWithDeals = AsyncReturnType<typeof getAccountsWithDeals>;
+
 export const getAccountDeals = async (account: string) => {
 	const deals = orm.em.find(
 		Deal,
@@ -52,7 +62,50 @@ export const getAccountDeals = async (account: string) => {
 		},
 	);
 
-	console.log(deals);
-
 	return deals;
 };
+
+export const getAndGroupDeals = async () => {
+	return getAccountsWithDeals().then((deals) => {
+		return deals.reduce(
+			(acc, curr) => {
+				const key = `${curr.account.contact.lastName} ${curr.account.contact.firstName}`;
+
+				if (key in acc) {
+					return acc;
+				}
+
+				const theseValues = {
+					...curr.account.contact,
+					account: curr.account.id,
+					deal: curr.id,
+				};
+
+				if (!acc[key]) {
+					acc[key] = theseValues;
+				} else {
+					console.warn("duplicate found", curr);
+				}
+
+				return acc;
+			},
+			{} as { [key: string]: DealShortDetails },
+		);
+	});
+};
+
+export const getAndGroupSelected = async (selected: string) => {
+	return getAccountDeals(selected).then((deals) =>
+		deals.map((deal, n) => {
+			const { inventory, date, id } = deal;
+			return {
+				...inventory,
+				date,
+				id,
+			};
+		}),
+	);
+};
+
+export type GroupedDeals = AsyncReturnType<typeof getAndGroupDeals>;
+export type GroupedAccountDeals = AsyncReturnType<typeof getAndGroupSelected>;
