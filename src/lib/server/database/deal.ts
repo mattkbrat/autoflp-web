@@ -8,6 +8,7 @@ export type DealShortDetails = {
 	firstName: string;
 	deal: string;
 	account: string;
+	pmt: string;
 };
 
 export const getDealIds = async () => {
@@ -54,6 +55,7 @@ export const getAccountDeals = async (account: string) => {
 				"inventory.make",
 				"inventory.model",
 				"inventory.year",
+				"pmt",
 			],
 			orderBy: {
 				state: "desc",
@@ -97,11 +99,12 @@ export const getAndGroupDeals = async () => {
 export const getAndGroupSelected = async (selected: string) => {
 	return getAccountDeals(selected).then((deals) =>
 		deals.map((deal, n) => {
-			const { inventory, date, id } = deal;
+			const { inventory, date, id, pmt } = deal;
 			return {
 				...inventory,
 				date,
 				id,
+				pmt,
 			};
 		}),
 	);
