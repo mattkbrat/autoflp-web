@@ -16,6 +16,13 @@ export const getInventory = async (state: State) => {
 	});
 };
 
+export const getDetailedInventory = async (vin: string) => {
+	return orm.em.findAll(Inventory, {
+		where: { vin },
+		limit: 1,
+	});
+};
+
 export const serializeAllInventory = async (state: State) => {
 	return getInventory(state).then((inventory) => serialize(inventory));
 };
