@@ -1,4 +1,5 @@
 {
+	"vim.useSystemClipboard": true,
 	"prettier.documentSelectors": [
 		"**/*.svelte"
 	],
