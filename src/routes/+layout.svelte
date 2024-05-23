@@ -50,6 +50,7 @@ const routes: {
 	},
 	{
 		route: "/inventory",
+		title: "inv",
 	},
 ];
 
@@ -83,16 +84,20 @@ onMount(() => {
 
 <div class="flex flex-col gap-4 w-screen 2xl:flex-row">
   <nav class="2xl:fixed print:hidden">
-    <ul class="flex flex-row gap-4 2xl:flex-col 2xl:my-auto 2xl:h-screen">
+    <ul
+      class="flex flex-row flex-wrap gap-4 2xl:flex-nowrap 2xl:overflow-auto 2xl:flex-col 2xl:my-auto 2xl:h-screen 2xl:border-r-2 2xl:pr-1"
+    >
       {#each routes as route}
-      {@const isSelected = $page.url.pathname.startsWith(route.route)}
+        {@const isSelected = $page.url.pathname.startsWith(route.route)}
         <a
-          class="flex flex-1 items-center py-4 w-10 text-lg font-bold text-center text-black uppercase cursor-pointer hover:opacity-25 "
+          class="flex flex-1 items-center py-4 text-lg font-bold text-center text-black uppercase cursor-pointer min-w-8 hover:opacity-25"
           class:bg-surface-200={isSelected}
           class:bg-surface-500={!isSelected}
           href={route.route}
         >
-          <li class="w-full text-center 2xl:vertical-writing-lr 2xl:orientation-sideways 2xl:rotate-180 2xl:pl-2">
+          <li
+            class="w-full text-center 2xl:vertical-writing-lr 2xl:orientation-sideways 2xl:rotate-180 2xl:pl-2"
+          >
             {route.title || route.route.slice(1)}
           </li>
         </a>
@@ -102,24 +107,34 @@ onMount(() => {
   <main
     class="flex flex-col flex-1 gap-y-4 self-center px-4 py-8 min-h-screen lg:mx-16"
   >
-  <section id="title" class="flex flex-col gap-y-2 content-end border-b-2 border-b-primary-100">
+    <section
+      id="title"
+      class="flex flex-col gap-y-2 content-end border-b-2 border-b-primary-100"
+    >
+      <h1 class="text-4xl font-black">AutoFLP</h1>
+      <div class="flex flex-row flex-wrap justify-between">
+        <span class="text-lg">
+          Auto Dealer Management for Family Owned Businesses
+        </span>
+        <span
+          class="flex relative flex-col flex-1 self-end pl-8 text-right opacity-75 cursor-pointer group print:hidden"
+          id="fuzzy-clock-string"
+        >
+          {fuzzy}
+          <span
+            class="hidden absolute left-0 top-8 flex-col w-full text-sm transition-all group-hover:flex"
+          >
+            {now.toLocaleDateString()}
+            {now.toLocaleTimeString()}
+          </span>
+        </span>
+      </div>
+    </section>
 
-    <h1 class="text-4xl font-black">AutoFLP</h1>
-    <div class="flex flex-row flex-wrap justify-between">
-
-    <span class="text-lg">
-      Auto Dealer Management Software for Family Owned Businesses
-    </span>
-    <span class="flex relative flex-col flex-1 self-end pl-8 text-right opacity-75 cursor-pointer group print:hidden" id="fuzzy-clock-string">
-      {fuzzy}
-      <span class="hidden absolute left-0 top-8 flex-col w-full text-sm transition-all group-hover:flex">
-        {now.toLocaleDateString()}
-        {now.toLocaleTimeString()}
-      </span> 
-    </span>
+    <div
+      class="flex flex-col flex-1 py-4 space-y-4 w-full rounded-xl bg-surface-900/75 lg:px-4"
+    >
+      <slot />
     </div>
-  </section>
-
-    <slot />
   </main>
 </div>
