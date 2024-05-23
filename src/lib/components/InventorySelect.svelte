@@ -3,7 +3,9 @@ import { goto, invalidateAll } from "$app/navigation";
 import { page } from "$app/stores";
 import { allInventory } from "$lib/stores";
 const handleNav = (target: string) => {
-	if (!target) return;
+	if (!target) {
+	goto("/inventory/new");
+  }
 	if ($page.url.href.endsWith(target)) return;
 	goto(`/inventory/${target}`);
 };
@@ -24,6 +26,7 @@ const handleNavState = (state?: string) => {
 <div class="flex flex-row flex-wrap gap-4">
   <select
     class="flex-1 uppercase bg-surface-800"
+    id="inventory-select"
     on:blur={(e) => handleNav(e.target?.value)}
   >
     <option value="">Select Inventory</option>

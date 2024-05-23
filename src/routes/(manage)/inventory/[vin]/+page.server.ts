@@ -1,4 +1,14 @@
-import { getDetailedInventory } from "$lib/server/database/inventory.js";
+import { randomUUID } from "crypto";
+import {
+	type Update,
+	exists,
+	getDetailedInventory,
+	insert,
+	parseDetailed,
+	update,
+	upsert,
+} from "$lib/server/database/inventory.js";
+import { Inventory } from "$lib/server/database/models/Inventory.js";
 
 export const load = async ({ params }) => {
 	const inventory = await getDetailedInventory(params.vin);
@@ -6,24 +16,49 @@ export const load = async ({ params }) => {
 	const [first] = inventory;
 
 	return {
-		inventory: {
-			...first,
-			year: Number.isFinite(+first.year) ? Number(first.year) : 0,
-			down: first.down
-				? Number.isFinite(+first.down)
-					? Number(first.down)
-					: 0
-				: 0,
-			cash: first.cash
-				? Number.isFinite(+first.cash)
-					? Number(first.cash)
-					: 0
-				: 0,
-			credit: first.credit
-				? Number.isFinite(+first.credit)
-					? Number(first.credit)
-					: 0
-				: 0,
-		},
+		inventory: parseDetailed(first),
 	};
+};
+
+export const actions = {
+	update: async ({ request }) => {
+		const data = await request.formData();
+
+		const id = data.get("id") as string;
+		const vin = data.get("vin") as string;
+
+		const inventory: Update = {};
+		inventory.id = (data.get("id") || randomUUID()) as string;
+		inventory.body = data.get("body") as string;
+		inventory.make = data.get("make") as string;
+		inventory.model = data.get("model") as string;
+		inventory.year = data.get("year") as string;
+		inventory.vin = vin;
+		inventory.fuel = data.get("fuel") as string;
+		inventory.mileage = data.get("mileage") as string;
+		inventory.cwt = data.get("cwt") as string;
+		inventory.color = data.get("color") as string;
+		inventory.cash = data.get("cash") as string;
+		inventory.credit = data.get("credit") as string;
+		inventory.down = data.get("down") as string;
+
+		console.log("updating", inventory);
+		const handled = await upsert(id, inventory);
+
+		const updated = await getDetailedInventory(vin).then((inv) => {
+			return { ...inv[0] };
+		});
+
+		console.log({ handled, updated });
+
+		return {
+			data: updated,
+			method: id ? "update" : "insert",
+		};
+	},
+
+	delete: async ({ request }) => {
+		const data = await request.formData();
+		return {};
+	},
 };
