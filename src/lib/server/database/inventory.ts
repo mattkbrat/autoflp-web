@@ -8,7 +8,7 @@ type State = number | null;
 export const getInventory = async (state: State) => {
 	return orm.em.findAll(Inventory, {
 		where: state ? { state } : undefined,
-		fields: ["id", "make", "model", "year", "vin"],
+		fields: ["id", "make", "model", "year", "vin", "color"],
 		orderBy: {
 			make: "desc",
 			model: "asc",

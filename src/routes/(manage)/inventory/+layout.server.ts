@@ -7,9 +7,9 @@ import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async ({ url }) => {
 	const stateParam = url.searchParams.get("state");
-	const state =
-		stateParam === "inactive" ? 0 : stateParam === "active" ? 1 : null;
-	const inventory = await serializeAllInventory(state);
+	const inventory = await serializeAllInventory(
+		stateParam ? +stateParam : null,
+	);
 
 	return {
 		inventory,

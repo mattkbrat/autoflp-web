@@ -7,12 +7,13 @@ import { onMount } from "svelte";
 
 export let data;
 
+$: if (data.inventory.length !== $allInventory.length) {
+	allInventory.set(data.inventory);
+}
 onMount(() => {
-	if (data.inventory) {
-		allInventory.set(data.inventory);
-	}
+	allInventory.set(data.inventory);
 });
 </script>
 
-<InventorySelect/>
+<InventorySelect />
 <slot />
