@@ -4,8 +4,8 @@ import { page } from "$app/stores";
 import { allInventory } from "$lib/stores";
 const handleNav = (target: string) => {
 	if (!target) {
-	goto("/inventory/new");
-  }
+		goto("/inventory/new");
+	}
 	if ($page.url.href.endsWith(target)) return;
 	goto(`/inventory/${target}`);
 };
