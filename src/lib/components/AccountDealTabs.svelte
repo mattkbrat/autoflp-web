@@ -6,7 +6,6 @@ import { goto } from "$app/navigation";
 import { accountDeals } from "$lib/stores";
 
 $: if ($accountDeals.length > 0 && $page.url.pathname.endsWith("payments")) {
-	console.info($page.url.pathname);
 	goto(`/payments/${$accountDeals[0].id}`);
 }
 </script>
@@ -18,7 +17,7 @@ $: if ($accountDeals.length > 0 && $page.url.pathname.endsWith("payments")) {
 	flex="flex-1 lg:flex-none"
 	rounded=""
 	border=""
-	class="bg-surface-100-800-token w-full"
+	class="w-full bg-surface-100-800-token"
 >
 {#each $accountDeals as deal}
 	<TabAnchor href={`/payments/${deal.id}`} selected={$page.url.pathname.endsWith(deal.id)}>
