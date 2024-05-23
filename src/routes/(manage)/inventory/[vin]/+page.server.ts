@@ -9,6 +9,7 @@ import {
 	upsert,
 } from "$lib/server/database/inventory.js";
 import { Inventory } from "$lib/server/database/models/Inventory.js";
+import { handleFetch, parseNHTSA } from "$lib/server/inventory";
 
 export const load = async ({ params }) => {
 	const inventory = await getDetailedInventory(params.vin);
@@ -60,5 +61,15 @@ export const actions = {
 	delete: async ({ request }) => {
 		const data = await request.formData();
 		return {};
+	},
+
+	search: async ({ request }) => {
+		const data = await request.formData();
+		const vin = data.get("vin") as string;
+		if (!vin) return null;
+		const searched = await handleFetch(vin);
+		const parsed = parseNHTSA(searched);
+
+		return parsed ? { ...parsed } : null;
 	},
 };
