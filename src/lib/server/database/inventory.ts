@@ -31,19 +31,19 @@ export type InventoryField = Extract<
 export const parseDetailed = (inventory: Inventory = {}) => {
 	return {
 		...inventory,
-		year: Number.isFinite(+inventory.year) ? Number(inventory.year) : 0,
+		year: !Number.isNaN(+inventory.year) ? Number(inventory.year) : 0,
 		down: inventory.down
-			? Number.isFinite(+inventory.down)
+			? !Number.isNaN(+inventory.down)
 				? Number(inventory.down)
 				: 0
 			: 0,
 		cash: inventory.cash
-			? Number.isFinite(+inventory.cash)
+			? !Number.isNaN(+inventory.cash)
 				? Number(inventory.cash)
 				: 0
 			: 0,
 		credit: inventory.credit
-			? Number.isFinite(+inventory.credit)
+			? !Number.isNaN(+inventory.credit)
 				? Number(inventory.credit)
 				: 0
 			: 0,

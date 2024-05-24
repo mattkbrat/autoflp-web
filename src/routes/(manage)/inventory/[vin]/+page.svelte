@@ -1,8 +1,10 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import { goto } from "$app/navigation";
-import { el } from "$lib/element.js";
-import type { InventoryField } from "$lib/server/database/inventory.js";
+import { page } from "$app/stores";
+import { el } from "$lib/element";
+import { handleInvNav } from "$lib/navState";
+import type { InventoryField } from "$lib/server/database/inventory";
 import type { ParsedNHTA } from "$lib/server/inventory";
 import { allInventory } from "$lib/stores";
 import { onMount } from "svelte";
@@ -32,12 +34,12 @@ $: if (data.inventory.vin && selected.vin !== data.inventory.vin && hasLoaded) {
 	}, 200);
 }
 
-$: if (!data.inventory.vin && !hasCleared) {
-	selected = {};
-	searchedInfo = {};
-	searched = "";
-	hasCleared = true;
-}
+// $: if (!data.inventory.vin && !hasCleared) {
+//   selected = {};
+//   searchedInfo = {};
+//   searched = "";
+//   hasCleared = true;
+// }
 
 const fieldMap: InventoryField[][] = [
 	["vin", "year", "fuel"],
@@ -83,15 +85,55 @@ const handleSearched = async (result: unknown) => {
 	}, 100);
 };
 
-$: if (selected.vin?.length === 17 && selected.vin !== searched) {
-	searched = selected.vin;
-	setTimeout(() => {
-		el<HTMLButtonElement>`search-submit`?.click();
-	}, 1000);
+const syncSelect = (vin: string) => {
+	const selectEl = el<HTMLSelectElement>`inventory-select`;
+	if (!selectEl) return;
+	const currentIndex = selectEl.selectedIndex;
+	if (vin === "new") {
+		if (currentIndex !== 0) {
+			selectEl.selectedIndex = 0;
+		}
+		return;
+	}
+	const items = Array.from(selectEl.children) as HTMLOptionElement[];
+	const indexOf = items.findIndex((el) => el.value === vin);
+	if (indexOf === -1 || indexOf === currentIndex) {
+		console.log("already selected or invalid", indexOf, vin, selected);
+		return;
+	}
+	selectEl.selectedIndex = indexOf;
+	console.log({ selectEl, indexOf, vin, currentIndex });
+};
+
+$: if (selected.vin?.length === 17) {
+	const vin = selected.vin.toLowerCase();
+	const exists =
+		$page.params.vin.toLowerCase() === vin
+			? -1
+			: $allInventory.findIndex((i) => i.vin.toLowerCase() === vin);
+	if (exists !== -1) {
+		handleInvNav({ url: $page.url, vin: $allInventory[exists].vin });
+		console.log("setting new selected");
+		selected = $allInventory[exists];
+		console.info("exists, navigating", exists);
+	}
+	if (import.meta.env.PROD && vin !== searched) {
+		searched = vin;
+		setTimeout(() => {
+			el<HTMLButtonElement>`search-submit`?.click();
+		}, 1000);
+	}
 }
+
+page.subscribe((p) => {
+	if (!hasLoaded) return;
+	syncSelect(p.params.vin);
+});
 
 onMount(() => {
 	hasLoaded = true;
+	selected = {};
+	syncSelect($page.params.vin);
 });
 </script>
 
@@ -111,15 +153,18 @@ onMount(() => {
         const value = result.data.data;
 
         console.log(value, indexOf);
-        if (Number.isNaN(indexOf) || indexOf === -1) {
-          console.warn("invalid index");
-          return;
-        }
+        const isNew = Number.isNaN(indexOf) || indexOf === -1;
 
         allInventory.update((inv) => {
-          inv[Number(indexOf)] = value;
+          if (isNew) {
+            inv.push(value);
+          } else {
+            inv[Number(indexOf)] = value;
+          }
           return inv;
         });
+
+        handleInvNav({ url: $page.url, vin: selected.vin });
       }
     };
   }}
@@ -131,10 +176,12 @@ onMount(() => {
     type="hidden"
     class="input"
   />
+  {@debug selected}
   {#each fieldMap as fieldRow}
     <div class={`flex flex-row flex-wrap gap-4`}>
       {#each fieldRow as key}
         {@const value = selected[key]}
+
         <label class="flex-1 min-w-max uppercase" id={`inventory-form-${key}`}>
           {key}
           {#if Number.isFinite(value)}
