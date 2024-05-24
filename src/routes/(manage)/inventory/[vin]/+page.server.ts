@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import {
 	type Update,
+	deleteInventory,
 	exists,
 	getDetailedInventory,
 	insert,
@@ -10,6 +11,7 @@ import {
 } from "$lib/server/database/inventory.js";
 import { Inventory } from "$lib/server/database/models/Inventory.js";
 import { handleFetch, parseNHTSA } from "$lib/server/inventory";
+import { fail } from "@sveltejs/kit";
 
 export const load = async ({ params }) => {
 	const inventory = await getDetailedInventory(params.vin);
@@ -43,14 +45,11 @@ export const actions = {
 		inventory.credit = data.get("credit") as string;
 		inventory.down = data.get("down") as string;
 
-		console.log("updating", inventory);
 		const handled = await upsert(id, inventory);
 
 		const updated = await getDetailedInventory(vin).then((inv) => {
 			return { ...inv[0] };
 		});
-
-		console.log({ handled, updated });
 
 		return {
 			data: updated,
@@ -60,7 +59,10 @@ export const actions = {
 
 	delete: async ({ request }) => {
 		const data = await request.formData();
-		return {};
+		const vin = data.get("vin") as string;
+		if (!vin) return fail(400, { vin, missing: true });
+		await deleteInventory(vin);
+		return { delete: vin };
 	},
 
 	search: async ({ request }) => {

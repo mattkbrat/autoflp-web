@@ -4,9 +4,10 @@ type InvNavState = {
 	url: URL;
 	state?: string | null;
 	vin?: string;
+	invalidate?: boolean;
 };
 
-export const handleInvNav = ({ url, state, vin }: InvNavState) => {
+export const handleInvNav = ({ url, state, vin, invalidate }: InvNavState) => {
 	const newUrl = new URL(url);
 	if (vin) {
 		newUrl.pathname = `/inventory/${vin}`;
@@ -17,5 +18,7 @@ export const handleInvNav = ({ url, state, vin }: InvNavState) => {
 		newUrl.searchParams.delete("state");
 	}
 
-	goto(newUrl);
+	goto(newUrl, {
+		invalidateAll: invalidate,
+	});
 };

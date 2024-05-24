@@ -34,12 +34,12 @@ $: if (data.inventory.vin && selected.vin !== data.inventory.vin && hasLoaded) {
 	}, 200);
 }
 
-// $: if (!data.inventory.vin && !hasCleared) {
-//   selected = {};
-//   searchedInfo = {};
-//   searched = "";
-//   hasCleared = true;
-// }
+$: if (!data.inventory.vin && !hasCleared) {
+	selected = {};
+	searchedInfo = {};
+	searched = "";
+	hasCleared = true;
+}
 
 const fieldMap: InventoryField[][] = [
 	["vin", "year", "fuel"],
@@ -98,11 +98,10 @@ const syncSelect = (vin: string) => {
 	const items = Array.from(selectEl.children) as HTMLOptionElement[];
 	const indexOf = items.findIndex((el) => el.value === vin);
 	if (indexOf === -1 || indexOf === currentIndex) {
-		console.log("already selected or invalid", indexOf, vin, selected);
+		//console.log("already selected or invalid", indexOf, vin, selected);
 		return;
 	}
 	selectEl.selectedIndex = indexOf;
-	console.log({ selectEl, indexOf, vin, currentIndex });
 };
 
 $: if (selected.vin?.length === 17) {
@@ -112,10 +111,11 @@ $: if (selected.vin?.length === 17) {
 			? -1
 			: $allInventory.findIndex((i) => i.vin.toLowerCase() === vin);
 	if (exists !== -1) {
-		handleInvNav({ url: $page.url, vin: $allInventory[exists].vin });
-		console.log("setting new selected");
-		selected = $allInventory[exists];
-		console.info("exists, navigating", exists);
+		handleInvNav({
+			url: $page.url,
+			vin: $allInventory[exists].vin,
+			invalidate: true,
+		});
 	}
 	if (import.meta.env.PROD && vin !== searched) {
 		searched = vin;
@@ -129,6 +129,44 @@ page.subscribe((p) => {
 	if (!hasLoaded) return;
 	syncSelect(p.params.vin);
 });
+
+const updateAllInventory = (
+	vin: string,
+	value: (typeof $allInventory)[number] | null,
+	remove = false,
+) => {
+	const lowerVin = vin.toLowerCase();
+	const indexOf = $allInventory.findIndex(
+		(i) => i.vin.toLowerCase() === lowerVin,
+	);
+
+	const isNew = Number.isNaN(indexOf) || indexOf === -1;
+
+	if (remove && isNew) {
+		console.warn("Cannot remove non-existing inventory");
+		return;
+	}
+
+	if (isNew && !value) {
+		console.warn("Cannot add null inventory");
+		return;
+	}
+
+	allInventory.update((inv) => {
+		if (remove) {
+			inv.splice(indexOf, 1);
+		} else if (isNew && value) {
+			inv.push(value);
+		} else if (value) {
+			inv[Number(indexOf)] = value;
+		} else {
+			console.trace("don't know what to do with this");
+		}
+		return inv;
+	});
+
+	handleInvNav({ url: $page.url, vin: remove ? "new" : selected.vin });
+};
 
 onMount(() => {
 	hasLoaded = true;
@@ -146,25 +184,10 @@ onMount(() => {
     return async ({ result, update }) => {
       if ("data" in result && result.data && "data" in result.data) {
         //await update();
-        const indexOf =
-          result.data.data &&
-          $allInventory.findIndex((i) => i.vin === result.data.data.vin);
-
-        const value = result.data.data;
-
-        console.log(value, indexOf);
-        const isNew = Number.isNaN(indexOf) || indexOf === -1;
-
-        allInventory.update((inv) => {
-          if (isNew) {
-            inv.push(value);
-          } else {
-            inv[Number(indexOf)] = value;
-          }
-          return inv;
-        });
-
-        handleInvNav({ url: $page.url, vin: selected.vin });
+        const vin = result.data.data && result.data.data.vin;
+        if (vin) {
+          updateAllInventory(vin, result.data.data);
+        }
       }
     };
   }}
@@ -176,7 +199,7 @@ onMount(() => {
     type="hidden"
     class="input"
   />
-  {@debug selected}
+  <!-- {@debug selected} -->
   {#each fieldMap as fieldRow}
     <div class={`flex flex-row flex-wrap gap-4`}>
       {#each fieldRow as key}
@@ -210,17 +233,44 @@ onMount(() => {
 <form
   action="?/search"
   method="post"
-  class="flex flex-col flex-wrap space-y-4"
+  class="flex flex-row flex-wrap space-y-4"
   id="inventory-form"
   use:enhance={() => {
     return async ({ result, update }) => {
-      handleSearched(result);
+      const deleted = result.data?.delete;
+      if (!!deleted) {
+        updateAllInventory(deleted, null, true);
+      } else {
+        handleSearched(result);
+      }
     };
   }}
 >
   <input type="hidden" name="vin" value={selected.vin} />
-  <button class="btn variant-ringed-secondary" type="submit" id="search-submit"
-    >Search</button
+  <button
+    class="btn variant-ringed-secondary flex-1"
+    type="submit"
+    id="search-submit">Search</button
+  >
+  <button
+    type="button"
+    class="btn variant-ringed-warning min-w-60"
+    on:click={() => {
+      if (
+        !confirm(`Delete ${selected.vin} ${selected.year} ${selected.make} `)
+      ) {
+        return;
+      }
+      document.getElementById("inv-delete-submit")?.click();
+    }}
+  >
+    Delete
+  </button>
+  <button
+    formaction="?/delete"
+    class=" hidden"
+    type="submit"
+    id="inv-delete-submit">Delete</button
   >
 </form>
 

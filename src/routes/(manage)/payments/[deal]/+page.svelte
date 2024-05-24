@@ -55,8 +55,7 @@ $: if (deal && $accountDeals) {
             setTimeout(() => {
               const element = el < HTMLInputElement > `pmt-date-input`;
               if (element) {
-                console.log(element);
-                element.value = today 
+                element.value = today;
               }
             }, 200);
           }
@@ -71,7 +70,13 @@ $: if (deal && $accountDeals) {
         class="input"
         id="pmt-date-input"
       />
-      <input type="number" name="pmt" required class="input" value={Math.floor(+defaultPmt)} />
+      <input
+        type="number"
+        name="pmt"
+        required
+        class="input"
+        value={Math.floor(+defaultPmt)}
+      />
       <input type="hidden" name="deal" value={deal} required class="input" />
       <button type="submit">Save</button>
     </form>

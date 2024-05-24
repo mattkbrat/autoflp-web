@@ -7,7 +7,7 @@ type State = number | null;
 
 export const getInventory = async (state: State) => {
 	return orm.em.findAll(Inventory, {
-		where: state ? { state } : undefined,
+		where: state !== null ? { state } : undefined,
 		fields: ["id", "make", "model", "year", "vin", "color"],
 		orderBy: {
 			make: "desc",
@@ -100,3 +100,8 @@ export const upsert = async (id: string | null, inventory: Update) => {
 };
 
 export type AllInventory = AsyncReturnType<typeof serializeAllInventory>;
+
+export const deleteInventory = async (vin: string) => {
+	const inv = orm.em.getReference(Inventory, vin);
+	await orm.em.remove(inv).flush();
+};
