@@ -74,4 +74,17 @@ export const actions = {
 
 		return parsed ? { ...parsed } : null;
 	},
+
+	random: async () => {
+		if (import.meta.env.PROD) return {};
+		return fetch("https://randomvin.com/getvin.php?type=fake")
+			.then((res) => {
+				if (!res.ok) return;
+				return res.text();
+			})
+			.then((vin) => {
+				if (!vin) return;
+				return { vin };
+			});
+	},
 };

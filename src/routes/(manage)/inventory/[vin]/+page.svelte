@@ -276,6 +276,23 @@ onMount(() => {
   >
 </form>
 
+{#if import.meta.env.DEV}
+  <form
+    action="?/random"
+    method="post"
+    class="flex flex-row flex-wrap space-y-4"
+    id="inventory-form"
+    use:enhance={() => {
+      return async ({ result, update }) => {
+        const vin = result.data?.vin;
+        if (!vin) return;
+        selected.vin = vin;
+      };
+    }}
+  >
+    <button type="submit"> Fetch random </button>
+  </form>
+{/if}
 <a
   href="https://www.nhtsa.gov/vehicle-safety/odometer-fraud#topic-laws-and-regulations"
   class="underline"
