@@ -42,3 +42,22 @@ export const serializeAccounts = async () => {
 };
 
 export type Accounts = AsyncReturnType<typeof serializeAccounts>;
+
+export const getDetailedAccount = async (id: string) => {
+	return orm.em.find(
+		Account,
+		{ id },
+		{
+			populate: ["contact"],
+		},
+	);
+};
+
+export const serializeDetailedAccount = (
+	account: AsyncReturnType<typeof getDetailedAccount>[number],
+) => {
+	return {
+		...account,
+		contact: { ...account?.contact },
+	};
+};
