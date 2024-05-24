@@ -1,6 +1,6 @@
 <script lang="ts">
 import AccountDealTabs from "$lib/components/AccountDealTabs.svelte";
-import AccountSelect from "$lib/components/AccountSelect.svelte";
+import AccountSelect from "$lib/components/AccountPaymentSelect.svelte";
 import InventorySelect from "$lib/components/InventorySelect.svelte";
 import { allInventory } from "$lib/stores";
 import { onMount } from "svelte";
