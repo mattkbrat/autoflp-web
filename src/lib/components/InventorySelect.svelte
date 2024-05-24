@@ -25,7 +25,7 @@ $: active = $page.url.searchParams.get("state");
     {/each}
   </select>
 
-  <div class="flex flex-row gap-4 min-w-1/4">
+  <div class="flex flex-row btn-group min-w-1/4">
     <button
       type="button"
       class="flex-1 btn variant-filled-tertiary"

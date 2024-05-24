@@ -23,6 +23,7 @@ let searchedInfo: { [key: string]: string } | null = null;
 
 $: if (data.inventory.vin && selected.vin !== data.inventory.vin && hasLoaded) {
 	selected = data.inventory;
+	searchedInfo = null;
 	hasCleared = false;
 	setTimeout(() => {
 		const input = el`inventory-form-vin`;
@@ -171,6 +172,7 @@ const updateAllInventory = (
 onMount(() => {
 	hasLoaded = true;
 	selected = {};
+	searchedInfo = null;
 	syncSelect($page.params.vin);
 });
 </script>
@@ -283,7 +285,7 @@ onMount(() => {
   Odometer fraud info
 </a>
 
-{#if searched && searchedInfo}
+{#if searchedInfo}
   <details>
     <summary class="col-span-full">Search Info</summary>
     <div class="grid grid-cols-[auto_1fr]">
