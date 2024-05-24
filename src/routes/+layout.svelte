@@ -10,6 +10,9 @@ import typescript from "highlight.js/lib/languages/typescript";
 import xml from "highlight.js/lib/languages/xml"; // for HTML
 import "highlight.js/styles/github-dark.css";
 import { page } from "$app/stores";
+
+export let data;
+
 hljs.registerLanguage("xml", xml); // for HTML
 hljs.registerLanguage("css", css);
 hljs.registerLanguage("javascript", javascript);
@@ -30,6 +33,7 @@ import { onMount } from "svelte";
 storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 
 import { Time } from "$lib/fuzzy-time";
+import { deals } from "$lib/stores";
 let time: Time | null = null;
 
 const routes: {
@@ -79,6 +83,7 @@ const handleInterval = (clear = false) => {
 onMount(() => {
 	time = new Time();
 	handleInterval();
+	deals.set(data.deals);
 });
 </script>
 
