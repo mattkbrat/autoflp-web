@@ -1,7 +1,8 @@
 import type { AsyncReturnType } from "$lib/types";
-import { serialize } from "@mikro-orm/core";
+import { type FromEntityType, serialize, wrap } from "@mikro-orm/core";
 import { orm } from ".";
 import { Account } from "./models/Account";
+import { Person } from "./models/Person";
 
 export const getAccounts = async () => {
 	return orm.em.find(
@@ -72,3 +73,83 @@ export type AccountField = Extract<
 	keyof ReturnType<typeof serializeDetailedAccount>,
 	string
 >;
+
+///
+
+export const insertPerson = async (p: Person) => {
+	return orm.em.insert(p);
+};
+
+export type PersonUpdate = FromEntityType<Person>;
+
+const getPerson = async (id: string) => orm.em.findOneOrFail(Person, { id });
+const getAccount = async (id: string) => orm.em.findOneOrFail(Account, { id });
+export const updatePerson = async (id: string, p: PersonUpdate) => {
+	const orig = await getPerson(id);
+	const wrapped = wrap(orig).assign(p);
+
+	await orm.em.flush();
+
+	return wrapped;
+};
+
+export const upsertPerson = async (id: string | null, p: PersonUpdate) => {
+	let shouldInsert = !id;
+	if (!shouldInsert && id) {
+		try {
+			await updatePerson(id, p);
+		} catch (e) {
+			console.error("could not update", e.message);
+			shouldInsert = true;
+		}
+	}
+
+	if (shouldInsert) {
+		const newP = new Person();
+		try {
+			await insertPerson(wrap(newP).assign(p));
+		} catch (e) {
+			console.error("could not update", e.message);
+		}
+	}
+
+	return getPerson(id || p.id);
+};
+
+export type AccountUpdate = FromEntityType<Account>;
+
+export const updateAccount = async (id: string, a: AccountUpdate) => {
+	const orig = await getAccount(id);
+	const wrapped = wrap(orig).assign(a);
+
+	await orm.em.flush();
+
+	return wrapped;
+};
+
+export const insertAccount = async (a: Account) => {
+	return orm.em.insert(a);
+};
+export const upsertAccount = async (id: string | null, a: AccountUpdate) => {
+	let shouldInsert = !id;
+	if (!shouldInsert && id) {
+		try {
+			await updateAccount(id, a);
+		} catch (e) {
+			console.error("could not update", e.message);
+			shouldInsert = true;
+		}
+	}
+
+	if (shouldInsert) {
+		const newP = new Account();
+		try {
+			await insertAccount(wrap(newP).assign(a));
+		} catch (e) {
+			console.error("could not update", e.message);
+			shouldInsert = true;
+		}
+	}
+
+	return getAccount(id || a.id);
+};
