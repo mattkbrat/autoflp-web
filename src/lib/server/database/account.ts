@@ -56,8 +56,19 @@ export const getDetailedAccount = async (id: string) => {
 export const serializeDetailedAccount = (
 	account: AsyncReturnType<typeof getDetailedAccount>[number],
 ) => {
+	const { contact, dateOfBirth, licenseExpiration, ...acc } = account || {};
+
 	return {
-		...account,
-		contact: { ...account?.contact },
+		...acc,
+		...contact,
+		account: acc?.id,
+		contact: account?.contact?.id,
+		licenseExpiration: new Date(licenseExpiration || new Date()),
+		dateOfBirth: new Date(dateOfBirth || new Date()),
 	};
 };
+
+export type AccountField = Extract<
+	keyof ReturnType<typeof serializeDetailedAccount>,
+	string
+>;
