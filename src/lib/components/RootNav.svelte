@@ -12,14 +12,14 @@ const routes: {
 		route: "/payments",
 	},
 	{
-		route: "/deals",
-	},
-	{
 		route: "/accounts",
 	},
 	{
 		route: "/inventory",
 		title: "inv",
+	},
+	{
+		route: "/deals",
 	},
 ];
 </script>
