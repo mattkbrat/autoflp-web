@@ -1,17 +1,19 @@
 <script lang="ts">
 import { goto, invalidateAll } from "$app/navigation";
 import { page } from "$app/stores";
-import { handleInvNav } from "$lib/navState";
+import { type NavType, handleInvNav } from "$lib/navState";
 import { allInventory } from "$lib/stores";
 
 $: active = $page.url.searchParams.get("state");
+
+export const navType: NavType = "folder";
 </script>
 
 <div class="flex flex-row flex-wrap gap-4">
   <select
     class="flex-1 uppercase bg-surface-800"
     id="inventory-select"
-    on:blur={(e) => handleInvNav({ url: $page.url, vin: e.target.value })}
+    on:blur={(e) => handleInvNav({ url: $page.url, vin: e.target.value, navType })}
   >
     <option value="new">Select Inventory</option>
     {#each $allInventory as inventory}
@@ -25,7 +27,7 @@ $: active = $page.url.searchParams.get("state");
     {/each}
   </select>
 
-  <div class="flex flex-row btn-group min-w-1/4">
+  <div class="flex flex-row btn-group min-w-1/4" class:hidden={navType === 'query'}>
     <button
       type="button"
       class="flex-1 btn variant-filled-tertiary"

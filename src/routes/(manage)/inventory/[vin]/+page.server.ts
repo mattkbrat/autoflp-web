@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import {
 	type Update,
 	deleteInventory,
@@ -44,6 +44,7 @@ export const actions = {
 		inventory.cash = data.get("cash") as string;
 		inventory.credit = data.get("credit") as string;
 		inventory.down = data.get("down") as string;
+		inventory.state = +(data.get("state") as string);
 
 		const handled = await upsert(id, inventory);
 

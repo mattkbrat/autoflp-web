@@ -169,6 +169,14 @@ const updateAllInventory = (
 	handleInvNav({ url: $page.url, vin: remove ? "new" : selected.vin });
 };
 
+const toggleState = (oldState: number) => {
+	selected.state = oldState === 0 ? 1 : 0;
+
+	setTimeout(() => {
+		el<HTMLButtonElement>`inv-submit-button`?.click();
+	}, 150);
+};
+
 onMount(() => {
 	hasLoaded = true;
 	selected = {};
@@ -201,6 +209,13 @@ onMount(() => {
     type="hidden"
     class="input"
   />
+  <input
+    bind:value={selected.state}
+    name="state"
+    id="inventory-form-id"
+    type="hidden"
+    class="input"
+  />
   <!-- {@debug selected} -->
   {#each fieldMap as fieldRow}
     <div class={`flex flex-row flex-wrap gap-4`}>
@@ -229,7 +244,26 @@ onMount(() => {
       {/each}
     </div>
   {/each}
-  <button type="submit" class="btn variant-soft-success"> Save </button>
+  <div class="btn-group gap-2">
+    <button
+      type="submit"
+      class="btn variant-soft-success flex-1"
+      id="inv-submit-button"
+    >
+      Save
+    </button>
+    {#if Number.isFinite(selected.state)}
+      <button
+        type="button"
+        on:click={() => {
+          typeof selected.state !== "undefined" && toggleState(+selected.state);
+        }}
+        class="btn variant-outline-tertiary"
+      >
+        Make {selected.state === 0 ? "Active" : "Inactive"}
+      </button>
+    {/if}
+  </div>
 </form>
 
 <form
