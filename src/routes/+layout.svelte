@@ -9,7 +9,6 @@ import javascript from "highlight.js/lib/languages/javascript";
 import typescript from "highlight.js/lib/languages/typescript";
 import xml from "highlight.js/lib/languages/xml"; // for HTML
 import "highlight.js/styles/github-dark.css";
-export let data;
 
 hljs.registerLanguage("xml", xml); // for HTML
 hljs.registerLanguage("css", css);
@@ -27,17 +26,11 @@ import {
 	shift,
 } from "@floating-ui/dom";
 import { storePopup } from "@skeletonlabs/skeleton";
-import { onMount } from "svelte";
 
 storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 
 import RootNav from "$lib/components/RootNav.svelte";
 import TitleStrip from "$lib/components/TitleStrip.svelte";
-import { deals } from "$lib/stores";
-
-onMount(() => {
-	deals.set(data.deals);
-});
 </script>
 
 <div class="flex flex-col gap-4 w-screen min-h-screen">
