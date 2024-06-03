@@ -4,9 +4,13 @@ import { page } from "$app/stores";
 import AccountSelect from "$lib/components/AccountSelect.svelte";
 import InventorySelect from "$lib/components/InventorySelect.svelte";
 import { defaultDeal } from "$lib/finance";
+import { calcFinance } from "$lib/finance/calc";
+import { formatCurrency, formatDate } from "$lib/format";
 import type { NavType } from "$lib/navState";
 import { allAccounts, allInventory } from "$lib/stores";
-const id = "";
+
+// biome-ignore lint/style/useConst: updated with form action
+let id = "";
 
 const deal = defaultDeal;
 
@@ -16,6 +20,8 @@ $: vin = search.get("vin");
 
 $: inventory = vin && $allInventory.find((i) => i.vin === vin);
 $: account = accountId && $allAccounts.find((a) => a.id === accountId);
+
+$: finance = calcFinance(deal);
 
 $: if (deal.dealType === "cash" && deal.term !== 0) {
 	deal.term = 0;
@@ -47,6 +53,18 @@ const navType: NavType = "query";
   }}
 >
   <input name="id" type="hidden" class="input" />
+  <input
+    name="inventory-id"
+    type="hidden"
+    class="input"
+    value={inventory?.id || ""}
+  />
+  <input
+    name="account-id"
+    type="hidden"
+    class="input"
+    value={account?.id || ""}
+  />
   <button type="submit" class="btn variant-soft-success"> Submit </button>
   <fieldset id="taxes" class="flex flex-row flex-wrap gap-4">
     <legend>Deal</legend>
@@ -200,5 +218,84 @@ const navType: NavType = "query";
   {/if}
 </form>
 
-<p>{JSON.stringify(inventory)} {vin}</p>
-<p>{JSON.stringify(account)} {accountId}</p>
+<hr />
+
+<fieldset id="deal-details" class="flex flex-row flex-wrap gap-4">
+  <legend>
+    Calced {finance.type}
+  </legend>
+  <label class:hidden={finance.type === "cash"} class="flex-1 min-w-max">
+    Monthly Pay
+    <input
+      disabled
+      value={finance.type === "credit"
+        ? formatCurrency(finance.monthlyPayment)
+        : 0}
+      class="input"
+    />
+  </label>
+  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
+    Last Payment, Due
+    <input
+      disabled
+      value={finance.type === "credit"
+        ? formatDate(finance.lastPaymentDueDate)
+        : 0}
+      class="input"
+    />
+  </label>
+  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
+    Last Payment
+    <input
+      disabled
+      value={finance.type === "credit"
+        ? formatCurrency(finance.lastPayment)
+        : 0}
+      class="input"
+    />
+  </label>
+  <label class="flex-1 min-w-max max-w-[33%]">
+    Total Tax ($)
+    <input
+      disabled
+      value={formatCurrency(finance.totalTaxDollar)}
+      class="input"
+    />
+  </label>
+  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
+    Total Loan
+    <input
+      disabled
+      value={finance.type === "credit"
+        ? formatCurrency(finance.financeAmount)
+        : 0}
+      class="input"
+    />
+  </label>
+  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
+    Total of {deal.term} Loan Payments
+    <input
+      disabled
+      value={finance.type === "credit" ? formatCurrency(finance.totalLoan) : 0}
+      class="input"
+    />
+  </label>
+  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
+    Total Loan Interest
+    <input
+      disabled
+      value={finance.type === "credit"
+        ? formatCurrency(finance.deferredPayment)
+        : 0}
+      class="input"
+    />
+  </label>
+  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
+    Total Cost (price, interest, tax, fees)
+    <input
+      disabled
+      value={finance.type === "credit" ? formatCurrency(finance.totalCost) : 0}
+      class="input"
+    />
+  </label>
+</fieldset>
