@@ -32,7 +32,7 @@ export type FinanceCalcCredit = FinanceCalc & {
 	totalCost: number;
 };
 
-export const calc_finance = (
+export const calcFinance = (
 	p: DealFields,
 ): FinanceCalcCash | FinanceCalcCredit => {
 	const cityTax = getPercent(p.taxCity);

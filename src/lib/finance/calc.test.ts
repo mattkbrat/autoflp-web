@@ -1,6 +1,6 @@
 import { add } from "date-fns";
 import { describe, expect, it, vi } from "vitest";
-import { calc_finance } from "./calc";
+import { calcFinance } from "./calc";
 import type { DealFields } from "./fields";
 
 const params: DealFields = {
@@ -21,7 +21,7 @@ const params: DealFields = {
 
 describe("credit test", async () => {
 	it("can calc credit", async () => {
-		const calced = calc_finance(params);
+		const calced = calcFinance(params);
 		expect(calced.type).toBe("credit");
 		if (calced.type !== "credit") throw new Error("Invalid calc type");
 		expect(calced.sellingTradeDifferential).toBe(800.0);

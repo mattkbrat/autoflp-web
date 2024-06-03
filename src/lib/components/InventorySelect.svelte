@@ -6,14 +6,16 @@ import { allInventory } from "$lib/stores";
 
 $: active = $page.url.searchParams.get("state");
 
-export const navType: NavType = "folder";
+// biome-ignore lint/style/useConst: changes between routes
+export let navType: NavType = "folder";
 </script>
 
 <div class="flex flex-row flex-wrap gap-4">
   <select
     class="flex-1 uppercase bg-surface-800"
     id="inventory-select"
-    on:blur={(e) => handleInvNav({ url: $page.url, vin: e.target.value, navType })}
+    on:blur={(e) =>
+      handleInvNav({ url: $page.url, vin: e.target.value, navType })}
   >
     <option value="new">Select Inventory</option>
     {#each $allInventory as inventory}
@@ -22,12 +24,15 @@ export const navType: NavType = "folder";
           inventory.vin.slice(-6),
           inventory.year,
           `${inventory.make} ${inventory.model}`,
-        ].join((" | ").toUpperCase())}
+        ].join(" | ".toUpperCase())}
       </option>
     {/each}
   </select>
 
-  <div class="flex flex-row btn-group min-w-1/4" class:hidden={navType === 'query'}>
+  <div
+    class="flex flex-row btn-group min-w-1/4"
+    class:hidden={navType === "query"}
+  >
     <button
       type="button"
       class="flex-1 btn variant-filled-tertiary"

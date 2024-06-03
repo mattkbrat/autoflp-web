@@ -1,10 +1,11 @@
 <script lang="ts">
 import { goto } from "$app/navigation";
 import { page } from "$app/stores";
-import { handleAccNav } from "$lib/navState";
+import { type NavType, handleAccNav } from "$lib/navState";
 import { allAccounts } from "$lib/stores";
 
-export const navType: "query" | "folder" = "folder";
+// biome-ignore lint/style/useConst: changes between routes
+export let navType: NavType = "folder";
 </script>
 
 <select

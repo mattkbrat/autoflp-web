@@ -15,17 +15,17 @@ export type DealFields = {
 };
 
 export const defaultDeal: DealFields = {
-	dealType: "cash",
+	dealType: "credit",
 	taxCity: 4,
 	taxCounty: 0,
 	taxRtd: 0,
 	taxState: 2.9,
-	priceSelling: 0,
-	priceDown: 0,
-	priceTrade: 0,
-	filingFees: 0,
-	apr: 0,
-	term: 0,
+	priceSelling: 15_000,
+	priceDown: 3_000,
+	priceTrade: 2_000,
+	filingFees: 220.75,
+	apr: 8.5,
+	term: 12,
 	creditor: "",
 	firstPayment: new Date(),
 };
