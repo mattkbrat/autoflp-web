@@ -1,29 +1,13 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import { page } from "$app/stores";
-import { el } from "$lib/element.js";
-import type { GroupedAccountDeals } from "$lib/server/database/deal.js";
+import { el } from "$lib/element";
+import { formatCurrency, formatDate } from "$lib/format";
+import type { GroupedAccountDeals } from "$lib/server/database/deal";
 import { accountDeals } from "$lib/stores";
 export let data;
 
 let selected: GroupedAccountDeals[number] | null = null;
-const currencyFormat = new Intl.NumberFormat("en-US", {
-	style: "currency",
-	currency: "USD",
-});
-const dateFormat = new Intl.DateTimeFormat("en-US", {
-	dateStyle: "long",
-	timeStyle: "short",
-	timeZone: "America/Denver",
-});
-
-const formatCurrency = (amount: string | number) => {
-	return currencyFormat.format(+amount);
-};
-
-const formatDate = (date: string | Date) => {
-	return dateFormat.format(new Date(date));
-};
 
 $: deal = $page.params.deal;
 const today = new Date().toISOString().split("T")[0];
