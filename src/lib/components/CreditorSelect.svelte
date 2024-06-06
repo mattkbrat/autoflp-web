@@ -20,6 +20,10 @@ export let navType: NavType = "folder";
       navType,
       accType: 'creditor'
     });
+    setTimeout(() => {
+      document.getElementById('filingFees')?.scrollIntoView()
+      document.getElementById('filingFees')?.focus()
+    }, 50)
   }}
   required
   class="bg-surface-800 text"
