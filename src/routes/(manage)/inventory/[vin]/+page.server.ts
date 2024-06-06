@@ -46,7 +46,7 @@ export const actions = {
 		inventory.down = data.get("down") as string;
 		inventory.state = +(data.get("state") as string);
 
-		const handled = await upsert(id, inventory);
+		await upsert(vin, inventory);
 
 		const updated = await getDetailedInventory(vin).then((inv) => {
 			return { ...inv[0] };

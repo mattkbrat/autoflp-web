@@ -1,9 +1,11 @@
 import { randomUUID } from "node:crypto";
 import type { DealFields } from "$lib/finance";
-import { calcFinance } from "$lib/finance/calc";
-import { createDeal } from "$lib/server/database/deal";
-import { upsertDeal } from "$lib/server/deal";
-import { fail } from "@sveltejs/kit";
+import {
+	type Update,
+	upsert as upsertInventory,
+} from "$lib/server/database/inventory";
+import type { Inventory } from "$lib/server/database/models/Inventory.js";
+import { type Trades, upsertDeal } from "$lib/server/deal";
 
 export const load = async ({ params }) => {
 	return {};
@@ -16,15 +18,39 @@ export const actions = {
 		const id = data.get("id") as string;
 
 		const deal = Object.fromEntries(data) as unknown as DealFields;
+		const tradeKeys = Object.keys(deal).filter(
+			(k) => k.startsWith("trade-") && typeof deal[k] === "string",
+		);
 		deal.salesmen = (deal.salesmen as unknown as string).split(",");
 		deal.id = deal.id || randomUUID();
 		deal.date = new Date(deal.date);
-		console.log("submitting new", deal);
-		const finance = calcFinance(deal);
+		deal.trades = (deal.trades as unknown as string).split(",");
 
-		const handled = await upsertDeal(deal, finance);
+		const trades: Trades = [];
 
-		console.log(handled);
+		for await (const tradeString of tradeKeys) {
+			const trade = JSON.parse(deal[tradeString]) as Partial<Inventory> & {
+				value: number;
+			};
+			if (!trade.vin) {
+				continue;
+			}
+			deal[tradeString] = undefined;
+
+			const inventory: Update = {
+				id: randomUUID(),
+				vin: trade.vin || "",
+				year: trade.year?.toString() || "",
+				make: trade.make || "",
+				state: 1,
+			};
+
+			await upsertInventory(trade.vin, inventory);
+
+			trades.push({ vin: trade.vin, value: trade.value });
+		}
+
+		const handled = await upsertDeal(deal, trades);
 
 		const { id: newDealId } = handled || {};
 

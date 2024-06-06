@@ -1,15 +1,19 @@
 import { randomUUID } from "node:crypto";
 import type { DealFields } from "$lib/finance";
-import type { FinanceCalcCredit, FinanceCalcResult } from "$lib/finance/calc";
 import { wrap } from "@mikro-orm/core";
+import { getAccount } from "../database/account";
 import {
-	getAccount,
-	getAccounts,
-	getCreditor,
-	updateAccount,
-	upsertAccount,
-} from "../database/account";
-import {} from "../database/deal";
+	applyDefaultCharges,
+	applySalesmen,
+	closeDeals,
+	createDeal,
+	createTrades,
+	dealExists,
+	deleteCharges,
+	deleteDealSalesmen,
+	openInventoryDeals,
+	updateDeal,
+} from "../database/deal";
 import {
 	deleteInventory,
 	getSingleInventory,
@@ -17,12 +21,10 @@ import {
 	update as updateInv,
 } from "../database/inventory";
 import { Deal } from "../database/models/Deal";
-import { Inventory } from "../database/models/Inventory";
 
-export const upsertDeal = async (
-	deal: DealFields,
-	finance: FinanceCalcResult,
-) => {
+export type Trades = { vin: string; value: number }[];
+
+export const upsertDeal = async (deal: DealFields, trades: Trades) => {
 	const dealDoesExist =
 		deal.id &&
 		(await dealExists({
@@ -34,8 +36,6 @@ export const upsertDeal = async (
 	if (dealDoesExist) {
 		deal.id = dealDoesExist.id;
 	}
-
-	console.log("exists", dealDoesExist, deal.vin, deal.account, deal.date);
 
 	const openDeals = await openInventoryDeals(deal.vin).then(
 		(deals) => deal.id && deals.filter((d) => d.id !== deal.id),
@@ -69,11 +69,10 @@ export const upsertDeal = async (
 
 		// Close the inventory
 		if (inv) {
-			await updateInv(
-				inv.id,
-
-				wrap(inv).assign({ state: 0 }),
-			);
+			await updateInv({
+				vin: inv.vin,
+				inventory: wrap(inv).assign({ state: 0 }),
+			});
 		}
 
 		updatedDeal = await updateDeal({
@@ -99,7 +98,7 @@ export const upsertDeal = async (
 		await applyDefaultCharges(updatedDeal);
 	}
 
-	await createTrades(updatedDeal, deal.trades || []);
+	await createTrades(updatedDeal, trades || []);
 	await applySalesmen(updatedDeal, deal.salesmen || []);
 
 	// TODO: notify Deal

@@ -83,8 +83,11 @@ export const insert = async (inventory: Inventory) => {
 
 export type Update = FromEntityType<Inventory>;
 
-export const update = async (id: string, inventory: Update) => {
-	const orig = await orm.em.findOneOrFail(Inventory, { id });
+export const update = async ({
+	vin,
+	inventory,
+}: { vin: string; inventory: Update }) => {
+	const orig = await orm.em.findOneOrFail(Inventory, { vin });
 	const wrapped = wrap(orig).assign(inventory);
 
 	await orm.em.flush();
@@ -92,11 +95,11 @@ export const update = async (id: string, inventory: Update) => {
 	return wrapped;
 };
 
-export const upsert = async (id: string | null, inventory: Update) => {
-	let shouldInsert = !id;
-	if (!shouldInsert && id) {
+export const upsert = async (vin: string | null, inventory: Update) => {
+	let shouldInsert = !vin;
+	if (!shouldInsert && vin) {
 		try {
-			await update(id, inventory);
+			await update({ vin, inventory });
 		} catch (e) {
 			console.error("could not update", e.message);
 			shouldInsert = true;

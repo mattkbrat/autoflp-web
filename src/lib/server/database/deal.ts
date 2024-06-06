@@ -4,6 +4,7 @@ import { calcFinance } from "$lib/finance/calc";
 import type { AsyncReturnType } from "$lib/types";
 import { wrap } from "@mikro-orm/core";
 import { orm } from ".";
+import type { Trades } from "../deal";
 import type { Account } from "./models/Account";
 import type { Creditor } from "./models/Creditor";
 import { Deal } from "./models/Deal";
@@ -307,12 +308,15 @@ export const applyDefaultCharges = async (deal: Deal) => {
 	return orm.em.persistAndFlush(updates);
 };
 
-export const createTrades = async (deal: Deal, vins: string[]) => {
-	if (!deal.id) return;
+export const createTrades = async (deal: Deal, trades: Trades) => {
+	if (!deal.id) {
+		console.warn("Cannot create trades withou deal");
+		return;
+	}
 
-	const updates: DealTrade[] = vins.map((vin) =>
+	const updates: DealTrade[] = trades.map(({ vin, value }) =>
 		wrap(new DealTrade()).assign(
-			{ vin, id: randomUUID(), deal: deal.id },
+			{ vin, value: value.toFixed(2), id: randomUUID(), deal: deal.id },
 			{ em: orm.em },
 		),
 	);

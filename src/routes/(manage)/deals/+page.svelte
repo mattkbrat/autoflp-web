@@ -9,6 +9,7 @@ import { defaultDeal } from "$lib/finance";
 import { calcFinance } from "$lib/finance/calc";
 import { formatCurrency, formatDate } from "$lib/format";
 import type { NavType } from "$lib/navState";
+import type { ParsedNHTA } from "$lib/server/inventory";
 import { allAccounts, allCreditors, allInventory } from "$lib/stores";
 
 const deal = defaultDeal;
@@ -20,6 +21,21 @@ $: vin = search.get("vin");
 $: inventory = vin && $allInventory.find((i) => i.vin === vin);
 $: account = accountId && $allAccounts.find((a) => a.id === accountId);
 $: creditor = $allCreditors.find((c) => c.id === search.get("creditor"));
+
+let currTrade = "";
+
+let trades: {
+	make: string;
+	year: number;
+	model: string;
+	vin: string;
+	value: number;
+}[] = [];
+
+$: deal.trades = trades.map((t) => t.vin);
+$: deal.priceTrade = trades.reduce((acc, t) => {
+	return acc + t.value;
+}, 0);
 
 let lastCreditor = "";
 
@@ -48,13 +64,35 @@ $: if (deal.dealType === "cash" && deal.term !== 0) {
 	deal.term = 12;
 }
 
+const handleSearched = async (result: unknown) => {
+	if (typeof result !== "object" || !result || !("data" in result)) return;
+	const parsed = result.data as ParsedNHTA;
+	if (!parsed) {
+		console.log("Could not parse", result);
+		return;
+	}
+	const { wanted, info } = parsed;
+
+	const newTrades = trades;
+	newTrades.push({
+		make: wanted.Make,
+		model: wanted.Model,
+		year: +(wanted["Model Year"] || 0) || 0,
+		value: 0,
+		vin: currTrade,
+	});
+
+	trades = newTrades;
+	console.log(trades);
+	currTrade = "";
+};
+
 const navType: NavType = "query";
 </script>
 
 <h2>
   {$page.url.pathname}
 </h2>
-
 
 <form
   action="?/submit"
@@ -65,18 +103,22 @@ const navType: NavType = "query";
     return async ({ result, update }) => {
       if ("data" in result && result.data && "data" in result.data) {
         //await update();
-        const resultId = result.data.id
-        deal.id = typeof resultId === 'string'? resultId : '' ;
+        const resultId = result.data.id;
+        deal.id = typeof resultId === "string" ? resultId : "";
       }
     };
   }}
 >
-<AccountSelect {navType} />
-<InventorySelect {navType} />
-<SalesmenSelect {navType}/>
-  <input name="salesmen" type="hidden" class="input" value={$page.url.searchParams.get('salesmen')} />
+  <AccountSelect {navType} />
+  <InventorySelect {navType} />
+  <SalesmenSelect {navType} />
+  <input
+    name="salesmen"
+    type="hidden"
+    class="input"
+    value={$page.url.searchParams.get("salesmen")}
+  />
   <input name="id" type="hidden" class="input" />
-  <button type="submit" class="btn variant-soft-success"> Submit </button>
   <fieldset id="taxes" class="flex flex-row flex-wrap gap-4">
     <legend>Deal</legend>
     <label>
@@ -188,7 +230,7 @@ const navType: NavType = "query";
         class="input"
       />
     </label>
-    <label class="flex-1 min-w-max uppercase">
+    <label class="flex-1 min-w-max uppercase hidden">
       Trade
       <input
         bind:value={deal.priceTrade}
@@ -200,23 +242,86 @@ const navType: NavType = "query";
       />
     </label>
   </fieldset>
+  <fieldset id="trades" class="flex flex-row flex-wrap gap-4">
+    <legend>Trades</legend>
+    <label class="col-span-2 flex-1">
+      VIN
+      <input class="input" bind:value={currTrade} />
+    </label>
+    <button
+      class="btn variant-ringed-tertiary w-24"
+      type="button"
+      on:click={() => {
+        document.getElementById("deal-trade-search-button")?.click();
+      }}
+      disabled={!currTrade ||
+        !!trades.find((t) => t.vin.toLowerCase() === currTrade.toLowerCase())}
+    >
+      Add
+    </button>
+  </fieldset>
+  {#each trades as trade, n}
+    <section class="flex flex-row flex-wrap gap-4">
+      <span class="self-center uppercase">
+        {trade.year}
+        {trade.make}
+        {trade.model}
+        {trade.vin.slice(-4)}
+      </span>
+      <input
+        class="hidden"
+        name={`trade-${vin}`}
+        value={JSON.stringify(trade)}
+      />
+      <label class="flex-1 min-w-max">
+        VALUE
+        <input
+          bind:value={trade.value}
+          class="input"
+          type="number"
+          step={10}
+          min={0}
+        />
+      </label>
+      <button
+        type="button"
+        class="btn variant-ringed-warning w-24"
+        on:click={() => {
+          const newTrades = trades;
+          newTrades.splice(n, 1);
+          trades = newTrades;
+        }}>Delete</button
+      >
+    </section>
+  {/each}
+  <input name="trades" type="hidden" value={deal.trades.join(",")} />
   {#if deal.dealType === "credit"}
-    <CreditorSelect {navType}/>
-    <fieldset id="creditor-fieldset" class="flex flex-row flex-wrap gap-4">
+    <fieldset
+      id="creditor-fieldset"
+      class="flex flex-row flex-wrap gap-4 items-end"
+    >
       <legend>Credit</legend>
+      <label
+        for="creditor-select"
+        class="flex-1 min-w-max uppercase flex flex-col"
+      >
+        Creditor
+        <CreditorSelect {navType} />
+      </label>
       <label class="flex-1 min-w-max uppercase">
-        Filing Fees
+        Filing Fees ($)
         <input
           bind:value={deal.filingFees}
           name={"filingFees"}
           type="number"
+          id="filingFees"
           step={0.01}
           min={0}
           class="input"
         />
       </label>
       <label class="flex-1 min-w-max uppercase">
-        APR
+        APR (%)
         <input
           bind:value={deal.apr}
           name={"apr"}
@@ -228,6 +333,25 @@ const navType: NavType = "query";
       </label>
     </fieldset>
   {/if}
+  <button type="submit" class="btn variant-soft-success"> Submit </button>
+</form>
+
+<form
+  action="/inventory?/search"
+  method="post"
+  class="hidden"
+  id="inventory-form"
+  use:enhance={() => {
+    return async ({ result, update }) => {
+      handleSearched(result);
+    };
+  }}
+>
+  <label class="col-span-2">
+    Vin
+    <input name="vin" bind:value={currTrade} />
+  </label>
+  <button type="submit" id="deal-trade-search-button">Search</button>
 </form>
 
 <hr />
