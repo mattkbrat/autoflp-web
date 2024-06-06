@@ -11,9 +11,6 @@ import { formatCurrency, formatDate } from "$lib/format";
 import type { NavType } from "$lib/navState";
 import { allAccounts, allCreditors, allInventory } from "$lib/stores";
 
-// biome-ignore lint/style/useConst: updated with form action
-let id = "";
-
 const deal = defaultDeal;
 
 $: search = $page.url.searchParams;
@@ -32,12 +29,11 @@ $: if (creditor && creditor.businessName !== lastCreditor) {
 	lastCreditor = creditor.businessName;
 }
 
-$: if (
-	inventory &&
-	typeof inventory !== "string" &&
-	inventory.vin !== deal.vin
-) {
+$: if (inventory && typeof inventory !== "string") {
 	deal.vin = inventory.vin;
+	deal.priceDown = Number(inventory.down || 0);
+	const sellingPrice = deal.term > 0 ? inventory.credit : inventory.cash;
+	deal.priceSelling = Number(sellingPrice || 0);
 }
 
 $: if (account && typeof account !== "string" && account.id !== deal.vin) {
@@ -69,7 +65,8 @@ const navType: NavType = "query";
     return async ({ result, update }) => {
       if ("data" in result && result.data && "data" in result.data) {
         //await update();
-        id = result.data.id;
+        const resultId = result.data.id
+        deal.id = typeof resultId === 'string'? resultId : '' ;
       }
     };
   }}
@@ -83,7 +80,7 @@ const navType: NavType = "query";
   <fieldset id="taxes" class="flex flex-row flex-wrap gap-4">
     <legend>Deal</legend>
     <label>
-      First Payment
+      DATE
       <input
         value={deal.date.toISOString().split("T")[0]}
         on:change={(e) => {
