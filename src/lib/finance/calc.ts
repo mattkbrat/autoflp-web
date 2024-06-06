@@ -32,6 +32,8 @@ export type FinanceCalcCredit = FinanceCalc & {
 	totalCost: number;
 };
 
+export type FinanceCalcResult = FinanceCalcCash | FinanceCalcCredit;
+
 export const calcFinance = (
 	p: DealFields,
 ): FinanceCalcCash | FinanceCalcCredit => {
@@ -89,7 +91,7 @@ export const calcFinance = (
 	const lastPayment =
 		paymentRoundedToCents + totalLoan - paymentRoundedToCents * p.term;
 
-	const lastPaymentDueDate = add(p.firstPayment, { months: p.term });
+	const lastPaymentDueDate = add(p.date, { months: p.term });
 
 	const totalCost =
 		p.priceSelling + totalTaxDollar + p.filingFees + deferredPayment;
@@ -104,7 +106,7 @@ export const calcFinance = (
 		deferredPayment: roundToPenny(deferredPayment),
 		totalCost: roundToPenny(totalCost),
 		financeAmount: roundToPenny(financeAmount),
-		firstPaymentDueDate: add(p.firstPayment, { months: 1 }),
+		firstPaymentDueDate: add(p.date, { months: 1 }),
 		deferred: roundToPenny(deferred),
 	};
 

@@ -13,6 +13,7 @@ type InvNavState = NavState & {
 
 type AccNavState = NavState & {
 	account?: string | null;
+	accType?: string;
 };
 
 export const handleInvNav = ({
@@ -47,13 +48,14 @@ export const handleAccNav = ({
 	account,
 	invalidate,
 	navType = "folder",
+	accType = "account",
 }: AccNavState) => {
 	const newUrl = new URL(url);
 	if (typeof account === "string") {
-		if (navType === "folder") {
+		if (navType === "folder" && accType === "account") {
 			newUrl.pathname = `/accounts/${account}`;
 		} else {
-			newUrl.searchParams.set("account", account);
+			newUrl.searchParams.set(accType, account);
 		}
 	}
 

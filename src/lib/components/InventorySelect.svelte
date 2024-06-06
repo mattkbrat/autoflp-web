@@ -14,6 +14,9 @@ export let navType: NavType = "folder";
   <select
     class="flex-1 uppercase bg-surface-800"
     id="inventory-select"
+    name="vin"
+    value={$page.url.searchParams.get("vin") || $page.url.search || ""}
+    required
     on:blur={(e) =>
       handleInvNav({ url: $page.url, vin: e.target.value, navType })}
   >

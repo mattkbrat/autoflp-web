@@ -1,6 +1,7 @@
 import type { AsyncReturnType } from "$lib/types";
 import { type FromEntityType, serialize, wrap } from "@mikro-orm/core";
 import { orm } from ".";
+import { DealTrade } from "./models/DealTrade";
 import { Inventory } from "./models/Inventory";
 
 type State = number | null;
@@ -14,6 +15,10 @@ export const getInventory = async (state: State) => {
 			model: "asc",
 		},
 	});
+};
+
+export const getSingleInventory = async (vin: string) => {
+	return orm.em.findOne(Inventory, { vin });
 };
 
 export const getDetailedInventory = async (vin: string) => {
@@ -101,7 +106,13 @@ export const upsert = async (id: string | null, inventory: Update) => {
 
 export type AllInventory = AsyncReturnType<typeof serializeAllInventory>;
 
-export const deleteInventory = async (vin: string) => {
-	const inv = orm.em.getReference(Inventory, vin);
+export const deleteInventory = async (vin: string, dealTrade = false) => {
+	const inv = orm.em.getReference(dealTrade ? DealTrade : Inventory, vin);
 	await orm.em.remove(inv).flush();
+};
+
+export const getTrades = async (deal: string) => {
+	return orm.em.find(DealTrade, {
+		deal,
+	});
 };

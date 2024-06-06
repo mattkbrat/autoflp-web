@@ -1,20 +1,28 @@
 export type DealFields = {
 	dealType: "cash" | "credit";
+	id: string;
+	vin: string;
+	account: string;
 	taxCity: number;
 	taxCounty: number;
 	taxRtd: number;
 	taxState: number;
 	priceSelling: number;
+	creditor: "";
+	trades: string[];
+	salesmen: string[];
 	priceDown: number;
 	priceTrade: number;
 	filingFees: number;
 	apr: number;
 	term: number;
-	creditor: string;
-	firstPayment: Date;
+	date: Date;
 };
 
 export const defaultDeal: DealFields = {
+	id: "",
+	vin: "",
+	account: "",
 	dealType: "credit",
 	taxCity: 4,
 	taxCounty: 0,
@@ -27,5 +35,7 @@ export const defaultDeal: DealFields = {
 	apr: 8.5,
 	term: 12,
 	creditor: "",
-	firstPayment: new Date(),
+	salesmen: [],
+	trades: [],
+	date: new Date(),
 };

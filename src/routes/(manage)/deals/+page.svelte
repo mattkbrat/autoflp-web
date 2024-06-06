@@ -2,7 +2,9 @@
 import { enhance } from "$app/forms";
 import { page } from "$app/stores";
 import AccountSelect from "$lib/components/AccountSelect.svelte";
+import CreditorSelect from "$lib/components/CreditorSelect.svelte";
 import InventorySelect from "$lib/components/InventorySelect.svelte";
+import SalesmenSelect from "$lib/components/SalesmenSelect.svelte";
 import { defaultDeal } from "$lib/finance";
 import { calcFinance } from "$lib/finance/calc";
 import { formatCurrency, formatDate } from "$lib/format";
@@ -21,6 +23,18 @@ $: vin = search.get("vin");
 $: inventory = vin && $allInventory.find((i) => i.vin === vin);
 $: account = accountId && $allAccounts.find((a) => a.id === accountId);
 
+$: if (
+	inventory &&
+	typeof inventory !== "string" &&
+	inventory.vin !== deal.vin
+) {
+	deal.vin = inventory.vin;
+}
+
+$: if (account && typeof account !== "string" && account.id !== deal.vin) {
+	deal.account = account.id;
+}
+
 $: finance = calcFinance(deal);
 
 $: if (deal.dealType === "cash" && deal.term !== 0) {
@@ -36,10 +50,9 @@ const navType: NavType = "query";
   {$page.url.pathname}
 </h2>
 
-<AccountSelect {navType} />
-<InventorySelect {navType} />
+
 <form
-  action="?/update"
+  action="?/submit"
   method="post"
   class="flex flex-col flex-wrap space-y-4"
   id="inventory-form"
@@ -52,31 +65,23 @@ const navType: NavType = "query";
     };
   }}
 >
+<AccountSelect {navType} />
+<InventorySelect {navType} />
+<SalesmenSelect {navType}/>
+  <input name="salesmen" type="hidden" class="input" value={$page.url.searchParams.get('salesmen')} />
   <input name="id" type="hidden" class="input" />
-  <input
-    name="inventory-id"
-    type="hidden"
-    class="input"
-    value={inventory?.id || ""}
-  />
-  <input
-    name="account-id"
-    type="hidden"
-    class="input"
-    value={account?.id || ""}
-  />
   <button type="submit" class="btn variant-soft-success"> Submit </button>
   <fieldset id="taxes" class="flex flex-row flex-wrap gap-4">
     <legend>Deal</legend>
     <label>
       First Payment
       <input
-        value={deal.firstPayment.toISOString().split("T")[0]}
+        value={deal.date.toISOString().split("T")[0]}
         on:change={(e) => {
           const newDate = e.target?.value || new Date();
-          deal.firstPayment = new Date(newDate);
+          deal.date = new Date(newDate);
         }}
-        name={"firstPayment"}
+        name={"date"}
         type="date"
         class="input"
       />
@@ -190,6 +195,7 @@ const navType: NavType = "query";
     </label>
   </fieldset>
   {#if deal.dealType === "credit"}
+    <CreditorSelect {navType}/>
     <fieldset id="creditor-fieldset" class="flex flex-row flex-wrap gap-4">
       <legend>Credit</legend>
       <label class="flex-1 min-w-max uppercase">
@@ -198,7 +204,7 @@ const navType: NavType = "query";
           bind:value={deal.filingFees}
           name={"filingFees"}
           type="number"
-          step={0.1}
+          step={0.01}
           min={0}
           class="input"
         />

@@ -16,7 +16,7 @@ const params: DealFields = {
 	apr: 12,
 	term: 12,
 	creditor: "",
-	firstPayment: new Date(2024, 10, 2),
+	date: new Date(2024, 10, 2),
 };
 
 describe("credit test", async () => {
@@ -39,10 +39,10 @@ describe("credit test", async () => {
 		expect(calced.monthlyPayment).toBe(36.25);
 		expect(calced.lastPayment).toBe(36.25);
 		expect(calced.lastPaymentDueDate).toStrictEqual(
-			add(params.firstPayment, { months: params.term }),
+			add(params.date, { months: params.term }),
 		);
 		expect(calced.firstPaymentDueDate).toStrictEqual(
-			add(params.firstPayment, { months: 1 }),
+			add(params.date, { months: 1 }),
 		);
 		expect(calced.deferred).toBe(996);
 		expect(calced.totalCost).toBe(1_135);
