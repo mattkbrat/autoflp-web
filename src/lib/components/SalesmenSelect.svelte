@@ -12,7 +12,7 @@ $: selected = $page.url.searchParams.get("salesmen");
 </script>
 
 <select
-  id="creditor-select"
+  id="salesmen-select"
   name="salesmen"
   multiple
   on:blur={(e) => {
