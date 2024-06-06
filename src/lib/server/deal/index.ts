@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { DealFields } from "$lib/finance";
 import { wrap } from "@mikro-orm/core";
-import { getAccount } from "../database/account";
+import { getAccount, getCreditor } from "../database/account";
 import {
 	applyDefaultCharges,
 	applySalesmen,
