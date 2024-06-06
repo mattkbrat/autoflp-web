@@ -9,7 +9,7 @@ import { defaultDeal } from "$lib/finance";
 import { calcFinance } from "$lib/finance/calc";
 import { formatCurrency, formatDate } from "$lib/format";
 import type { NavType } from "$lib/navState";
-import { allAccounts, allInventory } from "$lib/stores";
+import { allAccounts, allCreditors, allInventory } from "$lib/stores";
 
 // biome-ignore lint/style/useConst: updated with form action
 let id = "";
@@ -22,6 +22,15 @@ $: vin = search.get("vin");
 
 $: inventory = vin && $allInventory.find((i) => i.vin === vin);
 $: account = accountId && $allAccounts.find((a) => a.id === accountId);
+$: creditor = $allCreditors.find((c) => c.id === search.get("creditor"));
+
+let lastCreditor = "";
+
+$: if (creditor && creditor.businessName !== lastCreditor) {
+	deal.apr = +creditor.apr;
+	deal.filingFees = +creditor.filingFees;
+	lastCreditor = creditor.businessName;
+}
 
 $: if (
 	inventory &&

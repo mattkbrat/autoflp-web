@@ -24,7 +24,7 @@ export let navType: NavType = "folder";
   required
   class="bg-surface-800 text"
 >
-  <option value={navType === "query" ? "" : "new"}>Select an account</option>
+  <option value={navType === "query" ? "" : "new"}>Select a creditor</option>
   {#each $allCreditors as account}
     <option value={account.id}
       >{account.businessName}</option
