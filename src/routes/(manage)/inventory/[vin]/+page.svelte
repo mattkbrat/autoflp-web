@@ -267,7 +267,7 @@ onMount(() => {
 </form>
 
 <form
-  action="?/search"
+  action="/inventory?/search"
   method="post"
   class="flex flex-row flex-wrap space-y-4"
   id="inventory-form"
@@ -312,7 +312,7 @@ onMount(() => {
 
 {#if import.meta.env.DEV}
   <form
-    action="?/random"
+    action="/inventory?/random"
     method="post"
     class="flex flex-row flex-wrap space-y-4"
     id="inventory-form"

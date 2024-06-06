@@ -65,27 +65,4 @@ export const actions = {
 		await deleteInventory(vin);
 		return { delete: vin };
 	},
-
-	search: async ({ request }) => {
-		const data = await request.formData();
-		const vin = data.get("vin") as string;
-		if (!vin) return null;
-		const searched = await handleFetch(vin);
-		const parsed = parseNHTSA(searched);
-
-		return parsed ? { ...parsed } : null;
-	},
-
-	random: async () => {
-		if (import.meta.env.PROD) return {};
-		return fetch("https://randomvin.com/getvin.php?type=fake")
-			.then((res) => {
-				if (!res.ok) return;
-				return res.text();
-			})
-			.then((vin) => {
-				if (!vin) return;
-				return { vin };
-			});
-	},
 };
