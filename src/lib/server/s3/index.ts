@@ -3,6 +3,7 @@ import { s3Client } from "./s3Client";
 import { listObjects } from "./listObjects";
 import { upload } from "./upload";
 import { bucketExists, createBucketIfNotExists } from "./bucket";
+import { downloadFromBucket } from "./downloadFromBucket";
 
 export {
 	deleteFromBucket,
@@ -11,4 +12,5 @@ export {
 	upload,
 	bucketExists,
 	createBucketIfNotExists,
+	downloadFromBucket,
 };
