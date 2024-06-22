@@ -8,6 +8,7 @@ import {
 
 const bucketName = "filled";
 import fs from "node:fs";
+import { bucketExists, createBucketIfNotExists } from "./bucket";
 
 export const upload = async ({
 	bucket = bucketName,
@@ -20,22 +21,7 @@ export const upload = async ({
 }) => {
 	file = typeof file === "string" ? fs.readFileSync(file) : file;
 
-	// check that the bucket exists
-	const input = {
-		Bucket: bucket,
-	};
-
-	const headBucketCommand = new HeadBucketCommand(input);
-	const headBucketResult = await s3Client.send(headBucketCommand);
-
-	if (!headBucketResult.BucketRegion) {
-		const createBucketCommand = new CreateBucketCommand(input);
-		const createBucketResult = await s3Client.send(createBucketCommand);
-
-		if (!createBucketResult.Location) {
-			return new Error("Failed to create the bucket " + bucket);
-		}
-	}
+	await createBucketIfNotExists(bucket);
 
 	const putObjectInput: PutObjectCommandInput = {
 		Body: file,
