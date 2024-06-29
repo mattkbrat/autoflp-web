@@ -18,7 +18,7 @@ export const downloadFromBucket = async ({
 	directory?: string;
 }) => {
 	const outputFile = path.join(directory, filename);
-	console.debug("writing to: " + outputFile);
+	console.debug("Download", filename, "from s3 store to" + outputFile);
 	if (handleCreate) {
 		await createBucketIfNotExists(bucket);
 	}
