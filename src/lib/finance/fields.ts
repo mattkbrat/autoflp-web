@@ -1,3 +1,5 @@
+import type { FinanceCalcResult } from "./calc";
+
 export type DealFields = {
 	dealType: "cash" | "credit";
 	id: string;
@@ -17,6 +19,7 @@ export type DealFields = {
 	apr: number;
 	term: number;
 	date: Date;
+	finance: FinanceCalcResult | null;
 };
 
 export const defaultDeal: DealFields = {
@@ -38,4 +41,5 @@ export const defaultDeal: DealFields = {
 	salesmen: [],
 	trades: [],
 	date: new Date(),
+	finance: null,
 };

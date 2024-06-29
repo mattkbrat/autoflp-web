@@ -1,8 +1,12 @@
 import { randomUUID } from "node:crypto";
 import type { DealFields } from "$lib/finance";
-import { calcFinance } from "$lib/finance/calc";
+import {
+	calcFinance,
+	type FinanceCalcCredit,
+	type FinanceCalcResult,
+} from "$lib/finance/calc";
 import type { AsyncReturnType } from "$lib/types";
-import { wrap } from "@mikro-orm/core";
+import { PopulatePath, serialize, wrap } from "@mikro-orm/core";
 import { orm } from ".";
 import type { Trades } from "../deal";
 import type { Account } from "./models/Account";
@@ -13,6 +17,7 @@ import { DealSalesman } from "./models/DealSalesman";
 import { DealTrade } from "./models/DealTrade";
 import { DefaultCharge } from "./models/DefaultCharge";
 import type { Inventory } from "./models/Inventory";
+import fs from "node:fs";
 
 export type DealShortDetails = {
 	lastName: string;
@@ -205,10 +210,10 @@ export type DealUpdate = {
 	inventory: Inventory;
 	creditor: Creditor | null;
 	update: DealFields;
+	finance: FinanceCalcResult;
 };
 
-export const getDealUpdate = ({ update, ...p }: DealUpdate) => {
-	const finance = calcFinance(update);
+export const getDealUpdate = ({ update, finance, ...p }: DealUpdate) => {
 	return {
 		id: p.deal.id || update.id || randomUUID(),
 		date: update.date.toISOString().split("T")[0],
@@ -323,3 +328,33 @@ export const createTrades = async (deal: Deal, trades: Trades) => {
 
 	return orm.em.persistAndFlush(updates);
 };
+
+export const getDetailedDeal = async (id: string) => {
+	const detailed = await orm.em.findOne(
+		Deal,
+		{
+			id,
+		},
+		{
+			populate: [
+				"account",
+				"account.contact",
+				"inventory",
+				"creditor",
+				"creditor.contact",
+			],
+		},
+	);
+
+	if (!detailed) return null;
+
+	const populated = await orm.em.populate(detailed, [PopulatePath.ALL]);
+	fs.writeFileSync(
+		"/tmp/detailed-deal.json",
+		JSON.stringify(serialize(populated)),
+	);
+
+	return detailed;
+};
+
+export type DetailedDeal = AsyncReturnType<typeof getDetailedDeal>;

@@ -21,6 +21,7 @@ import {
 	update as updateInv,
 } from "../database/inventory";
 import { Deal } from "../database/models/Deal";
+import type { AsyncReturnType } from "$lib/types";
 
 export type Trades = { vin: string; value: number }[];
 
@@ -81,6 +82,7 @@ export const upsertDeal = async (deal: DealFields, trades: Trades) => {
 			inventory: inv,
 			creditor,
 			update: deal,
+			finance: deal.finance,
 		});
 	} else {
 		const newDeal = new Deal();
@@ -91,6 +93,7 @@ export const upsertDeal = async (deal: DealFields, trades: Trades) => {
 			inventory: inv,
 			creditor,
 			update: deal,
+			finance: deal.finance,
 		});
 	}
 
@@ -102,6 +105,11 @@ export const upsertDeal = async (deal: DealFields, trades: Trades) => {
 	await applySalesmen(updatedDeal, deal.salesmen || []);
 
 	// TODO: notify Deal
+	//
+
+	console.debug({ updatedDeal });
 
 	return updatedDeal;
 };
+
+export type UspertedDeal = AsyncReturnType<typeof upsertDeal>;

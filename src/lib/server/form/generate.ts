@@ -5,6 +5,7 @@ import { bucketPaths, type GenerateFormParams } from ".";
 import { PDFDocument } from "pdf-lib";
 import { checkDocsDir } from "./checkDocsDir";
 import { randomUUID } from "node:crypto";
+import { dev } from "$app/environment";
 
 export const generate = async ({
 	form,
@@ -15,15 +16,17 @@ export const generate = async ({
 }: GenerateFormParams) => {
 	const dataObj: {
 		[key: string]: string;
-	} = {};
+	} = !Array.isArray(data) ? data : {};
 
 	const withoutFilename = form.split(".pdf")[0];
 	const pdfFormName = `${withoutFilename}.pdf`;
 	const outputName = output || `${withoutFilename}_${randomUUID()}.pdf`;
 
-	data.map((item, index) => {
-		dataObj[`${index}`] = `${item}`;
-	});
+	if (Array.isArray(data)) {
+		data.map((item, index) => {
+			dataObj[`${index}`] = `${item}`;
+		});
+	}
 
 	const isArrayOfArrays = (data: any) => {
 		return Array.isArray(data) && data.every(Array.isArray);
@@ -56,13 +59,18 @@ export const generate = async ({
 		checkPath: "forms",
 	});
 	const docsDirectory = checkDocsDir({ createIfNotExists: true });
+	const mappedDir = checkDocsDir({
+		createIfNotExists: true,
+		checkPath: "mapped",
+	});
 
-	if (!formsDirectory || !docsDirectory) {
+	if (!formsDirectory || !docsDirectory || !mappedDir) {
 		throw new Error("Could not get the forms directory");
 	}
 
 	const inputPath = path.join(formsDirectory, pdfFormName);
 	const outputPath = path.join(docsDirectory, outputName);
+	const mappedPath = path.join(mappedDir, `${withoutFilename}.json`);
 	console.log({ inputPath });
 	// const outputPath = outputFullPath(output);
 
@@ -86,21 +94,58 @@ export const generate = async ({
 	const pdfDoc = await PDFDocument.load(fs.readFileSync(inputPath));
 
 	const pdfForm = pdfDoc.getForm();
-	const length = pdfDoc.getForm().getFields().length;
-	const noPassedFields = Object.values(dataObj).length;
-	const emptyFields = length - noPassedFields;
 
-	Object.entries(dataObj).map(([field, value]) => {
-		const formField = pdfForm.getTextField(field);
-		formField.setText(value);
-	});
+	const f = pdfDoc.getForm();
+	const fields = f.getFields();
 
-	for (let n = noPassedFields; n < emptyFields; n++) {
+	if (dev && !fs.existsSync(mappedPath)) {
+		const mapped = fields.reduce(
+			(acc, f, i) => {
+				const name = f.getName();
+				acc[name] = "";
+				return acc;
+			},
+			{} as { [key: string]: string },
+		);
+
+		fs.writeFileSync(mappedPath, JSON.stringify(mapped, null, 2));
+	}
+
+	for (const field of fields) {
+		if (field.isReadOnly()) continue;
+		const name = field.getName();
 		try {
-			const formField = pdfForm.getTextField(n.toString());
-			formField.setText("");
-		} catch {
-			// Do nothing, the field does not exist and so no clear is required.
+			const formField = pdfForm.getTextField(name);
+			const data = dataObj[name];
+			if (data) {
+				console.log("filling", name, data);
+			}
+			if (!data) {
+				console.warn("No data provided for field", name);
+				formField.setText("");
+				continue;
+			}
+			formField.setText(data.toUpperCase());
+		} catch (e) {
+			try {
+				const radioGroup = pdfForm.getRadioGroup(name);
+				const data = dataObj[name];
+				if (data) {
+					radioGroup.select(data.toString());
+				}
+				if (!data) {
+					console.warn("No data provided for field", name);
+					radioGroup.select("0");
+					continue;
+				}
+			} catch (e2) {
+				console.error(
+					"Caught error filling form field",
+					{ name, value: dataObj[name] },
+					e,
+				);
+				console.error("(Radio)", e2);
+			}
 		}
 	}
 

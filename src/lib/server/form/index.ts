@@ -1,3 +1,4 @@
+import type { StringObj } from "$lib/types";
 import os from "node:os";
 export const homeDir = os.homedir();
 
@@ -15,7 +16,7 @@ export type CheckDocsDirParams = {
 export type GenerateFormParams = {
 	form: string;
 	output?: string;
-	data: string[] | string[][];
+	data: string[] | StringObj;
 	concat?: {
 		concat: true;
 		lookup: string;
