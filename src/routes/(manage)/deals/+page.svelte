@@ -118,6 +118,11 @@ const navType: NavType = "query";
     class="input"
     value={$page.url.searchParams.get("salesmen")}
   />
+  <input
+  type={'hidden'}
+  value={JSON.stringify(finance || {})}
+    name={'finance'}
+  />
   <input name="id" type="hidden" class="input" />
   <fieldset id="taxes" class="flex flex-row flex-wrap gap-4">
     <legend>Deal</legend>
@@ -333,7 +338,7 @@ const navType: NavType = "query";
       </label>
     </fieldset>
   {/if}
-  <button type="submit" class="btn variant-soft-success"> Submit </button>
+  <button type="submit" class="btn variant-ringed-primary"> Submit </button>
 </form>
 
 <form

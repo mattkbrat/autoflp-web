@@ -6,6 +6,9 @@ import {
 } from "$lib/server/database/inventory";
 import type { Inventory } from "$lib/server/database/models/Inventory.js";
 import { type Trades, upsertDeal } from "$lib/server/deal";
+import { getDetailedDeal } from "$lib/server/database/deal";
+import { builder } from "$lib/server/form/builder";
+import type { FinanceCalcResult } from "$lib/finance/calc";
 
 export const load = async ({ params }) => {
 	return {};
@@ -25,6 +28,10 @@ export const actions = {
 		deal.id = deal.id || randomUUID();
 		deal.date = new Date(deal.date);
 		deal.trades = (deal.trades as unknown as string).split(",");
+
+		deal.finance = JSON.parse(
+			deal.finance as unknown as string,
+		) as FinanceCalcResult;
 
 		const trades: Trades = [];
 
@@ -53,6 +60,18 @@ export const actions = {
 		const handled = await upsertDeal(deal, trades);
 
 		const { id: newDealId } = handled || {};
+
+		if (newDealId) {
+			const detailed = await getDetailedDeal(newDealId);
+
+			if (detailed) {
+				await builder({ deal: detailed, form: "DR2395_2022" });
+			} else {
+				console.error("Could not get detailed");
+			}
+		} else {
+			console.log("No deal id");
+		}
 
 		return {
 			data: {
