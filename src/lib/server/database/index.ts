@@ -10,6 +10,8 @@ import { DealSalesman } from "./models/DealSalesman";
 import { DealTrade } from "./models/DealTrade";
 import { DefaultCharge } from "./models/DefaultCharge";
 import { Inventory } from "./models/Inventory";
+import { Key } from "./models/Key";
+import { LoginKey } from "./models/LoginKey";
 import { Payment } from "./models/Payment";
 import { Person } from "./models/Person";
 import { Salesman } from "./models/Salesman";
@@ -18,6 +20,7 @@ import { User } from "./models/User";
 export const orm = await MikroORM.init<BetterSqliteDriver>({
 	driver: BetterSqliteDriver,
 	dbName: DATABASE_URL,
+	allowGlobalContext: true,
 	entities: [
 		Payment,
 		Deal,
@@ -32,6 +35,10 @@ export const orm = await MikroORM.init<BetterSqliteDriver>({
 		Person,
 		Salesman,
 		User,
+		Key,
+		LoginKey,
 	],
 	serialization: { forceObject: true },
 });
+
+export type Orm = typeof orm;
