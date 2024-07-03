@@ -2,24 +2,21 @@
 import { goto } from "$app/navigation";
 import { page } from "$app/stores";
 import { type NavType, handleAccNav } from "$lib/navState";
-import { allAccounts } from "$lib/stores";
-
+import { allAccounts, selectedStates } from "$lib/stores";
 // biome-ignore lint/style/useConst: changes between routes
 export let navType: NavType = "folder";
+
+import { accountID, handleSelect } from "$lib/stores/selected";
 </script>
 
 <select
   id="account-select"
   name="account"
-  value={$page.url.searchParams.get("account") || $page.url.search || ""}
   on:blur={(e) => {
-    if (!e.target) return;
-    handleAccNav({
-      url: $page.url,
-      account: e.target.value,
-      navType,
-    });
+    if (!e.target || !('value' in e.target) || typeof e.target.value !== 'string') return;
+    handleSelect('account', e.target.value)
   }}
+  value={$accountID.value}
   required
   class="bg-surface-800 text"
 >

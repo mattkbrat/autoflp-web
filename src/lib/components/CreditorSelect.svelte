@@ -11,7 +11,6 @@ export let navType: NavType = "folder";
 <select
   id="creditor-select"
   name="creditor"
-  value={$page.url.searchParams.get("creditor")}
   on:blur={(e) => {
     if (!e.target) return;
     handleAccNav({

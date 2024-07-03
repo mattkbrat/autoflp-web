@@ -3,7 +3,7 @@ import { goto, invalidateAll } from "$app/navigation";
 import { page } from "$app/stores";
 import { type NavType, handleInvNav } from "$lib/navState";
 import { allInventory } from "$lib/stores";
-
+import { handleSelect, inventoryID } from "$lib/stores/selected";
 $: active = $page.url.searchParams.get("state");
 
 // biome-ignore lint/style/useConst: changes between routes
@@ -15,10 +15,12 @@ export let navType: NavType = "folder";
     class="flex-1 uppercase bg-surface-800"
     id="inventory-select"
     name="vin"
-    value={$page.url.searchParams.get("vin") || $page.url.search || ""}
+    value={$inventoryID.value}
     required
-    on:blur={(e) =>
-      handleInvNav({ url: $page.url, vin: e.target.value, navType })}
+    on:blur={(e) => {
+    if (!e.target || !('value' in e.target) || typeof e.target.value !== 'string') return;
+    handleSelect('inventory', e.target.value, navType)
+    }}
   >
     <option value="new">Select Inventory</option>
     {#each $allInventory as inventory}
