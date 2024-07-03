@@ -15,6 +15,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.7.3",
     "@mikro-orm/cli": "^6.2.7",
+    "@mikro-orm/entity-generator": "6.2.7",
     "@playwright/test": "^1.28.1",
     "@skeletonlabs/skeleton": "2.10.0",
     "@skeletonlabs/tw-plugin": "0.4.0",
@@ -41,6 +42,7 @@
   "type": "module",
   "dependencies": {
     "@floating-ui/dom": "1.6.5",
+    "@google-cloud/local-auth": "^3.0.1",
     "@libsql/client": "^0.6.0",
     "@mikro-orm/better-sqlite": "^6.2.7",
     "@mikro-orm/core": "^6.2.7",
@@ -48,6 +50,8 @@
     "@mikro-orm/reflection": "^6.2.7",
     "better-sqlite3": "^10.0.0",
     "date-fns": "^3.6.0",
+    "googleapis": "^140.0.0",
     "highlight.js": "11.9.0"
-  }
+  },
+  "packageManager": "pnpm@9.2.0+sha512.98a80fd11c2e7096747762304106432b3ddc67dcf54b5a8c01c93f68a2cd5e05e6821849522a06fb76284d41a2660d5e334f2ee3bbf29183bf2e739b1dafa771"
 }
