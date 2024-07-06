@@ -16,7 +16,7 @@ export type CheckDocsDirParams = {
 export type GenerateFormParams = {
 	form: string;
 	output?: string;
-	data: string[] | StringObj;
+	data: string[] | Partial<StringObj>;
 	concat?: {
 		concat: true;
 		lookup: string;

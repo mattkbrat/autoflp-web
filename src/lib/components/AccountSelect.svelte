@@ -10,14 +10,14 @@ import { accountID, handleSelect } from "$lib/stores/selected";
 </script>
 
 <select
+  required
   id="account-select"
   name="account"
   on:blur={(e) => {
     if (!e.target || !('value' in e.target) || typeof e.target.value !== 'string') return;
-    handleSelect('account', e.target.value)
+    handleSelect('account', e.target.value, navType)
   }}
   value={$accountID.value}
-  required
   class="bg-surface-800 text"
 >
   <option value={navType === "query" ? "" : "new"}>Select an account</option>

@@ -6,9 +6,14 @@ import {
 } from "$lib/server/database/inventory";
 import type { Inventory } from "$lib/server/database/models/Inventory.js";
 import { type Trades, upsertDeal } from "$lib/server/deal";
-import { getDetailedDeal } from "$lib/server/database/deal";
+import {
+	getCharges,
+	getDetailedDeal,
+	getSalesmen,
+} from "$lib/server/database/deal";
 import { builder } from "$lib/server/form/builder";
 import type { FinanceCalcResult } from "$lib/finance/calc";
+import { forms } from "$lib/types/forms";
 
 export const load = async ({ params }) => {
 	return {};
@@ -63,9 +68,21 @@ export const actions = {
 
 		if (newDealId) {
 			const detailed = await getDetailedDeal(newDealId);
+			const salesmen = await getSalesmen(deal.salesmen);
+
+			console.log("Got salesmen", salesmen);
+			const charges = await getCharges(newDealId);
 
 			if (detailed) {
-				await builder({ deal: detailed, form: "DR2395_2022" });
+				for (const { key, title } of forms) {
+					await builder({
+						deal: detailed,
+						form: key,
+						charges,
+						salesmen,
+						finance: deal.finance,
+					});
+				}
 			} else {
 				console.error("Could not get detailed");
 			}

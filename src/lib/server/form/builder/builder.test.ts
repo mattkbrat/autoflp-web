@@ -2,7 +2,7 @@ import { getDetailedDeal } from "$lib/server/database/deal";
 import { describe, it, assert, expect } from "vitest";
 import { builder } from ".";
 import type { StringObj } from "$lib/types";
-import { getDR2395_2022Data } from "./maps";
+import { getDR2395_2022Data } from "./maps/getDR2395_2022Template";
 
 const letters = [
 	"A",

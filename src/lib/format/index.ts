@@ -26,10 +26,12 @@ const dateTimeFormat = new Intl.DateTimeFormat("en-US", {
 	timeZone: "America/Denver",
 });
 
-export const formatCurrency = (amount: string | number) => {
-	const formatted = currencyFormat.format(+amount);
+export const formatCurrency = (amount: string | number | undefined) => {
+	const formatted = currencyFormat.format(Number(amount || 0));
 	return `${formatted[0]} ${formatted.slice(1)}`;
 };
+
+export const dateFormatStandard = "MM/dd/yyyy";
 
 export const formatDate = (
 	date: string | Date,

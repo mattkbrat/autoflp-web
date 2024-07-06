@@ -13,7 +13,6 @@ export const checkDocsDir = ({
 }: CheckDocsDirParams = {}) => {
 	const expectedPath = path.join(homeDir, "/.autoflp", `/${checkPath}`);
 	const doesExist = fs.existsSync(expectedPath);
-	console.debug({ checkPath, doesExist, expectedPath });
 	if (doesExist || !createIfNotExists) return doesExist ? expectedPath : null;
 	fs.mkdirSync(expectedPath, { recursive: true });
 	return expectedPath;

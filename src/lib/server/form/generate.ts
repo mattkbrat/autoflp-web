@@ -93,8 +93,6 @@ export const generate = async ({
 
 	const pdfDoc = await PDFDocument.load(fs.readFileSync(inputPath));
 
-	const pdfForm = pdfDoc.getForm();
-
 	const f = pdfDoc.getForm();
 	const fields = f.getFields();
 
@@ -111,42 +109,42 @@ export const generate = async ({
 		fs.writeFileSync(mappedPath, JSON.stringify(mapped, null, 2));
 	}
 
-	for (const field of fields) {
+	const fillField = (
+		key: string,
+		value: string,
+		type: "Text" | "Radio" | "Checkbox",
+	) => {
+		try {
+			if (type === "Text") {
+				const formField = f.getTextField(key);
+				formField.setText(value?.toUpperCase() || "");
+				//formField.setText(value?.toUpperCase() || dev ? key : "");
+			} else if (type === "Radio") {
+				const formField = f.getRadioGroup(key);
+				formField.select(value || "");
+			} else if (type === "Checkbox" && value) {
+				const formField = f.getCheckBox(key);
+				console.log("Checking checkbox", key);
+				formField.check();
+			}
+			return true;
+		} catch (e) {
+			return `${key}:${type}: ${e.message}`;
+		}
+	};
+
+	fieldLoop: for (const field of fields) {
+		let errors: string[] = [];
 		if (field.isReadOnly()) continue;
 		const name = field.getName();
-		try {
-			const formField = pdfForm.getTextField(name);
-			const data = dataObj[name];
-			if (data) {
-				console.log("filling", name, data);
-			}
-			if (!data) {
-				console.warn("No data provided for field", name);
-				formField.setText("");
-				continue;
-			}
-			formField.setText(data.toUpperCase());
-		} catch (e) {
-			try {
-				const radioGroup = pdfForm.getRadioGroup(name);
-				const data = dataObj[name];
-				if (data) {
-					radioGroup.select(data.toString());
-				}
-				if (!data) {
-					console.warn("No data provided for field", name);
-					radioGroup.select("0");
-					continue;
-				}
-			} catch (e2) {
-				console.error(
-					"Caught error filling form field",
-					{ name, value: dataObj[name] },
-					e,
-				);
-				console.error("(Radio)", e2);
-			}
+		const data = dataObj[name];
+		for (const k of ["Text", "Radio", "Checkbox"] as const) {
+			const fillResult = fillField(name, data, k);
+			if (fillResult === true) continue fieldLoop;
+			errors.push(fillResult);
 		}
+		console.warn("Failed to fill field");
+		console.info(errors.join("\n"));
 	}
 
 	for await (const { mimeType, path, title } of attachments) {

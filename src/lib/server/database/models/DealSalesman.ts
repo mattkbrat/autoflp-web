@@ -17,6 +17,7 @@ export class DealSalesman {
 
 	@ManyToOne({
 		entity: () => Salesman,
+		index: "person",
 		fieldName: "salesman",
 		updateRule: "cascade",
 		deleteRule: "cascade",

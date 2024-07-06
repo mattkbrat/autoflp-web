@@ -3,6 +3,7 @@ import { goto } from "$app/navigation";
 import { page } from "$app/stores";
 import { type NavType, handleAccNav } from "$lib/navState";
 import { allCreditors } from "$lib/stores";
+import { handleSelect } from "$lib/stores/selected";
 
 // biome-ignore lint/style/useConst: changes between routes
 export let navType: NavType = "folder";
@@ -12,17 +13,12 @@ export let navType: NavType = "folder";
   id="creditor-select"
   name="creditor"
   on:blur={(e) => {
-    if (!e.target) return;
-    handleAccNav({
-      url: $page.url,
-      account: e.target.value,
-      navType,
-      accType: 'creditor'
-    });
+    if (!e.target || !('value' in e.target) || typeof e.target.value !== 'string') return;
     setTimeout(() => {
       document.getElementById('filingFees')?.scrollIntoView()
       document.getElementById('filingFees')?.focus()
     }, 50)
+    handleSelect('creditor', e.target.value, navType)
   }}
   required
   class="bg-surface-800 text"

@@ -13,6 +13,7 @@ type FinanceCalc = {
 	totalTaxPercent: number;
 	cashBalanceWithTax: number;
 	unpaidCashBalance: number;
+	tradeValue: number;
 };
 
 type FinanceCalcCash = FinanceCalc & {
@@ -60,6 +61,7 @@ export const calcFinance = (
 	const deferred = cashBalanceWithTaxAndDown + p.filingFees;
 
 	const financeCalc: FinanceCalc = {
+		tradeValue: p.priceTrade,
 		sellingTradeDifferential: sellingTradeDiff,
 		stateTaxDollar: sellingTradeDiff * stateTax,
 		countyTaxDollar: sellingTradeDiff * countyTax,

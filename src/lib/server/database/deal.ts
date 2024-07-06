@@ -18,6 +18,7 @@ import { DealTrade } from "./models/DealTrade";
 import { DefaultCharge } from "./models/DefaultCharge";
 import type { Inventory } from "./models/Inventory";
 import fs from "node:fs";
+import { Salesman } from "./models/Salesman";
 
 export type DealShortDetails = {
 	lastName: string;
@@ -174,17 +175,24 @@ export const getCharges = async (deal: string) => {
 	return orm.em.find(DealCharge, { deal });
 };
 
-export const getSalesman = async (deal: string) => {
-	return orm.em.find(
-		DealSalesman,
+export type DealCharges = AsyncReturnType<typeof getCharges>;
+export const getTrades = async (deal: string) => {
+	return orm.em.find(DealTrade, { deal }, { populate: ["vin"] });
+};
+
+export type DealTrades = AsyncReturnType<typeof getTrades>;
+
+export const getSalesmen = async (salesmen: string[]) => {
+	return await orm.em.find(
+		Salesman,
+		{ id: salesmen },
 		{
-			deal,
-		},
-		{
-			populate: ["salesman"],
+			populate: ["person"],
 		},
 	);
 };
+
+export type DealSalesmen = AsyncReturnType<typeof getSalesmen>;
 
 export const deleteCharges = async (deal: string) => {
 	const charges = await getCharges(deal);
