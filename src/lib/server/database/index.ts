@@ -41,4 +41,9 @@ export const orm = await MikroORM.init<BetterSqliteDriver>({
 	serialization: { forceObject: true },
 });
 
+// src/lib/prisma.ts
+
+import { PrismaClient } from "@prisma/client";
+
+export const prisma = new PrismaClient();
 export type Orm = typeof orm;
