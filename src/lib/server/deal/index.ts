@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { DealFields } from "$lib/finance";
 import { wrap } from "@mikro-orm/core";
-import { getAccount, getCreditor } from "../database/account";
 import {
 	applyDefaultCharges,
 	applySalesmen,
@@ -22,6 +21,7 @@ import {
 } from "../database/inventory";
 import { Deal } from "../database/models/Deal";
 import type { AsyncReturnType } from "$lib/types";
+import { getCreditor, getAccount } from "../database/account";
 
 export type Trades = { vin: string; value: number }[];
 
@@ -41,9 +41,10 @@ export const upsertDeal = async (deal: DealFields, trades: Trades) => {
 	const openDeals = await openInventoryDeals(deal.vin).then(
 		(deals) => deal.id && deals.filter((d) => d.id !== deal.id),
 	);
-	const account = await getAccount(deal.account);
+	const account = await getAccount({ id: deal.account });
 
-	const creditor = deal.term > 0 ? await getCreditor(deal.creditor) : null;
+	const creditor =
+		deal.term > 0 ? await getCreditor({ id: deal.creditor }) : null;
 
 	let updatedDeal: Deal | null = null;
 

@@ -1,25 +1,29 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
-import type { AccountField } from "$lib/server/database/account";
+import type {
+	AccountField,
+	DetailedAccount,
+} from "$lib/server/database/account";
 import type { InventoryField } from "$lib/server/database/inventory";
 import { onMount } from "svelte";
 
-export let data;
+export let data: { account: DetailedAccount };
+type Selected = Partial<
+	Omit<DetailedAccount, "contact"> & DetailedAccount["contact"]
+>;
+let selected: Selected = {};
 
-let selected: Partial<typeof data.account> = {};
-
-const fieldMap: AccountField[][] = [
+const fieldMap: (keyof Selected)[][] = [
 	["namePrefix", "firstName", "middleInitial", "lastName", "nameSuffix"],
-	["address1", "address2", "address3"],
-	["city", "stateProvince", "zipPostal", "zip4"],
+	["address_1", "address_2", "address_3"],
+	["city", "stateProvince", "zipPostal", "zip_4"],
 	["phonePrimary", "phoneSecondary", "phoneTertiary"],
-	["emailPrimary", "emailSecondary"],
-	["licenseExpiration", "licenseNumber", "dateOfBirth"],
-	["notes"],
+	["emailPrimary", "emailSecondary", "licenseNumber", "licenseExpiration"],
 ];
 
-$: if (selected.licenseNumber !== data.account.licenseNumber) {
-	selected = data.account;
+$: if (selected?.licenseNumber !== data.account.licenseNumber) {
+	const { contact, ...rest } = data.account;
+	selected = { ...contact, ...rest };
 }
 onMount(() => {
 	selected = data.account;
@@ -27,7 +31,7 @@ onMount(() => {
 </script>
 
 <div>Accounts</div>
-{#if selected.lastName}
+{#if selected}
   <h2>{selected.lastName} {selected.firstName}</h2>
 {:else}
   <h2>New</h2>
@@ -47,13 +51,13 @@ onMount(() => {
   }}
 >
   <input
-    value={selected.account || ""}
+    value={selected.id || ""}
     name="account-id"
     class="input"
     type="hidden"
   />
   <input
-    value={selected.contact || ""}
+    value={selected.contact_id || ""}
     name="person-id"
     class="input"
     type="hidden"

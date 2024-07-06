@@ -6,7 +6,14 @@ const getStoredValue = (key: string) => {
 	return (browser && localStorage.getItem(key)) || "";
 };
 
-const ids = ["deal", "inventory", "salesman", "account", "payment"] as const;
+const ids = [
+	"deal",
+	"inventory",
+	"salesman",
+	"account",
+	"payment",
+	"creditor",
+] as const;
 
 type BaseId = (typeof ids)[number];
 
@@ -35,12 +42,17 @@ const defaultState: State = {
 		value: getStoredValue("paymentId"),
 		state: "folder",
 	},
+	creditorID: {
+		value: getStoredValue("creditorID"),
+		state: "folder",
+	},
 };
 
 export const selectedStates = writable(defaultState);
 
 export const inventoryID = derived(selectedStates, (s) => s.inventoryID);
 export const accountID = derived(selectedStates, (s) => s.accountID);
+export const creditorID = derived(selectedStates, (s) => s.creditorID);
 
 export const handleSelect = (k: BaseId, value: string, state: NavType) => {
 	console.log("Selecting", k, value, state);
@@ -57,24 +69,37 @@ export const handleSelect = (k: BaseId, value: string, state: NavType) => {
 };
 
 const handleNav = (k: Id, v: StateValue) => {
-	console.log("Updating", v, k);
 	if (!browser || !v) return;
+	console.log("Updating", v, k);
+	const hasChanged = localStorage.getItem(k) !== v.value;
+	if (!hasChanged) {
+		console.log("Congruent", k, v);
+		return;
+	}
+
+	const url = window.location.toString();
+	console.log({ url });
 	localStorage.setItem(k, v.value);
 
-	if (k === "accountID") {
+	if (k === "accountID" || k === "creditorID") {
 		handleAccNav({
-			url: window.location.href,
+			url,
 			account: v.value,
 			navType: v.state,
+			accType: k === "accountID" ? "account" : "creditor",
 		});
 	} else if (k === "inventoryID") {
-		handleInvNav({ url: window.location.href, vin: v.value, navType: v.state });
+		handleInvNav({ url, vin: v.value, navType: v.state });
 		return;
 	}
 };
 
 accountID.subscribe((v) => {
 	handleNav("accountID", v);
+});
+
+creditorID.subscribe((v) => {
+	handleNav("creditorID", v);
 });
 
 inventoryID.subscribe((v) => {

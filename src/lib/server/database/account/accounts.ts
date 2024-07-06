@@ -1,0 +1,66 @@
+import { prisma } from "$lib/server/database";
+import type { Account } from "@prisma/client";
+import { orderContactsBy, contactSelect } from ".";
+import { randomUUID } from "node:crypto";
+
+export const getAccounts = async () => {
+	return prisma.account.findMany({
+		select: {
+			contact: contactSelect,
+			licenseNumber: true,
+		},
+		orderBy: orderContactsBy,
+	});
+};
+
+export const getAccount = async ({ id }: { id: string }) => {
+	return prisma.account.findUnique({
+		where: { id },
+	});
+};
+
+export const getDetailedAccount = async ({
+	id,
+	contact,
+}: { id?: string; contact?: string }) => {
+	if (id) {
+		return prisma.account.findUnique({
+			where: { id },
+			include: { contact: true },
+		});
+	}
+
+	return prisma.account.findFirst({
+		where: {
+			contact_id: contact,
+		},
+		include: { contact: true },
+	});
+};
+
+export const upsertAccount = async (a: Partial<Account>) => {
+	const exists = a.id && (await getAccount({ id: a.id }));
+	const { contact_id, licenseNumber, licenseExpiration, ...rest } = a;
+	if (exists) {
+		return prisma.account.update({
+			where: { id: exists.id },
+			data: { licenseNumber, licenseExpiration, ...rest },
+		});
+	}
+
+	const id = a.id || randomUUID();
+	if (!contact_id || !licenseNumber || !licenseExpiration) {
+		return new Error("Must provide contact id, license number, and expiration");
+	}
+	return prisma.account.create({
+		data: {
+			...rest,
+			id,
+			contact: {
+				connect: { id: contact_id },
+			},
+			licenseNumber,
+			licenseExpiration,
+		},
+	});
+};

@@ -3,6 +3,7 @@ import { allCreditors, allSalesmen } from "$lib/stores/accounts";
 
 export let data;
 
+console.log({ data });
 allCreditors.set(data.creditors);
 allSalesmen.set(data.salesmen);
 </script>

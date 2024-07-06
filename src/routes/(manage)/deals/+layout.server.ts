@@ -1,12 +1,11 @@
-import {
-	serializeCreditors,
-	serializeSalesmen,
-} from "$lib/server/database/account";
+import { getCreditors, getSalesmen } from "$lib/server/database/account";
 import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async () => {
-	const creditors = await serializeCreditors();
-	const salesmen = await serializeSalesmen();
+	const salesmen = await getSalesmen();
+	const creditors = await getCreditors();
+
+	console.log({ creditors });
 
 	return { creditors, salesmen };
 };

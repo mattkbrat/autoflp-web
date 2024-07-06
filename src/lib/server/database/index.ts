@@ -1,4 +1,4 @@
-import { DATABASE_URL } from "$env/static/private";
+import { DATABASE_URL, DATABASE_URL_MIKRO } from "$env/static/private";
 import { BetterSqliteDriver } from "@mikro-orm/better-sqlite";
 import { MikroORM } from "@mikro-orm/core";
 import { Account } from "./models/Account";
@@ -19,7 +19,7 @@ import { User } from "./models/User";
 
 export const orm = await MikroORM.init<BetterSqliteDriver>({
 	driver: BetterSqliteDriver,
-	dbName: DATABASE_URL,
+	dbName: DATABASE_URL_MIKRO,
 	allowGlobalContext: true,
 	entities: [
 		Payment,

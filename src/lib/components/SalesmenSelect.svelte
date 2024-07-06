@@ -30,8 +30,8 @@ $: selected = $page.url.searchParams.get("salesmen");
   class="bg-surface-800 text"
 >
   <option value={navType === "query" ? "" : "new"}>Select an account</option>
-  {#each $allSalesmen as account}
-    <option value={account.contact} selected={selected?.includes(account.contact)}
+  {#each $allSalesmen as {contact: account, id}}
+    <option value={id} selected={selected?.includes(id)}
       >{account.lastName}, {account.firstName}</option
     >
   {/each}

@@ -21,9 +21,9 @@ import { accountID, handleSelect } from "$lib/stores/selected";
   class="bg-surface-800 text"
 >
   <option value={navType === "query" ? "" : "new"}>Select an account</option>
-  {#each $allAccounts as account}
+  {#each $allAccounts as {contact: account, licenseNumber: license}}
     <option value={account.id}
-      >{account.lastName}, {account.firstName} | {account.license}</option
+      >{account.lastName}, {account.firstName} | {license}</option
     >
   {/each}
 </select>

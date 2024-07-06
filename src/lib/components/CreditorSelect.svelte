@@ -1,6 +1,4 @@
 <script lang="ts">
-import { goto } from "$app/navigation";
-import { page } from "$app/stores";
 import { type NavType, handleAccNav } from "$lib/navState";
 import { allCreditors } from "$lib/stores";
 import { handleSelect } from "$lib/stores/selected";
