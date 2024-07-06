@@ -5,6 +5,7 @@ import { type NavType, handleAccNav } from "$lib/navState";
 import { allAccounts, selectedStates } from "$lib/stores";
 // biome-ignore lint/style/useConst: changes between routes
 export let navType: NavType = "folder";
+export let baseRoute = "account";
 
 import { accountID, handleSelect } from "$lib/stores/selected";
 </script>
@@ -15,14 +16,14 @@ import { accountID, handleSelect } from "$lib/stores/selected";
   name="account"
   on:blur={(e) => {
     if (!e.target || !('value' in e.target) || typeof e.target.value !== 'string') return;
-    handleSelect('account', e.target.value, navType)
+    handleSelect(baseRoute, e.target.value, navType)
   }}
   value={$accountID.value}
   class="bg-surface-800 text"
 >
   <option value={navType === "query" ? "" : "new"}>Select an account</option>
-  {#each $allAccounts as {contact: account, licenseNumber: license}}
-    <option value={account.id}
+  {#each $allAccounts as {contact: account, licenseNumber: license, id}}
+    <option value={baseRoute === 'account' ? account.id : id}
       >{account.lastName}, {account.firstName} | {license}</option
     >
   {/each}

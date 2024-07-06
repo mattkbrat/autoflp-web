@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 export const getAccounts = async () => {
 	return prisma.account.findMany({
 		select: {
+			id: true,
 			contact: contactSelect,
 			licenseNumber: true,
 		},

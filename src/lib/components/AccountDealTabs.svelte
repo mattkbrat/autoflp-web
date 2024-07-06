@@ -1,12 +1,15 @@
-<script>
+<script lang="ts">
 import { page } from "$app/stores";
 import { TabAnchor, TabGroup } from "@skeletonlabs/skeleton";
 
-import { goto } from "$app/navigation";
 import { accountDeals } from "$lib/stores";
+import { goto } from "$app/navigation";
 
-$: if ($accountDeals.length > 0 && $page.url.pathname.endsWith("payments")) {
-	goto(`/payments/${$accountDeals[0].id}`);
+$: firstDeal = $accountDeals[0];
+
+$: if (firstDeal && $page.url.href.endsWith(firstDeal.accountId)) {
+	console.log("Navigating to first deal");
+	goto(`/payments/${firstDeal.accountId}/${firstDeal.id}`);
 }
 </script>
 
@@ -19,9 +22,9 @@ $: if ($accountDeals.length > 0 && $page.url.pathname.endsWith("payments")) {
 	border=""
 	class="w-full bg-surface-100-800-token"
 >
-{#each $accountDeals as deal}
-	<TabAnchor href={`/payments/${deal.id}`} selected={$page.url.pathname.endsWith(deal.id)}>
-		<svelte:fragment slot="lead">{deal.make} {deal.model}</svelte:fragment>
+{#each ($accountDeals || []) as deal}
+	<TabAnchor href={`/payments/${deal.accountId}/${deal.id}`} selected={$page.url.pathname.endsWith(deal.id)}>
+		<svelte:fragment slot="lead">{deal.inventory.make} {deal.inventory.model}</svelte:fragment>
 		<span>{deal.date}</span>
 	</TabAnchor>
 {/each}

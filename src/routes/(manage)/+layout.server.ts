@@ -1,7 +1,7 @@
 import { getAccounts } from "$lib/server/database/account";
+import { getAndGroupDeals, getDeals } from "$lib/server/database/deal";
 import { getInventory } from "$lib/server/database/inventory";
 import type { LayoutServerLoad } from "./$types";
-import { getAndGroupDeals } from "./payments/getAndGroupDeals";
 
 export const load: LayoutServerLoad = async ({ url }) => {
 	const deals = await getAndGroupDeals();

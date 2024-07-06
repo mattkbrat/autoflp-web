@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { Deal } from "$lib/server/database/models/Deal";
-import { Payment } from "$lib/server/database/models/Payment";
 import {
 	deletePayment,
 	getPaymentsByDeal,
@@ -8,11 +7,12 @@ import {
 } from "$lib/server/database/payment";
 import { serialize, wrap } from "@mikro-orm/core";
 import { fail } from "@sveltejs/kit";
+import { getPayments } from "$lib/server/database/deal";
+import type { Payment } from "@prisma/client";
 export const load = async ({ params }) => {
-	const payments = await getPaymentsByDeal(params.deal);
-
+	const payments = await getPayments(params.deal);
 	return {
-		payments: serialize(payments),
+		payments,
 	};
 };
 
@@ -20,15 +20,12 @@ export const actions = {
 	record: async ({ request }) => {
 		const data = await request.formData();
 
-		const deal = new Deal();
-		const payment = new Payment();
-
-		deal.id = data.get("deal") as string;
-
-		payment.amount = data.get("pmt") as string;
-		payment.date = data.get("date") as string;
-		payment.id = randomUUID();
-		payment.deal = deal;
+		const payment: Payment = {
+			amount: data.get("pmt") as string,
+			date: data.get("date") as string,
+			id: randomUUID(),
+			dealId: data.get("deal") as string,
+		};
 
 		await recordPayment(payment);
 

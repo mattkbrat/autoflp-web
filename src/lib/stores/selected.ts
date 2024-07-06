@@ -50,9 +50,11 @@ const defaultState: State = {
 
 export const selectedStates = writable(defaultState);
 
+export const dealID = derived(selectedStates, (s) => s.dealID);
 export const inventoryID = derived(selectedStates, (s) => s.inventoryID);
 export const accountID = derived(selectedStates, (s) => s.accountID);
 export const creditorID = derived(selectedStates, (s) => s.creditorID);
+export const paymentID = derived(selectedStates, (s) => s.paymentID);
 
 export const handleSelect = (k: BaseId, value: string, state: NavType) => {
 	console.log("Selecting", k, value, state);
@@ -81,12 +83,24 @@ export const handleNav = (k: Id, v: StateValue) => {
 	console.log({ url });
 	localStorage.setItem(k, v.value);
 
-	if (k === "accountID" || k === "creditorID") {
+	if (
+		k === "accountID" ||
+		k === "creditorID" ||
+		k === "paymentID" ||
+		k === "dealID"
+	) {
 		handleAccNav({
 			url,
 			account: v.value,
 			navType: v.state,
-			accType: k === "accountID" ? "account" : "creditor",
+			accType:
+				k === "accountID"
+					? "account"
+					: k === "paymentID"
+						? "payment"
+						: k === "dealID"
+							? "deal"
+							: "creditor",
 		});
 	} else if (k === "inventoryID") {
 		handleInvNav({ url, vin: v.value, navType: v.state });
@@ -104,4 +118,12 @@ creditorID.subscribe((v) => {
 
 inventoryID.subscribe((v) => {
 	handleNav("inventoryID", v);
+});
+
+paymentID.subscribe((v) => {
+	handleNav("paymentID", v);
+});
+
+dealID.subscribe((v) => {
+	handleNav("dealID", v);
 });

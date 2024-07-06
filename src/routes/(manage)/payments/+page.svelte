@@ -1,8 +1,6 @@
 <script lang="ts">
 import { page } from "$app/stores";
-import AccountDealTabs from "$lib/components/AccountDealTabs.svelte";
-import { accountDeals, deals } from "$lib/stores";
-import { onMount } from "svelte";
+import { deals } from "$lib/stores";
 
 export let data;
 
@@ -22,9 +20,6 @@ $: if (id) {
 		setTimeout(() => {
 			select.focus();
 		}, 200);
-	}
-	if (data.accountDeals) {
-		accountDeals.set(data.accountDeals);
 	}
 }
 </script>

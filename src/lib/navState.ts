@@ -52,8 +52,11 @@ export const handleAccNav = ({
 }: AccNavState) => {
 	const newUrl = new URL(url);
 	if (typeof account === "string") {
-		if (navType === "folder" && accType === "account") {
-			newUrl.pathname = `/accounts/${account}`;
+		if (
+			(navType === "folder" && accType === "account") ||
+			accType === "payment"
+		) {
+			newUrl.pathname = `/${accType}s/${account}`;
 		} else {
 			newUrl.searchParams.set(accType, account);
 		}
