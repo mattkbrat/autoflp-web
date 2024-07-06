@@ -68,7 +68,7 @@ export const handleSelect = (k: BaseId, value: string, state: NavType) => {
 	});
 };
 
-const handleNav = (k: Id, v: StateValue) => {
+export const handleNav = (k: Id, v: StateValue) => {
 	if (!browser || !v) return;
 	console.log("Updating", v, k);
 	const hasChanged = localStorage.getItem(k) !== v.value;

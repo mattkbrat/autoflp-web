@@ -1,10 +1,5 @@
 import { randomUUID } from "node:crypto";
 import type { DealFields } from "$lib/finance";
-import {
-	type Update,
-	upsert as upsertInventory,
-} from "$lib/server/database/inventory";
-import type { Inventory } from "$lib/server/database/models/Inventory.js";
 import { type Trades, upsertDeal } from "$lib/server/deal";
 import {
 	getCharges,
@@ -14,6 +9,11 @@ import {
 import { builder } from "$lib/server/form/builder";
 import type { FinanceCalcResult } from "$lib/finance/calc";
 import { forms } from "$lib/types/forms";
+
+import {
+	upsertInventory,
+	type Inventory,
+} from "$lib/server/database/inventory";
 
 export const load = async ({ params }) => {
 	return {};
@@ -49,15 +49,14 @@ export const actions = {
 			}
 			deal[tradeString] = undefined;
 
-			const inventory: Update = {
-				id: randomUUID(),
+			const inventory: Partial<Inventory> = {
 				vin: trade.vin || "",
 				year: trade.year?.toString() || "",
 				make: trade.make || "",
 				state: 1,
 			};
 
-			await upsertInventory(trade.vin, inventory);
+			await upsertInventory(inventory);
 
 			trades.push({ vin: trade.vin, value: trade.value });
 		}

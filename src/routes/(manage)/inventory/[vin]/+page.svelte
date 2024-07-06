@@ -3,10 +3,11 @@ import { enhance } from "$app/forms";
 import { goto } from "$app/navigation";
 import { page } from "$app/stores";
 import { el } from "$lib/element";
-import { handleInvNav } from "$lib/navState";
+import { handleAccNav, handleInvNav } from "$lib/navState";
 import type { InventoryField } from "$lib/server/database/inventory";
 import type { ParsedNHTA } from "$lib/server/inventory";
-import { allInventory } from "$lib/stores";
+import { allInventory, selectedStates } from "$lib/stores";
+import type { Inventory } from "@prisma/client";
 import { onMount } from "svelte";
 
 const thisYear = new Date().getFullYear();
@@ -14,9 +15,9 @@ const thisYear = new Date().getFullYear();
 let shouldFocus = false;
 let hasLoaded = false;
 
-export let data;
+export let data: { inventory: Inventory };
 
-let selected: Partial<typeof data.inventory> = {};
+let selected: Partial<Inventory> = {};
 let hasCleared = false;
 let searched = "";
 let searchedInfo: { [key: string]: string } | null = null;
@@ -178,10 +179,17 @@ const toggleState = (oldState: number) => {
 };
 
 onMount(() => {
+	console.log("inv", data.inventory, $selectedStates.inventoryID.value);
+	if (!data.inventory?.vin) {
+		if ($selectedStates.inventoryID.value) {
+			handleInvNav({ url: $page.url, vin: $selectedStates.inventoryID.value });
+		} else {
+			selected = {};
+			searchedInfo = null;
+		}
+	}
 	hasLoaded = true;
-	selected = {};
-	searchedInfo = null;
-	syncSelect($page.params.vin);
+	//syncSelect($page.params.vin);
 });
 </script>
 

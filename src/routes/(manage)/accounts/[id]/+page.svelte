@@ -1,10 +1,9 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
-import type {
-	AccountField,
-	DetailedAccount,
-} from "$lib/server/database/account";
-import type { InventoryField } from "$lib/server/database/inventory";
+import { page } from "$app/stores";
+import { handleAccNav } from "$lib/navState";
+import type { DetailedAccount } from "$lib/server/database/account";
+import { selectedStates } from "$lib/stores";
 import { onMount } from "svelte";
 
 export let data: { account: DetailedAccount };
@@ -26,6 +25,9 @@ $: if (selected?.licenseNumber !== data.account.licenseNumber) {
 	selected = { ...contact, ...rest };
 }
 onMount(() => {
+	if (!data.account.licenseNumber && $selectedStates.accountID.value) {
+		handleAccNav({ url: $page.url, account: $selectedStates.accountID.value });
+	}
 	selected = data.account;
 });
 </script>

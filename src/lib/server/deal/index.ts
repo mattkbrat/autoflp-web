@@ -13,15 +13,10 @@ import {
 	openInventoryDeals,
 	updateDeal,
 } from "../database/deal";
-import {
-	deleteInventory,
-	getSingleInventory,
-	getTrades,
-	update as updateInv,
-} from "../database/inventory";
 import { Deal } from "../database/models/Deal";
 import type { AsyncReturnType } from "$lib/types";
 import { getCreditor, getAccount } from "../database/account";
+import { getSingleInventory } from "../database/inventory";
 
 export type Trades = { vin: string; value: number }[];
 
@@ -52,7 +47,7 @@ export const upsertDeal = async (deal: DealFields, trades: Trades) => {
 		console.error("No account for deal by id", account);
 		return;
 	}
-	const inv = await getSingleInventory(deal.vin);
+	const inv = await getSingleInventory({ vin: deal.vin });
 	if (!inv) {
 		console.error("No inventory for deal by vin", deal.vin);
 		return;

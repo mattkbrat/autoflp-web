@@ -1,25 +1,21 @@
 import { randomUUID } from "node:crypto";
-import {
-	type Update,
-	deleteInventory,
-	exists,
-	getDetailedInventory,
-	insert,
-	parseDetailed,
-	update,
-	upsert,
-} from "$lib/server/database/inventory.js";
-import { Inventory } from "$lib/server/database/models/Inventory.js";
-import { handleFetch, parseNHTSA } from "$lib/server/inventory";
 import { fail } from "@sveltejs/kit";
+import {
+	getInventory,
+	deleteInventory,
+	getSingleInventory,
+	upsertInventory,
+} from "$lib/server/database/inventory";
+import type { Inventory } from "@prisma/client";
 
 export const load = async ({ params }) => {
-	const inventory = await getDetailedInventory(params.vin);
-
-	const [first] = inventory;
+	const inventory =
+		params.vin === "new"
+			? ({} as Inventory)
+			: await getSingleInventory({ vin: params.vin });
 
 	return {
-		inventory: parseDetailed(first),
+		inventory,
 	};
 };
 
@@ -30,7 +26,7 @@ export const actions = {
 		const id = data.get("id") as string;
 		const vin = data.get("vin") as string;
 
-		const inventory: Update = {};
+		const inventory: Partial<Inventory> = {};
 		inventory.id = (data.get("id") || randomUUID()) as string;
 		inventory.body = data.get("body") as string;
 		inventory.make = data.get("make") as string;
@@ -46,15 +42,17 @@ export const actions = {
 		inventory.down = data.get("down") as string;
 		inventory.state = +(data.get("state") as string);
 
-		await upsert(vin, inventory);
+		const upserted = await upsertInventory(inventory);
 
-		const updated = await getDetailedInventory(vin).then((inv) => {
-			return { ...inv[0] };
-		});
+		if (upserted instanceof Error) {
+			return fail(400, {
+				message: `Could not update inventory: ${upserted.message}`,
+			});
+		}
 
 		return {
-			data: updated,
-			method: id ? "update" : "insert",
+			data: upserted,
+			method: id === upserted.id ? "update" : "insert",
 		};
 	},
 
