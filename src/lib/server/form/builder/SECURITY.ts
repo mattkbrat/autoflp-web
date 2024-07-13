@@ -29,6 +29,7 @@ export const fillSecurityData = ({ deal, finance, trades }: DealFormParams) => {
 			creditor,
 			type: finance?.type,
 		});
+		return;
 	}
 
 	const firstEqualsLast = finance.monthlyPayment === finance.lastPayment;
@@ -87,7 +88,7 @@ export const fillSecurityData = ({ deal, finance, trades }: DealFormParams) => {
 		"23": creditorAddress.full,
 		"24": formatCurrency(deal.cash),
 		"25": formatCurrency(finance.totalTaxDollar),
-		"26": formatCurrency(deal.down),
+		"26": formatCurrency(deal.down || 0),
 		"27": formatCurrency(finance.tradeValue),
 		"28": formatCurrency(finance.unpaidCashBalance),
 		"29": filing,

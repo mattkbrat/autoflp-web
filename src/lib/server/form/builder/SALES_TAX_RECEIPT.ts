@@ -19,16 +19,13 @@ import { formatDate } from "date-fns";
 import type { DealFormParams } from ".";
 import type { BuyersGuideTemplate, SalesTaxReceiptTemplate } from "./maps";
 
-export const fillSalesTax0024Data = ({
-	deal,
-	finance,
-	trades,
-}: DealFormParams) => {
+export const fillSalesTax0024Data = ({ deal }: DealFormParams) => {
+	const { dealTrades: trades } = deal;
 	const tradesArr = trades?.map((trade) => {
 		return {
-			year: trade.vin.year,
-			make: trade.vin.make,
-			model: trade.vin.model,
+			year: trade.inventory.year,
+			make: trade.inventory.make,
+			model: trade.inventory.model,
 			vin: trade.vin,
 			value: trade.value,
 		};
@@ -57,16 +54,16 @@ export const fillSalesTax0024Data = ({
 		"Date of Sale": formatDate(deal.date, dateFormatStandard),
 		"Model Year": year,
 		Make: make,
-		Model: model,
+		Model: model || "",
 		"Vehicle Identification Number": vin,
 		"Trade-in Model Year 1.0": tradesArr?.[0]?.year,
 		"Trade-in Model Year 1.1": tradesArr?.[1]?.year,
 		"Trade-in Make 1.0": tradesArr?.[0]?.make,
 		"Trade-in Make 1.1": tradesArr?.[1]?.make,
-		"Trade-in Model 1.0": tradesArr?.[0]?.model,
-		"Trade-in Model 1.1": tradesArr?.[1]?.model,
-		"Trade-in Vehicle Identification Number 1.0": tradesArr?.[0]?.vin.id,
-		"Trade-in Vehicle Identification Number 1.1": tradesArr?.[1]?.vin.id,
+		"Trade-in Model 1.0": tradesArr?.[0]?.model || "",
+		"Trade-in Model 1.1": tradesArr?.[1]?.model || "",
+		"Trade-in Vehicle Identification Number 1.0": tradesArr?.[0]?.vin,
+		"Trade-in Vehicle Identification Number 1.1": tradesArr?.[1]?.vin,
 		"Purchaser's Name": legalNames,
 		"Purchaser's Address": personAddress.full,
 		"Dealer City Sales Tax Account # (if applicable)": SALES_TAX_NUMBER,

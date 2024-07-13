@@ -53,10 +53,10 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 		"Vehicle Identification Number VIN_17": vinSplit[16],
 		Year: deal.inventory.year,
 		Make: deal.inventory.make,
-		Body: deal.inventory.body,
-		Model: deal.inventory.model,
-		Color: deal.inventory.color,
-		CWT: deal.inventory.cwt,
+		Body: deal.inventory.body || "",
+		Model: deal.inventory.model || "",
+		Color: deal.inventory.color || "",
+		CWT: deal.inventory.cwt || "",
 		"Dealer #": DEALER_NUMBER,
 		"Date Purchased": date,
 		"Legal Names as it Appears on Identification and Physical Address Owner's or Enity":
@@ -69,7 +69,7 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 			creditorAddress?.full || ""
 		}`.trim(),
 		"Lien Amount": deal.lien ? formatCurrency(+deal.lien) : undefined,
-		"Second Lienholder Name and Address": deal.account.cosigner,
+		"Second Lienholder Name and Address": deal.account.cosigner || "",
 		//"Lien Amount_2": "",
 		//"Indicate Alternate Address Here if The Title Should be Sent to a Different Lienholder Address": "",
 		//"Indicate Alternate Address Here if The Title Should be Sent to a Different Lienholder Address_2": "",
@@ -82,11 +82,17 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 		//Other_1: "",
 		"ID #": deal.account.licenseNumber,
 		Expires:
-			deal.account.licenseExpiration &&
-			formatDate(deal.account.licenseExpiration, false, dateFormatStandard),
+			(deal.account.licenseExpiration &&
+				formatDate(
+					deal.account.licenseExpiration,
+					false,
+					dateFormatStandard,
+				)) ||
+			"",
 		DOB:
-			deal.account.dateOfBirth &&
-			formatDate(deal.account.dateOfBirth, false, dateFormatStandard),
+			(deal.account.dateOfBirth &&
+				formatDate(deal.account.dateOfBirth, false, dateFormatStandard)) ||
+			"",
 		Date_2: date,
 		//"Previous Title Number": "",
 		//"Title Number": "",
@@ -115,7 +121,7 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 		"Vehicle Identification Number": deal.inventory.vin,
 		Year_2: deal.inventory.year,
 		Make_2: deal.inventory.make,
-		Model_2: deal.inventory.model,
+		Model_2: deal.inventory.model || "",
 		I_1: personFullName,
 		// "Joint Tenancy With Rights of Survivorship_1": "",
 		// "Tenancy in Common_1": "",
@@ -132,7 +138,7 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 		// Signature2: "",
 		// Signature3: "",
 		//"Flex Fuel": "",
-		"Fuel Type": deal.inventory.fuel,
+		"Fuel Type": deal.inventory.fuel || "",
 		"Witness Printed Name": PRIMARY_DEALER_NAME,
 		"Commercial Use": "",
 		"Keep Colorado Wild": "No",

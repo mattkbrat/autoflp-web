@@ -15,15 +15,17 @@ import {
 	fullNameFromPerson,
 } from "$lib/format";
 import type { DealFormParams } from ".";
+import type { Nullable } from "vitest";
 
-export const fillBuyersOrderData = ({
-	deal,
-	finance,
-	salesmen,
-	charges,
-	trades,
-}: DealFormParams) => {
-	const { creditor, inventory, account } = deal;
+export const fillBuyersOrderData = ({ deal, finance }: DealFormParams) => {
+	const {
+		creditor,
+		inventory,
+		account,
+		dealSalsemen: salesmen,
+		dealTrades: trades,
+		dealCharges: charges,
+	} = deal;
 	if (!deal.lien || !deal.term || !creditor || finance?.type !== "credit")
 		return {};
 	const { contact, cosigner } = account;
@@ -37,7 +39,7 @@ export const fillBuyersOrderData = ({
 	console.log("salesmen", JSON.stringify(salesmen, null, 2));
 	const salesmenText = salesmen
 		?.map((s) =>
-			fullNameFromPerson({ person: s.salesman?.person && s.salesman.person }),
+			fullNameFromPerson({ person: s.salesman?.contact && s.salesman.contact }),
 		)
 		.join(", ");
 
@@ -65,21 +67,21 @@ export const fillBuyersOrderData = ({
 		// "7":,
 		// "8":,
 		"9": iId.split("-").slice(-1)[0],
-		"10": color,
+		"10": color || "",
 		"11": make,
 		"12": year,
-		"13": model,
+		"13": model || "0",
 		"14": vin,
 		"15": names,
 		"16": account.licenseNumber,
 		"17": formatDate(finance.firstPaymentDueDate, dateFormatStandard),
 		"18": formatCurrency(deal.lien),
-		"19": mileage,
+		"19": mileage || "",
 		"20": formatCurrency(totalCharges),
 		"21": formatCurrency(deal.cash),
-		"22": trade?.vin.year,
-		"23": trade?.vin.model,
-		"24": trade?.vin.id,
+		"22": trade?.inventory.year,
+		"23": trade?.inventory.model || "",
+		"24": trade?.inventory.id,
 		"25": formatCurrency(trade?.value),
 		"26": formatCurrency(finance.sellingTradeDifferential),
 		"27": formatCurrency(finance.stateTaxDollar),
@@ -87,9 +89,9 @@ export const fillBuyersOrderData = ({
 		"29": formatCurrency(finance.rtdTaxDollar),
 		"30": formatCurrency(finance.totalTaxDollar),
 		"31": formatCurrency(finance.cashBalanceWithTax),
-		"32": formatCurrency(deal.down),
+		"32": formatCurrency(deal.down || 0),
 		"33": formatCurrency(0),
-		"34": formatCurrency(deal.down),
+		"34": formatCurrency(deal.down || 0),
 		"35": formatCurrency(finance.unpaidCashBalance),
 		"36": formatCurrency(0), // payoff
 		"37": formatCurrency(0),

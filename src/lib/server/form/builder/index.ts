@@ -1,10 +1,5 @@
 import type { FinanceCalcCredit, FinanceCalcResult } from "$lib/finance/calc";
-import type {
-	DealCharges,
-	DealSalesmen,
-	DealTrades,
-	DetailedDeal,
-} from "$lib/server/database/deal";
+import type { DetailedDeal } from "$lib/server/database/deal";
 import type { Form } from "$lib/types/forms";
 import type { GenerateFormParams } from "..";
 import { generate } from "../generate";
@@ -23,9 +18,6 @@ export type FormBuilderParams = {
 	form: Form;
 	obj?: GenerateFormParams["data"];
 	finance?: FinanceCalcResult;
-	charges?: DealCharges;
-	salesmen?: DealSalesmen;
-	trades?: DealTrades;
 };
 
 export type DealFormParams = FormBuilderParams & {

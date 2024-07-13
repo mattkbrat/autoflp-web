@@ -43,3 +43,5 @@ export const defaultDeal: DealFields = {
 	date: new Date(),
 	finance: null,
 };
+
+export type DealFieldsWithFinance = DealFields & { finance: FinanceCalcResult };

@@ -11,7 +11,7 @@ import type { BuyersGuideTemplate } from "./maps";
 export const fillBuyersGuideData = (deal: NonNullable<DetailedDeal>) => {
 	return {
 		"0": deal.inventory.make,
-		"1": deal.inventory.model,
+		"1": deal.inventory.model || "",
 		"2": deal.inventory.make,
 		"3": deal.inventory.vin,
 		"4": BUSINESS_NAME,
