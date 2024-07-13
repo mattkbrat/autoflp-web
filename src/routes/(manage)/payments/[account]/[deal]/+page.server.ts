@@ -1,11 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { Deal } from "$lib/server/database/models/Deal";
 import {
 	deletePayment,
-	getPaymentsByDeal,
 	recordPayment,
 } from "$lib/server/database/payment";
-import { serialize, wrap } from "@mikro-orm/core";
 import { fail } from "@sveltejs/kit";
 import { getPayments } from "$lib/server/database/deal/getPayments";
 import type { Payment } from "@prisma/client";
