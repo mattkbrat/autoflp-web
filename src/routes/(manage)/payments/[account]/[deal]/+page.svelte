@@ -10,7 +10,7 @@ export let data;
 let selected: GroupedAccountDeals[number] | null = null;
 
 $: deal = $page.params.deal;
-const today = new Date().toISOString().split("T")[0];
+let today = new Date().toISOString().split("T")[0];
 $: defaultPmt = selected?.pmt || 0;
 $: if (deal && $accountDeals) {
 	selected = $accountDeals.find((d) => d.id === deal) || null;
@@ -47,7 +47,7 @@ $: if (deal && $accountDeals) {
       }}
     >
       <input
-        value={today}
+        bind:value={today}
         name="date"
         type="date"
         required

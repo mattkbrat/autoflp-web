@@ -1,11 +1,6 @@
 import { randomUUID } from "node:crypto";
-import type { DealFields } from "$lib/finance";
 import { type Trades, upsertDeal } from "$lib/server/deal";
-import {
-	getCharges,
-	getDetailedDeal,
-	getSalesmen,
-} from "$lib/server/database/deal";
+import { getDetailedDeal } from "$lib/server/database/deal";
 import { builder } from "$lib/server/form/builder";
 import type { FinanceCalcResult } from "$lib/finance/calc";
 import { forms } from "$lib/types/forms";
@@ -14,10 +9,7 @@ import {
 	upsertInventory,
 	type Inventory,
 } from "$lib/server/database/inventory";
-
-export const load = async ({ params }) => {
-	return {};
-};
+import type { DealFieldsWithFinance } from "$lib/finance/fields";
 
 export const actions = {
 	submit: async ({ request }) => {
@@ -25,7 +17,7 @@ export const actions = {
 
 		const id = data.get("id") as string;
 
-		const deal = Object.fromEntries(data) as unknown as DealFields;
+		const deal = Object.fromEntries(data) as unknown as DealFieldsWithFinance;
 		const tradeKeys = Object.keys(deal).filter(
 			(k) => k.startsWith("trade-") && typeof deal[k] === "string",
 		);
@@ -66,19 +58,13 @@ export const actions = {
 		const { id: newDealId } = handled || {};
 
 		if (newDealId) {
-			const detailed = await getDetailedDeal(newDealId);
-			const salesmen = await getSalesmen(deal.salesmen);
-
-			console.log("Got salesmen", salesmen);
-			const charges = await getCharges(newDealId);
+			const detailed = await getDetailedDeal({ id: newDealId });
 
 			if (detailed) {
 				for (const { key, title } of forms) {
 					await builder({
 						deal: detailed,
 						form: key,
-						charges,
-						salesmen,
 						finance: deal.finance,
 					});
 				}

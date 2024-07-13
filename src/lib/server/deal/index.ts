@@ -1,42 +1,50 @@
 import { randomUUID } from "node:crypto";
-import type { DealFields } from "$lib/finance";
-import { wrap } from "@mikro-orm/core";
-import {
-	applyDefaultCharges,
-	applySalesmen,
-	closeDeals,
-	createDeal,
-	createTrades,
-	dealExists,
-	deleteCharges,
-	deleteDealSalesmen,
-	openInventoryDeals,
-	updateDeal,
-} from "../database/deal";
-import { Deal } from "../database/models/Deal";
 import type { AsyncReturnType } from "$lib/types";
 import { getCreditor, getAccount } from "../database/account";
-import { getSingleInventory } from "../database/inventory";
+import { getSingleInventory, upsertInventory } from "../database/inventory";
+import {
+	closeDeals,
+	deleteDealCharges,
+	deleteDealSalesmen,
+	deleteDealTrades,
+	getDeal,
+	getDealTrades,
+	getOpenInventoryDeals,
+	updateDeal,
+	applyDefaultCharges,
+	createTrades,
+	createDealSalemen,
+	createDeal,
+} from "../database/deal";
+import type { DealFieldsWithFinance } from "$lib/finance/fields";
+import type { Deal } from "@prisma/client";
 
 export type Trades = { vin: string; value: number }[];
 
-export const upsertDeal = async (deal: DealFields, trades: Trades) => {
+export const upsertDeal = async (
+	deal: DealFieldsWithFinance,
+	trades: Trades,
+) => {
 	const dealDoesExist =
 		deal.id &&
-		(await dealExists({
-			vin: deal.vin,
-			account: deal.account,
-			date: deal.date,
+		(await getDeal({
+			date_accountId_inventoryId: {
+				inventoryId: deal.vin,
+				accountId: deal.account,
+				date: deal.date.toISOString(),
+			},
 		}));
 
 	if (dealDoesExist) {
 		deal.id = dealDoesExist.id;
 	}
 
-	const openDeals = await openInventoryDeals(deal.vin).then(
+	const openDeals = await getOpenInventoryDeals(deal.vin).then(
 		(deals) => deal.id && deals.filter((d) => d.id !== deal.id),
 	);
 	const account = await getAccount({ id: deal.account });
+
+	console.log({ account, id: deal.account });
 
 	const creditor =
 		deal.term > 0 ? await getCreditor({ id: deal.creditor }) : null;
@@ -53,52 +61,38 @@ export const upsertDeal = async (deal: DealFields, trades: Trades) => {
 		return;
 	}
 
-	await closeDeals(openDeals || []);
+	if (Array.isArray(openDeals) && openDeals.length > 0) {
+		await closeDeals(openDeals.map((d) => d.id));
+	}
 
 	if (dealDoesExist) {
-		const trades = await getTrades(deal.id);
-		for await (const trade of trades) {
-			await deleteInventory(trade.id, true);
-		}
-
-		await deleteCharges(deal.id);
+		await deleteDealTrades(deal.id);
+		await deleteDealCharges(deal.id);
 		await deleteDealSalesmen(deal.id);
 
 		// Close the inventory
 		if (inv) {
-			await updateInv({
+			await upsertInventory({
 				vin: inv.vin,
-				inventory: wrap(inv).assign({ state: 0 }),
+				state: 0,
 			});
 		}
 
-		updatedDeal = await updateDeal({
-			deal: dealDoesExist,
-			account,
-			inventory: inv,
-			creditor,
-			update: deal,
-			finance: deal.finance,
-		});
+		updatedDeal = await updateDeal(deal, deal.finance);
 	} else {
-		const newDeal = new Deal();
-		const id = randomUUID();
-		updatedDeal = await createDeal({
-			deal: wrap(newDeal).assign({ id }),
-			account,
-			inventory: inv,
-			creditor,
-			update: deal,
-			finance: deal.finance,
-		});
+		deal.id = randomUUID();
+		updatedDeal = await createDeal(deal, deal.finance);
 	}
 
-	if (updatedDeal.creditor) {
+	if (!updatedDeal) {
+		throw new Error("Failed to upsert deal!");
+	}
+	if (updatedDeal.creditorId) {
 		await applyDefaultCharges(updatedDeal);
 	}
 
-	await createTrades(updatedDeal, trades || []);
-	await applySalesmen(updatedDeal, deal.salesmen || []);
+	await createTrades(updatedDeal.id, trades || []);
+	await createDealSalemen(updatedDeal.id, deal.salesmen || []);
 
 	// TODO: notify Deal
 	//

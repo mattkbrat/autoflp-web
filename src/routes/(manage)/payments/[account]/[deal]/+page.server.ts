@@ -7,7 +7,7 @@ import {
 } from "$lib/server/database/payment";
 import { serialize, wrap } from "@mikro-orm/core";
 import { fail } from "@sveltejs/kit";
-import { getPayments } from "$lib/server/database/deal";
+import { getPayments } from "$lib/server/database/deal/getPayments";
 import type { Payment } from "@prisma/client";
 export const load = async ({ params }) => {
 	const payments = await getPayments(params.deal);

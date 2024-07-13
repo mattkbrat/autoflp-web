@@ -2,8 +2,6 @@
 import { page } from "$app/stores";
 import { deals } from "$lib/stores";
 
-export let data;
-
 let id: string | null = null;
 
 page.subscribe((p) => {

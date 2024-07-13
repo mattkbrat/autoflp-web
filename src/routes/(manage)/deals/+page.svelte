@@ -10,18 +10,17 @@ import { calcFinance } from "$lib/finance/calc";
 import { formatCurrency, formatDate } from "$lib/format";
 import type { NavType } from "$lib/navState";
 import type { ParsedNHTA } from "$lib/server/inventory";
-import { allAccounts, allCreditors, allInventory } from "$lib/stores";
+import {
+	allAccounts,
+	allCreditors,
+	allInventory,
+	selectedStates,
+} from "$lib/stores";
+import { accountID, creditorID, inventoryID } from "$lib/stores/selected";
 
 const deal = defaultDeal;
 
 $: search = $page.url.searchParams;
-$: accountId = search.get("account");
-$: vin = search.get("vin");
-
-$: inventory = vin && $allInventory.find((i) => i.vin === vin);
-$: account = accountId && $allAccounts.find((a) => a.id === accountId);
-$: creditor = $allCreditors.find((c) => c.id === search.get("creditor"));
-
 let currTrade = "";
 
 let trades: {
@@ -37,23 +36,29 @@ $: deal.priceTrade = trades.reduce((acc, t) => {
 	return acc + t.value;
 }, 0);
 
+$: creditor = $allCreditors.find((c) => c.id === $creditorID.value);
 let lastCreditor = "";
-
-$: if (creditor && creditor.businessName !== lastCreditor) {
+$: if (creditor && lastCreditor !== creditor.id) {
 	deal.apr = +creditor.apr;
 	deal.filingFees = +creditor.filingFees;
-	lastCreditor = creditor.businessName;
+	lastCreditor = creditor.id;
 }
 
-$: if (inventory && typeof inventory !== "string") {
+$: inventory = $allInventory.find((i) => i.vin === $inventoryID.value);
+let lastInventory = "";
+
+$: if (inventory && inventory.id !== lastInventory) {
 	deal.vin = inventory.vin;
 	deal.priceDown = Number(inventory.down || 0);
 	const sellingPrice = deal.term > 0 ? inventory.credit : inventory.cash;
 	deal.priceSelling = Number(sellingPrice || 0);
+	lastInventory = inventory.id;
 }
 
-$: if (account && typeof account !== "string" && account.id !== deal.vin) {
-	deal.account = account.id;
+$: if ($accountID.value) {
+	deal.account = $accountID.value || "";
+} else {
+	console.log("No account id");
 }
 
 $: finance = calcFinance(deal);
@@ -63,6 +68,8 @@ $: if (deal.dealType === "cash" && deal.term !== 0) {
 } else if (deal.dealType === "credit" && deal.term === 0) {
 	deal.term = 12;
 }
+
+$: console.log("deal update", deal);
 
 const handleSearched = async (result: unknown) => {
 	if (typeof result !== "object" || !result || !("data" in result)) return;
@@ -109,7 +116,7 @@ const navType: NavType = "query";
     };
   }}
 >
-  <AccountSelect {navType} />
+  <AccountSelect {navType} baseRoute={'deal'} />
   <InventorySelect {navType} />
   <SalesmenSelect {navType} />
   <input
@@ -275,7 +282,7 @@ const navType: NavType = "query";
       </span>
       <input
         class="hidden"
-        name={`trade-${vin}`}
+        name={`trade-${trade.vin}`}
         value={JSON.stringify(trade)}
       />
       <label class="flex-1 min-w-max">

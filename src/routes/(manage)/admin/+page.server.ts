@@ -1,6 +1,5 @@
 import { BUSINESS_NAME } from "$env/static/private";
-import { createKey, getKeys, serializeKeys } from "$lib/server/database/keys";
-import { type Trades, upsertDeal } from "$lib/server/deal";
+import { createKey, getKeys } from "$lib/server/database/keys";
 import { serialize } from "@mikro-orm/core";
 
 export const load = async ({ params }) => {

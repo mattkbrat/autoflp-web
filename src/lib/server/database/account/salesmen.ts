@@ -1,4 +1,5 @@
 import { prisma } from "$lib/server/database";
+import type { Prisma } from "@prisma/client";
 import { contactSelect, orderContactsBy } from ".";
 
 export const getSalesmen = async () => {
@@ -10,3 +11,4 @@ export const getSalesmen = async () => {
 		orderBy: orderContactsBy,
 	});
 };
+export type Salesmen = Prisma.PromiseReturnType<typeof getSalesmen>;

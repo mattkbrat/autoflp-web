@@ -1,5 +1,5 @@
 import { prisma } from "$lib/server/database";
-import type { Person } from "@prisma/client";
+import type { Person, Prisma } from "@prisma/client";
 import { orderContactsBy, contactSelect } from ".";
 import { randomUUID } from "crypto";
 
@@ -33,3 +33,4 @@ export const upsertPerson = async (p: Partial<Person>) => {
 		data: { ...p, id, firstName, lastName, address_1, phonePrimary },
 	});
 };
+export type People = Prisma.PromiseReturnType<typeof getPeople>;

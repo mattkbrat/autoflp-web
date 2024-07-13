@@ -1,5 +1,5 @@
 import { prisma } from "$lib/server/database";
-import type { Account } from "@prisma/client";
+import type { Account, Prisma } from "@prisma/client";
 import { orderContactsBy, contactSelect } from ".";
 import { randomUUID } from "node:crypto";
 
@@ -15,8 +15,11 @@ export const getAccounts = async () => {
 };
 
 export const getAccount = async ({ id }: { id: string }) => {
-	return prisma.account.findUnique({
-		where: { id },
+	return prisma.account.findFirst({
+		where: {
+			OR: [{ id }, { contact_id: id }],
+		},
+		include: { contact: true },
 	});
 };
 
@@ -65,3 +68,8 @@ export const upsertAccount = async (a: Partial<Account>) => {
 		},
 	});
 };
+
+export type DetailedAccount = NonNullable<
+	Prisma.PromiseReturnType<typeof getDetailedAccount>
+>;
+export type Accounts = Prisma.PromiseReturnType<typeof getAccounts>;

@@ -1,19 +1,18 @@
-import { orm } from ".";
-import { Payment } from "./models/Payment";
+
+import type { Payment } from "@prisma/client";
+import { prisma } from ".";
 
 export const getPaymentsByDeal = async (deal: string) => {
-	return orm.em.findAll(Payment, {
-		where: {
-			deal,
-		},
-	});
+  return prisma.payment.findMany({where: {dealId: deal}})
 };
 
 export const recordPayment = async (payment: Payment) => {
-	return orm.em.insert(Payment, payment);
+  return prisma.payment.create({data: payment})
 };
 
 export const deletePayment = async (payment: string) => {
-	const pmt = orm.em.getReference(Payment, payment);
-	await orm.em.remove(pmt).flush();
+  if (!payment) {
+    throw new Error("Must provide a payment ID")
+  }
+  return prisma.payment.delete({where: {id: payment}})
 };
