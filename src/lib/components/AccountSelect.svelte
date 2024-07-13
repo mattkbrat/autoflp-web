@@ -5,9 +5,11 @@ import { type NavType, handleAccNav } from "$lib/navState";
 import { allAccounts, selectedStates } from "$lib/stores";
 // biome-ignore lint/style/useConst: changes between routes
 export let navType: NavType = "folder";
-export let baseRoute = "account";
+export let baseRoute: "account" | "deal" = "account";
 
 import { accountID, handleSelect } from "$lib/stores/selected";
+
+console.log("acc", $allAccounts);
 </script>
 
 <select
@@ -22,9 +24,10 @@ import { accountID, handleSelect } from "$lib/stores/selected";
   class="bg-surface-800 text"
 >
   <option value={navType === "query" ? "" : "new"}>Select an account</option>
-  {#each $allAccounts as {contact: account, licenseNumber: license, id}}
-    <option value={baseRoute === 'account' ? account.id : id}
-      >{account.lastName}, {account.firstName} | {license}</option
+  {#each $allAccounts as {id, contact,licenseNumber}}
+    {@const value = baseRoute === 'account' || baseRoute === 'deal' ? id : contact.id}
+    <option value={value}
+      >{contact.lastName}, {contact.firstName} | {licenseNumber}</option
     >
   {/each}
 </select>
