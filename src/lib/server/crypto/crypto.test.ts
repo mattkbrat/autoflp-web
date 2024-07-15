@@ -2,7 +2,7 @@ import { decrypt, encrypt } from "$lib/server/crypto";
 import { describe, expect, it } from "vitest";
 
 describe("can encrypt and decrypt", () => {
-	const text = "hello, world!";
+	const text = "hello, world!😆";
 	it("encrypts", () => {
 		expect(encrypt(text)).toBeTypeOf("string");
 	});

@@ -49,6 +49,7 @@
     "@google-cloud/local-auth": "^3.0.1",
     "@libsql/client": "^0.6.0",
     "@prisma/client": "5.16.2",
+    "cryptr": "^6.3.0",
     "date-fns": "^3.6.0",
     "googleapis": "^140.0.0",
     "highlight.js": "11.9.0",
