@@ -8,7 +8,17 @@ export const createKey = async ({
 	key,
 	id,
 }: { business: string; value: string; key: string; id?: string }) => {
-  throw new Error("TODO")
+	const encrypted = encrypt(value);
+	return prisma.key.upsert({
+		where: {
+			key_business: {
+				business,
+				key,
+			},
+		},
+		create: { business, key, value: encrypted, id: randomUUID() },
+		update: { value },
+	});
 };
 
 export const getKeyValue = async (
@@ -16,9 +26,32 @@ export const getKeyValue = async (
 		| { type: "id"; id: string }
 		| { type: "keyBusiness"; key: string; business: string },
 ) => {
-  throw new Error("TODO")
+	const existingKey = await prisma.key.findUnique({
+		where:
+			q.type === "id"
+				? { id: q.id }
+				: {
+						key_business: {
+							business: q.business,
+							key: q.key,
+						},
+					},
+	});
+
+	if (!existingKey) return null;
+
+	return decrypt(existingKey.value);
 };
 
 export const getKeys = async (business: string) => {
-  throw new Error("TODO")
+	return prisma.key.findMany({ where: { business } }).then((keys) => {
+		return keys.map((key) => {
+			const decrypted = key.value ? decrypt(key.value) : "";
+			console.log("key", key, decrypted);
+			return {
+				...key,
+				value: decrypted,
+			};
+		});
+	});
 };

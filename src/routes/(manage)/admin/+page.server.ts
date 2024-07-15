@@ -8,17 +8,17 @@ export const load = async ({ params }) => {
 
 export const actions = {
 	submit: async ({ request }) => {
-		// const data = await request.formData();
+		const data = await request.formData();
 
-		// const id = data.get("id") as string;
-		// const key = data.get("key") as string;
-		// const value = data.get("value") as string;
+		const id = data.get("id") as string;
+		const key = data.get("key") as string;
+		const value = data.get("value") as string;
 
-		// const newKey = await createKey({ business: BUSINESS_NAME, key, id, value });
+		const newKey = await createKey({ business: BUSINESS_NAME, key, id, value });
 
 		return {
 			data: {
-				key: {},
+				key: newKey.key,
 			},
 			method: id ? "update" : "insert",
 		};

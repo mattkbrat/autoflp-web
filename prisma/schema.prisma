@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -212,4 +212,13 @@ model Salesman {
   contact      Person         @relation("salesman_personToperson", fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("salesman")
+}
+
+model key {
+  id       String @id @unique(map: "key_id_uindex")
+  key      String
+  value    String
+  business String
+
+  @@unique([key, business], map: "key_key_business_uindex")
 }
