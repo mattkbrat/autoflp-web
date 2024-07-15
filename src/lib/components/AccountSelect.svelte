@@ -5,11 +5,11 @@ import { type NavType, handleAccNav } from "$lib/navState";
 import { allAccounts, selectedStates } from "$lib/stores";
 // biome-ignore lint/style/useConst: changes between routes
 export let navType: NavType = "folder";
-export let baseRoute: "account" | "deal" = "account";
+export let baseRoute: "account" | "deal" | "payment" | "person" = "account";
 
 import { accountID, handleSelect } from "$lib/stores/selected";
 
-console.log("acc", $allAccounts);
+$: console.log(baseRoute, navType);
 </script>
 
 <select
@@ -17,17 +17,24 @@ console.log("acc", $allAccounts);
   id="account-select"
   name="account"
   on:blur={(e) => {
-    if (!e.target || !('value' in e.target) || typeof e.target.value !== 'string') return;
-    handleSelect(baseRoute, e.target.value, navType)
+    if (
+      !e.target ||
+      !("value" in e.target) ||
+      typeof e.target.value !== "string"
+    ) {
+      console.log("invalid state", e.target);
+      return;
+    }
+    handleSelect(baseRoute, e.target.value, navType);
   }}
   value={$accountID.value}
   class="bg-surface-800 text"
 >
   <option value={navType === "query" ? "" : "new"}>Select an account</option>
-  {#each $allAccounts as {id, contact,licenseNumber}}
-    {@const value = baseRoute === 'account' || baseRoute === 'deal' ? id : contact.id}
-    <option value={value}
-      >{contact.lastName}, {contact.firstName} | {licenseNumber}</option
+  {#each $allAccounts as { id, contact, licenseNumber }}
+    {@const value = baseRoute === "person" ? contact.id : id}
+    <option {value}
+      >{contact.lastName}, {contact.firstName} | {licenseNumber} | {value}</option
     >
   {/each}
 </select>

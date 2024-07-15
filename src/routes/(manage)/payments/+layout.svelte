@@ -7,11 +7,9 @@ import { onMount } from "svelte";
 export let data;
 
 onMount(() => {
-	console.log(data.deals);
 	deals.set(data.deals);
 });
 </script>
 
-<AccountSelect baseRoute={'payment'}/>
-<AccountDealTabs/>
-<slot/>
+<AccountSelect baseRoute={"payment"} />
+<slot />

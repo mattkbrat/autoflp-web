@@ -3,7 +3,7 @@ import { createKey, getKeys } from "$lib/server/database/keys";
 
 export const load = async ({ params }) => {
 	const keys = await getKeys(BUSINESS_NAME);
-	return { keys  };
+	return { keys };
 };
 
 export const actions = {
@@ -18,7 +18,7 @@ export const actions = {
 
 		return {
 			data: {
-				key: {  },
+				key: {},
 			},
 			method: id ? "update" : "insert",
 		};

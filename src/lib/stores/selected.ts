@@ -72,39 +72,25 @@ export const handleSelect = (k: BaseId, value: string, state: NavType) => {
 
 export const handleNav = (k: Id, v: StateValue) => {
 	if (!browser || !v) return;
-	console.log("Updating", v, k);
 	const hasChanged = localStorage.getItem(k) !== v.value;
 	if (!hasChanged) {
-		console.log("Congruent", k, v);
 		return;
 	}
 
+	console.log("Updating", v, k);
 	const url = window.location.toString();
-	console.log({ url });
 	localStorage.setItem(k, v.value);
+	const kFormatted = k.replaceAll("ID", "");
 
-	if (
-		k === "accountID" ||
-		k === "creditorID" ||
-		k === "paymentID" ||
-		k === "dealID"
-	) {
+	if (kFormatted === "inventory") {
+		handleInvNav({ url, vin: v.value, navType: v.state });
+	} else {
 		handleAccNav({
 			url,
 			account: v.value,
 			navType: v.state,
-			accType:
-				k === "accountID"
-					? "account"
-					: k === "paymentID"
-						? "payment"
-						: k === "dealID"
-							? "deal"
-							: "creditor",
+			accType: kFormatted,
 		});
-	} else if (k === "inventoryID") {
-		handleInvNav({ url, vin: v.value, navType: v.state });
-		return;
 	}
 };
 

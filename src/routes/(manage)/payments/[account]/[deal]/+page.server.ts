@@ -1,8 +1,5 @@
 import { randomUUID } from "node:crypto";
-import {
-	deletePayment,
-	recordPayment,
-} from "$lib/server/database/payment";
+import { deletePayment, recordPayment } from "$lib/server/database/payment";
 import { fail } from "@sveltejs/kit";
 import { getPayments } from "$lib/server/database/deal/getPayments";
 import type { Payment } from "@prisma/client";
