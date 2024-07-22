@@ -3,6 +3,7 @@ import { describe, it, assert, expect } from "vitest";
 import { builder } from ".";
 import type { StringObj } from "$lib/types";
 import { getDR2395_2022Data } from "./maps/getDR2395_2022Template";
+import { forms } from "$lib/types/forms";
 
 const letters = [
 	"A",
@@ -33,20 +34,18 @@ const letters = [
 	"Z",
 ];
 
-describe("Can generate application for title pdf from deal", async () => {
-	it("generates the form", async () => {
-		const dealId = "358b92c6-2bb4-4fcd-9b31-621dbc4dd0a7";
-		// const detailed = await getDetailedDeal(dealId);
+describe("Can generate forms from pre-created deal", async () => {
+	it("generates forms", async () => {
+		const dealId = "c12ad1f1-a1f0-4f02-a99d-da7d4d27152d";
+		const detailed = await getDetailedDeal({ id: dealId });
 
-		// assert(!!detailed, `Could not get a detailed deal by id: ${dealId}`);
-		// assert(!!detailed.inventory.vin, 'Deal has no inventory vin');
-		// assert(!!detailed.account.contact, 'Deal has no account contact');
-		//
+		assert(!!detailed, `Could not get a detailed deal by id: ${dealId}`);
+		assert(!!detailed.inventory.vin, "Deal has no inventory vin");
+		assert(!!detailed.account.contact, "Deal has no account contact");
 
-		const baseObj = getDR2395_2022Data() as StringObj;
-
-		const builtForm = await builder({ obj: baseObj, form: "DR2395_2022" });
-
-		expect(builtForm).toBeTruthy();
+		for await (const form of forms) {
+			const builtForm = await builder({ deal: detailed, form: form.key });
+			expect(builtForm).toBeTruthy();
+		}
 	});
 });

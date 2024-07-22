@@ -1,14 +1,12 @@
 import { s3Client } from ".";
 import {
-	CreateBucketCommand,
-	HeadBucketCommand,
 	PutObjectCommand,
 	type PutObjectCommandInput,
 } from "@aws-sdk/client-s3";
 
 const bucketName = "filled";
 import fs from "node:fs";
-import { bucketExists, createBucketIfNotExists } from "./bucket";
+import { createBucketIfNotExists } from "./bucket";
 
 export const upload = async ({
 	bucket = bucketName,
@@ -27,7 +25,7 @@ export const upload = async ({
 		Body: file,
 		Bucket: bucket,
 		Key: filename,
-		ContentDisposition: 'inline; filename="' + filename + '"',
+		ContentDisposition: `inline; filename="${filename}"`,
 	};
 
 	const command = new PutObjectCommand(putObjectInput);
