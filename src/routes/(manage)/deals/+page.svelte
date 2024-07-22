@@ -47,6 +47,34 @@ $: if (creditor && lastCreditor !== creditor.id) {
 $: inventory = $allInventory.find((i) => i.vin === $inventoryID.value);
 let lastInventory = "";
 
+const getZip = async (forms: string[]) => {
+	// curl -XGET --url 'http://localhost:5173/api/get-file?file=documents%2FBarrios-Ruben-Munoz%2F24-07-12%2FDR2395_2022_1d874eb5d451.pdf&file=documents%2FBarrios-Ruben-Munoz%2F24-07-12%2FCover_e33f8247362c.pdf'
+
+	const formsSearch = forms.map((form) => {
+		return ["file", form];
+	});
+	const search = new URLSearchParams(formsSearch);
+	return fetch(`/api/get-file?${search.toString()}`)
+		.then((resp) =>
+			resp.status === 200
+				? resp.blob()
+				: Promise.reject("something went wrong"),
+		)
+		.then((blob) => {
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.style.display = "none";
+			a.href = url;
+			// the filename you want
+			a.download = "forms.zip";
+			document.body.appendChild(a);
+			a.click();
+			window.URL.revokeObjectURL(url);
+			// or you know, something with better UX...
+			alert("your file has downloaded!");
+		});
+};
+
 $: if (inventory && inventory.id !== lastInventory) {
 	deal.vin = inventory.vin;
 	deal.priceDown = Number(inventory.down || 0);
@@ -110,13 +138,21 @@ const navType: NavType = "query";
     return async ({ result, update }) => {
       if ("data" in result && result.data && "data" in result.data) {
         //await update();
-        const resultId = result.data.id;
+        const { id: resultId, forms } = result.data.data || {
+          id: "",
+          forms: [],
+        };
         deal.id = typeof resultId === "string" ? resultId : "";
+        if (!Array.isArray(forms)) {
+          console.log("Failed to get forms", result.data);
+          return;
+        }
+        await getZip(forms);
       }
     };
   }}
 >
-  <AccountSelect {navType} baseRoute={'deal'} />
+  <AccountSelect {navType} baseRoute={"deal"} />
   <InventorySelect {navType} />
   <SalesmenSelect {navType} />
   <input
@@ -126,9 +162,9 @@ const navType: NavType = "query";
     value={$page.url.searchParams.get("salesmen")}
   />
   <input
-  type={'hidden'}
-  value={JSON.stringify(finance || {})}
-    name={'finance'}
+    type={"hidden"}
+    value={JSON.stringify(finance || {})}
+    name={"finance"}
   />
   <input name="id" type="hidden" class="input" />
   <fieldset id="taxes" class="flex flex-row flex-wrap gap-4">

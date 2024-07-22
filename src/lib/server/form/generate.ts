@@ -172,6 +172,6 @@ export const generate = async ({
 
 	fs.writeFileSync(outputPath, bytes);
 	return {
-		output: bytes,
+		output: join("documents", outputName),
 	};
 };
