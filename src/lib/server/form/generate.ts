@@ -1,11 +1,12 @@
 import fs from "node:fs";
-import path from "node:path";
+import path, { join } from "node:path";
 import { downloadFromBucket } from "$lib/server/s3";
 import { bucketPaths, type GenerateFormParams } from ".";
 import { PDFDocument } from "pdf-lib";
 import { checkDocsDir } from "./checkDocsDir";
 import { randomUUID } from "node:crypto";
 import { dev } from "$app/environment";
+import { AUTOFLP_DATA_DIR } from "$env/static/private";
 
 export const generate = async ({
 	form,
@@ -20,7 +21,10 @@ export const generate = async ({
 
 	const withoutFilename = form.split(".pdf")[0];
 	const pdfFormName = `${withoutFilename}.pdf`;
-	const outputName = output || `${withoutFilename}_${randomUUID()}.pdf`;
+	const outputName = join(
+		output || ".",
+		`${withoutFilename}_${randomUUID().split("-").slice(-1)}.pdf`,
+	);
 
 	if (Array.isArray(data)) {
 		data.map((item, index) => {
@@ -76,6 +80,7 @@ export const generate = async ({
 
 	if (!fs.existsSync(inputPath)) {
 		// Download from s3 client
+		throw new Error(`Form at path does not exists: ${inputPath}`);
 		await downloadFromBucket({
 			bucket: bucketPaths.templates,
 			key: pdfFormName,
@@ -158,6 +163,12 @@ export const generate = async ({
 	const bytes = await pdfDoc.save();
 
 	// Write to file
+	//
+
+	checkDocsDir({
+		createIfNotExists: true,
+		checkPath: outputPath,
+	});
 
 	fs.writeFileSync(outputPath, bytes);
 	return {
