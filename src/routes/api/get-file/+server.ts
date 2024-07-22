@@ -7,15 +7,12 @@ import AdmZip from "adm-zip";
 
 export const GET: RequestHandler = ({ url }) => {
 	const params = url.searchParams;
-	const file = params.get("file");
-	console.log({ file }, params.keys());
+	const requestedFiles = params.getAll("file");
 
-	const isArray = Array.isArray(file);
-	const files = (isArray ? file : [file]).reduce(
+	const files = requestedFiles.reduce(
 		(acc, file) => {
-			if (!file || typeof file !== "string") return false;
+			if (!file || typeof file !== "string") return acc;
 			const fullPath = join(AUTOFLP_DATA_DIR, file);
-			console.log({ fullPath });
 			if (!existsSync(fullPath)) return acc;
 			acc.push({ fileName: file, fullPath });
 			return acc;
@@ -37,8 +34,6 @@ export const GET: RequestHandler = ({ url }) => {
 	}
 
 	const zip = new AdmZip();
-
-	console.log(files);
 
 	for (const { fullPath } of files) {
 		zip.addLocalFile(fullPath);
