@@ -1,5 +1,5 @@
 import { describe, expect, it, assert } from "vitest";
-import { getMonthlyPayments } from "./getPayments";
+import { getMonthlyPayments, sumMonthlyPayments } from "./getPayments";
 
 describe("Can get payments within a month and year", () => {
 	const testYear = 2022;
@@ -11,7 +11,7 @@ describe("Can get payments within a month and year", () => {
 	assert(
 		dateBegins.getFullYear() === testYear &&
 			dateBegins.getMonth() === testMonth,
-		"Invalid start date conversion: " + JSON.stringify(dateBegins),
+		`Invalid start date conversion: ${JSON.stringify(dateBegins)}`,
 	);
 	assert(
 		dateEnds.getFullYear() === testYear && dateEnds.getMonth() === testMonth,
@@ -36,5 +36,16 @@ describe("Can get payments within a month and year", () => {
 			// console.debug("testing", date);
 			expect(testDate(date)).toBeTruthy();
 		}
+	});
+
+	it("fetches and sums payments made by a single account within a month", async () => {
+		const dealId = "af3dc147-cea2-46cd-a25e-3e83c1236a68";
+		const payments = await sumMonthlyPayments({
+			year: testYear,
+			month: testMonth,
+			dealId,
+		});
+		expect(Object.keys(payments).length).toEqual(1);
+		expect(payments[dealId]).not.toBeNaN();
 	});
 });
