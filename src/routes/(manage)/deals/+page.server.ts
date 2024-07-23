@@ -10,6 +10,7 @@ import {
 	type Inventory,
 } from "$lib/server/database/inventory";
 import type { DealFieldsWithFinance } from "$lib/finance/fields";
+import { fail } from "@sveltejs/kit";
 
 export const actions = {
 	submit: async ({ request }) => {
@@ -57,27 +58,37 @@ export const actions = {
 
 		const { id: newDealId } = handled || {};
 
-		if (newDealId) {
-			const detailed = await getDetailedDeal({ id: newDealId });
-
-			if (detailed) {
-				for (const { key, title } of forms) {
-					await builder({
-						deal: detailed,
-						form: key,
-						finance: deal.finance,
-					});
-				}
-			} else {
-				console.error("Could not get detailed");
-			}
-		} else {
-			console.log("No deal id");
+		if (!newDealId) {
+			console.error("No deal id");
+			return fail(500, { message: "something went wrong" });
 		}
 
+		const detailed = await getDetailedDeal({ id: newDealId });
+
+		if (!detailed) {
+			console.error("Could not feetch detiled deal");
+			return fail(500, { message: "something went wrong" });
+		}
+
+		const builtForms: string[] = [];
+
+		for await (const form of forms) {
+			const built = await builder({
+				deal: detailed,
+				form: form.key,
+				finance: deal.finance,
+			}).then((form) => form?.output);
+
+			if (!built) continue;
+			console.log("Adding", built);
+			builtForms.push(built);
+		}
+
+		console.log(builtForms);
 		return {
 			data: {
 				id: newDealId,
+				forms: builtForms || [],
 			},
 			method: id ? "update" : "insert",
 		};

@@ -1,4 +1,9 @@
 import type { FinanceCalcCredit, FinanceCalcResult } from "$lib/finance/calc";
+import {
+	dateFormatStandard,
+	formatDate,
+	fullNameFromPerson,
+} from "$lib/format";
 import type { DetailedDeal } from "$lib/server/database/deal";
 import type { Form } from "$lib/types/forms";
 import type { GenerateFormParams } from "..";
@@ -25,7 +30,7 @@ export type DealFormParams = FormBuilderParams & {
 };
 
 export const builder = async (p: FormBuilderParams) => {
-	let obj: GenerateFormParams["data"] | null = null;
+	let obj: GenerateFormParams["data"] | null = p.obj || null;
 
 	if (!obj && p.deal) {
 		switch (p.form) {
@@ -75,6 +80,16 @@ export const builder = async (p: FormBuilderParams) => {
 	}
 
 	console.log(p.form, obj);
+	const output = `${fullNameFromPerson({
+		person: p.deal?.account.contact,
+	})}/${formatDate(p.deal?.date || new Date(), false, "yy-MM-dd")}/`
+		.replaceAll(" ", "-")
+		.replaceAll(",", "");
 
-	return generate({ form: p.form, data: obj, attachments: [] });
+	return generate({
+		form: p.form,
+		data: obj,
+		attachments: [],
+		output,
+	});
 };
