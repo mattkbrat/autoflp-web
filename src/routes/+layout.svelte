@@ -34,8 +34,8 @@ import TitleStrip from "$lib/components/TitleStrip.svelte";
 </script>
 
 <div class="flex flex-col gap-4 w-screen min-h-screen">
-  <div class="flex flex-col 2xl:flex-row">
-    <nav class="2xl:fixed print:hidden h-full">
+  <div class="flex flex-col 2xl:flex-row print:hidden">
+    <nav class="2xl:fixed h-full">
       <RootNav />
     </nav>
     <section
@@ -46,10 +46,10 @@ import TitleStrip from "$lib/components/TitleStrip.svelte";
     </section>
   </div>
   <main
-    class="flex flex-col flex-1 gap-y-4 self-center px-4 py-8 min-h-screen lg:mx-16 w-full 2xl:ml-12"
+    class="flex flex-col flex-1 gap-y-4 self-center px-4 py-8 min-h-screen lg:mx-16 print:contents w-full 2xl:ml-12"
   >
     <div
-      class="flex flex-col flex-1 py-4 space-y-4 rounded-xl bg-surface-900/75 lg:px-4 2xl:ml-12"
+      class="flex flex-col flex-1 py-4 space-y-4 rounded-xl dark:bg-surface-900/75 bg-white print:text-black lg:px-4 2xl:ml-12"
     >
       <slot />
     </div>
