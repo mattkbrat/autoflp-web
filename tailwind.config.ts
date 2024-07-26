@@ -6,7 +6,7 @@ import { skeleton } from "@skeletonlabs/tw-plugin";
 import plugin from "tailwindcss/plugin";
 
 export default {
-	darkMode: "class",
+	darkMode: null,
 	content: [
 		"./src/**/*.{html,js,svelte,ts}",
 		join(
@@ -43,6 +43,9 @@ export default {
 				".orientation-sideways": { "text-orientation": "sideways" },
 				".orientation-glyph": { "text-orientation": "use-glyph-orientation" },
 			});
+		}),
+		require("tailwindcss/plugin")(({ addVariant }) => {
+			addVariant("dark", "@media not print { .dark & }");
 		}),
 	],
 } satisfies Config;

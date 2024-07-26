@@ -9,3 +9,12 @@
 	src: url('/fonts/AbrilFatface.ttf');
 	font-display: swap;
 }
+
+@media print {
+  /* All your print styles go here */
+  #header,
+  #footer,
+  #nav {
+    display: none !important;
+  }
+}
