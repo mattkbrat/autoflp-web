@@ -26,7 +26,12 @@ const dateTimeFormat = new Intl.DateTimeFormat("en-US", {
 	timeZone: "America/Denver",
 });
 
-export const formatCurrency = (amount: string | number | undefined) => {
+export const formatCurrency = (
+	amount: string | number | undefined,
+	blankZeroes = true,
+) => {
+	if (!amount || Number.isNaN(Number(amount))) return "-";
+	if (+amount === 0 && blankZeroes) return "-";
 	const formatted = currencyFormat.format(Number(amount || 0));
 	return `${formatted[0]} ${formatted.slice(1)}`;
 };
