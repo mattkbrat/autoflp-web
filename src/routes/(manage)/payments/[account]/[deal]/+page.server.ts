@@ -3,10 +3,16 @@ import { deletePayment, recordPayment } from "$lib/server/database/payment";
 import { fail } from "@sveltejs/kit";
 import { getPayments } from "$lib/server/database/deal/getPayments";
 import type { Payment } from "@prisma/client";
+import { amoritization, dealAmortization } from "$lib/finance/amortization";
+import { getDeal } from "$lib/server/database/deal";
 export const load = async ({ params }) => {
 	const payments = await getPayments(params.deal);
+	const deal = await getDeal({ id: params.deal });
+	const schedule = deal && dealAmortization(deal, payments);
+	// console.log({ deal }, schedule);
 	return {
 		payments,
+		schedule,
 	};
 };
 
