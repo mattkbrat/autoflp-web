@@ -55,7 +55,8 @@ $: if (selected?.year && hasLoaded) {
 		const input = label.firstElementChild as HTMLInputElement;
 		if (input) {
 			// https://www.nhtsa.gov/press-releases/consumer-alert-changes-odometer-disclosure-requirements
-			const isExempt = thisYear - selected.year >= 20;
+			const isExempt =
+				thisYear - Number(selected.year) >= 20 || Number(selected.year) < 2010;
 			const alreadyExempt = input.value.toLowerCase().startsWith("e");
 			selected.mileage = isExempt ? "EXEMPT" : alreadyExempt ? "" : input.value;
 		}
