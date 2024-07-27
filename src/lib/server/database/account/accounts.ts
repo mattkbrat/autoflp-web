@@ -27,16 +27,9 @@ export const getDetailedAccount = async ({
 	id,
 	contact,
 }: { id?: string; contact?: string }) => {
-	if (id) {
-		return prisma.account.findUnique({
-			where: { id },
-			include: { contact: true },
-		});
-	}
-
 	return prisma.account.findFirst({
 		where: {
-			contact_id: contact,
+			OR: [{ id }, { contact_id: contact }],
 		},
 		include: { contact: true },
 	});
