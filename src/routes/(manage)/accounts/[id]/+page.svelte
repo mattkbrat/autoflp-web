@@ -3,7 +3,7 @@ import { enhance } from "$app/forms";
 import { page } from "$app/stores";
 import { handleAccNav } from "$lib/navState";
 import type { DetailedAccount } from "$lib/server/database/account";
-import { selectedStates } from "$lib/stores";
+import { accountID, selectedStates } from "$lib/stores";
 import { onMount } from "svelte";
 
 export let data: { account: DetailedAccount };
@@ -20,16 +20,10 @@ const fieldMap: (keyof Selected)[][] = [
 	["emailPrimary", "emailSecondary", "licenseNumber", "licenseExpiration"],
 ];
 
-$: if (selected?.licenseNumber !== data.account.licenseNumber) {
+$: if (selected.id !== data.account.id) {
 	const { contact, ...rest } = data.account;
 	selected = { ...contact, ...rest };
 }
-onMount(() => {
-	if (!data.account.licenseNumber && $selectedStates.accountID.value) {
-		handleAccNav({ url: $page.url, account: $selectedStates.accountID.value });
-	}
-	selected = data.account;
-});
 </script>
 
 <div>Accounts</div>
@@ -38,7 +32,6 @@ onMount(() => {
 {:else}
   <h2>New</h2>
 {/if}
-
 
 <form
   action="?/update"
@@ -72,9 +65,9 @@ onMount(() => {
         {@const name = key.split("").reduce((acc, char, n) => {
           const isUpper = char.toUpperCase() === char;
           if (isUpper && n > 0) {
-            return `${acc} ${char}`
+            return `${acc} ${char}`;
           }
-          return acc+char
+          return acc + char;
         }, "")}
 
         <label class="flex-1 min-w-max uppercase" id={`inventory-form-${key}`}>
@@ -87,16 +80,15 @@ onMount(() => {
               step={1}
               class="uppercase input"
             />
-            {:else if value instanceof Date}
+          {:else if value instanceof Date}
             <input
               value={value.toISOString().split("T")[0]}
               name={key}
               type="date"
               class="uppercase input"
             />
-            {:else if key === 'notes'}
+          {:else if key === "notes"}
             <textarea
-            
               bind:value={selected[key]}
               name={key}
               class="uppercase input"

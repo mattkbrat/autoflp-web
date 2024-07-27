@@ -11,10 +11,11 @@ import { randomUUID } from "node:crypto";
 export const load = async ({ params }) => {
 	const id = params.id;
 
-	const account = id === "new" ? [] : await getDetailedAccount({ contact: id });
+	const account =
+		id === "new" ? ({} as DetailedAccount) : await getDetailedAccount({ id });
 
 	return {
-		account: account && "id" in account ? account : ({} as DetailedAccount),
+		account,
 	};
 };
 

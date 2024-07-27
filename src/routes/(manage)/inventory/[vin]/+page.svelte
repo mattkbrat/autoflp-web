@@ -183,7 +183,10 @@ onMount(() => {
 	console.log("inv", data.inventory, $selectedStates.inventoryID.value);
 	if (!data.inventory?.vin) {
 		if ($selectedStates.inventoryID.value) {
-			handleInvNav({ url: $page.url, vin: $selectedStates.inventoryID.value });
+			handleInvNav({
+				url: $page.url,
+				vin: $selectedStates.inventoryID.value,
+			});
 		} else {
 			selected = {};
 			searchedInfo = null;

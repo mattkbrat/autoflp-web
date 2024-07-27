@@ -21,10 +21,6 @@ $: fullName =
 	fullNameFromPerson({ person: firstDeal.account.contact });
 </script>
 
-<span class="uppercase"
-  >{fullName || ""} {$paymentID?.value || "Select an account"}</span
->
-
 <TabGroup
   justify="justify-center"
   active="variant-filled-primary"

@@ -71,13 +71,13 @@ export const handleSelect = (k: BaseId, value: string, state: NavType) => {
 };
 
 export const handleNav = (k: Id, v: StateValue) => {
-	if (!browser || !v) return;
+	if (!browser || !v.value) return;
 	const hasChanged = localStorage.getItem(k) !== v.value;
 	if (!hasChanged) {
 		return;
 	}
 
-	console.log("Updating", v, k);
+	console.log("Updating", { v, k });
 	const url = window.location.toString();
 	localStorage.setItem(k, v.value);
 	const kFormatted = k.replaceAll("ID", "");
