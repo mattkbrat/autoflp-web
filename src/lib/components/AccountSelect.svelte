@@ -1,6 +1,7 @@
 <script lang="ts">
 import { goto } from "$app/navigation";
 import { page } from "$app/stores";
+import { fullNameFromPerson } from "$lib/format";
 import { type NavType, handleAccNav } from "$lib/navState";
 import { allAccounts, selectedStates } from "$lib/stores";
 // biome-ignore lint/style/useConst: changes between routes
@@ -33,8 +34,7 @@ $: console.log(baseRoute, navType);
   <option value={navType === "query" ? "" : "new"}>Select an account</option>
   {#each $allAccounts as { id, contact, licenseNumber }}
     {@const value = baseRoute === "person" ? contact.id : id}
-    <option {value}
-      >{contact.lastName}, {contact.firstName} | {licenseNumber} | {value}</option
-    >
+    {@const fullName = fullNameFromPerson({ person: contact })}
+    <option {value}>{fullName} | {licenseNumber}</option>
   {/each}
 </select>
