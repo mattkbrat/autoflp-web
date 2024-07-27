@@ -7,7 +7,7 @@ import InventorySelect from "$lib/components/InventorySelect.svelte";
 import SalesmenSelect from "$lib/components/SalesmenSelect.svelte";
 import { defaultDeal } from "$lib/finance";
 import { calcFinance } from "$lib/finance/calc";
-import { formatCurrency, formatDate } from "$lib/format";
+import { formatCurrency, formatDate, fullNameFromPerson } from "$lib/format";
 import type { NavType } from "$lib/navState";
 import type { ParsedNHTA } from "$lib/server/inventory";
 import {
@@ -38,6 +38,7 @@ $: deal.priceTrade = trades.reduce((acc, t) => {
 
 $: creditor = $allCreditors.find((c) => c.id === $creditorID.value);
 let lastCreditor = "";
+let forms: string[] = [];
 $: if (creditor && lastCreditor !== creditor.id) {
 	deal.apr = +creditor.apr;
 	deal.filingFees = +creditor.filingFees;
@@ -48,8 +49,6 @@ $: inventory = $allInventory.find((i) => i.vin === $inventoryID.value);
 let lastInventory = "";
 
 const getZip = async (forms: string[]) => {
-	// curl -XGET --url 'http://localhost:5173/api/get-file?file=documents%2FBarrios-Ruben-Munoz%2F24-07-12%2FDR2395_2022_1d874eb5d451.pdf&file=documents%2FBarrios-Ruben-Munoz%2F24-07-12%2FCover_e33f8247362c.pdf'
-
 	const formsSearch = forms.map((form) => {
 		return ["file", form];
 	});
@@ -61,12 +60,18 @@ const getZip = async (forms: string[]) => {
 				: Promise.reject("something went wrong"),
 		)
 		.then((blob) => {
+			const account = $allAccounts.find((a) => a.id === deal.account);
+			const name = fullNameFromPerson({ person: account?.contact || {} });
 			const url = window.URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.style.display = "none";
 			a.href = url;
 			// the filename you want
-			a.download = "forms.zip";
+			// const urlEncoded = encodeURIComponent(name);
+			const nameBase = `${name}_${
+				deal.vin
+			}_${deal.date.toDateString()}`.replace(/[^a-zA-Z0-9]/g, "_");
+			a.download = `${nameBase}.zip`;
 			document.body.appendChild(a);
 			a.click();
 			window.URL.revokeObjectURL(url);
@@ -97,7 +102,7 @@ $: if (deal.dealType === "cash" && deal.term !== 0) {
 	deal.term = 12;
 }
 
-$: console.log("deal update", deal);
+// $: console.log("deal update", deal);
 
 const handleSearched = async (result: unknown) => {
 	if (typeof result !== "object" || !result || !("data" in result)) return;
@@ -125,10 +130,16 @@ const handleSearched = async (result: unknown) => {
 const navType: NavType = "query";
 </script>
 
-<h2>
-  {$page.url.pathname}
-</h2>
-
+{#if forms.length > 0}
+  <button
+    type="button"
+    on:click={async () => {
+      await getZip(forms);
+    }}
+  >
+    Download Forms
+  </button>
+{/if}
 <form
   action="?/submit"
   method="post"
@@ -138,11 +149,12 @@ const navType: NavType = "query";
     return async ({ result, update }) => {
       if ("data" in result && result.data && "data" in result.data) {
         //await update();
-        const { id: resultId, forms } = result.data.data || {
+        const { id: resultId, forms: dealForms } = result.data.data || {
           id: "",
           forms: [],
         };
         deal.id = typeof resultId === "string" ? resultId : "";
+        forms = dealForms;
         if (!Array.isArray(forms)) {
           console.log("Failed to get forms", result.data);
           return;
