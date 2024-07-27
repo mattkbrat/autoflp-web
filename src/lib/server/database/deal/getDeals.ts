@@ -1,6 +1,7 @@
 import { prisma } from "$lib/server/database";
 import type { Prisma } from "@prisma/client";
 import type { AsyncReturnType } from "$lib/types";
+import { fullNameFromPerson } from "$lib/format";
 type DealQuery = Prisma.DealFindUniqueArgs["where"];
 export const getDeals = async (account?: string) => {
 	return prisma.deal.findMany({
@@ -11,7 +12,15 @@ export const getDeals = async (account?: string) => {
 			account: {
 				select: {
 					id: true,
-					contact: true,
+					contact: {
+						select: {
+							firstName: true,
+							lastName: true,
+							namePrefix: true,
+							nameSuffix: true,
+							middleInitial: true,
+						},
+					},
 				},
 			},
 			inventory: {
@@ -21,6 +30,21 @@ export const getDeals = async (account?: string) => {
 				},
 			},
 		},
+		orderBy: [
+			{
+				state: "desc",
+			},
+			{
+				account: {
+					contact: {
+						lastName: "asc",
+					},
+				},
+			},
+			{
+				date: "desc",
+			},
+		],
 	});
 };
 
@@ -68,28 +92,29 @@ export const getDetailedDeal = async (query: DealQuery) => {
 	});
 };
 
+export const groupDeals = (deals: Deals) => {
+	return deals.reduce(
+		(acc, curr) => {
+			const key = fullNameFromPerson({
+				person: curr.account.contact,
+			}).toUpperCase();
+
+			const { account, ...thisDeal } = curr;
+			console.log(key, { curr });
+			if (!acc[key]) {
+				acc[key] = [thisDeal];
+			} else {
+				acc[key].push(thisDeal);
+			}
+
+			return acc;
+		},
+		{} as { [key: string]: Omit<Deals[number], "account">[] },
+	);
+};
+
 export const getAndGroupDeals = async () => {
-	return getDeals().then((deals) => {
-		return deals.reduce(
-			(acc, curr) => {
-				const key = `${curr.account.contact.lastName} ${curr.account.contact.firstName}`;
-
-				if (key in acc) {
-					return acc;
-				}
-
-				const { account, ...thisDeal } = curr;
-				if (!acc[key]) {
-					acc[key] = [thisDeal];
-				} else {
-					acc[key].push(thisDeal);
-				}
-
-				return acc;
-			},
-			{} as { [key: string]: Omit<Deals[number], "account">[] },
-		);
-	});
+	return getDeals().then(groupDeals);
 };
 
 export const getOpenInventoryDeals = async (vin: string) => {

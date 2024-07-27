@@ -5,7 +5,7 @@ import { getInventory } from "$lib/server/database/inventory";
 import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async ({ url }) => {
-	const deals = await getAndGroupDeals();
+	const deals = await getDeals();
 	const inventory = await getInventory(1);
 	const accounts = await getAccounts();
 
