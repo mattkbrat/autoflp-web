@@ -1,5 +1,5 @@
 import { prisma } from "$lib/server/database";
-import type { DealSalesman, DealTrade, Prisma } from "@prisma/client";
+import type { Deal, DealSalesman, DealTrade, Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import type { DealFields } from "$lib/finance";
 import type { FinanceCalcResult } from "$lib/finance/calc";
@@ -57,6 +57,12 @@ export const updateDeal = async (
 	}
 	const data = dealFieldsToDeal({ ...deal, finance }, 1);
 	return prisma.deal.update({ where: { id: deal.id }, data });
+};
+export const updatePartialDeal = async (id: string, data: Partial<Deal>) => {
+	if (!id) {
+		throw new Error("Must provide a deal ID");
+	}
+	return prisma.deal.update({ where: { id }, data });
 };
 
 export const createDeal = async (
