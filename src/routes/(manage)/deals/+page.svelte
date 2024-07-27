@@ -164,7 +164,7 @@ const navType: NavType = "query";
     };
   }}
 >
-  <AccountSelect {navType} baseRoute={"deal"} />
+  <AccountSelect {navType} baseRoute={"account"} />
   <InventorySelect {navType} />
   <SalesmenSelect {navType} />
   <input
