@@ -48,4 +48,16 @@ export const actions = {
 
 		return {};
 	},
+
+	toggleState: async ({ request }) => {
+		const data = await request.formData();
+		const dealId = data.get("id") as string;
+		if (!dealId) return fail(400, { id: dealId, incorrect: true });
+		const state = Number(data.get("state") as string);
+		if (state !== 0 && state !== 1)
+			return fail(400, { state, message: "state must be 1 or 0" });
+		return updatePartialDeal(dealId, { state: state === 0 ? 1 : 0 }).then(
+			(deal) => deal.state,
+		);
+	},
 };
