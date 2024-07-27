@@ -3,7 +3,7 @@ import { type Trades, upsertDeal } from "$lib/server/deal";
 import { getDetailedDeal } from "$lib/server/database/deal";
 import { builder } from "$lib/server/form/builder";
 import type { FinanceCalcResult } from "$lib/finance/calc";
-import { forms } from "$lib/types/forms";
+import { dealForms, forms } from "$lib/types/forms";
 
 import {
 	upsertInventory,
@@ -72,7 +72,7 @@ export const actions = {
 
 		const builtForms: string[] = [];
 
-		for await (const form of forms) {
+		for await (const form of dealForms) {
 			const built = await builder({
 				deal: detailed,
 				form: form.key,

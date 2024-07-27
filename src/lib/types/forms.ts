@@ -18,10 +18,11 @@ const formOptions = [
 
 export type Form = (typeof formOptions)[number];
 
-export const forms: { key: Form; title: string }[] = [
+export const forms: { key: Form; title: string; type?: "deal" }[] = [
 	{
 		key: "DR2395_2022",
 		title: "Application For Title & Joint Tenancy",
+		type: "deal",
 	},
 	{
 		key: "Application",
@@ -34,22 +35,27 @@ export const forms: { key: Form; title: string }[] = [
 	{
 		key: "Buyers Guide",
 		title: "Buyers Guide",
+		type: "deal",
 	},
 	{
 		key: "Buyers Order",
 		title: "Buyers Order",
+		type: "deal",
 	},
 	{
 		key: "Cover",
 		title: "Cover",
+		type: "deal",
 	},
 	{
 		key: "Disclosures",
 		title: "Disclosures",
+		type: "deal",
 	},
 	{
 		key: "Down Payment Statement of Fact",
 		title: "Down Payment Statement of Fact",
+		type: "deal",
 	},
 	{
 		key: "Inventory",
@@ -58,6 +64,7 @@ export const forms: { key: Form; title: string }[] = [
 	{
 		key: "One And The Same",
 		title: "One and the Same",
+		type: "deal",
 	},
 	{
 		key: "Receipt",
@@ -66,13 +73,18 @@ export const forms: { key: Form; title: string }[] = [
 	{
 		key: "DR0024_2021",
 		title: "Sales Tax Receipt",
+		type: "deal",
 	},
 	{
 		key: "Security",
 		title: "Security",
+		type: "deal",
 	},
 	{
 		key: "Sales Tax Statement",
 		title: "Sales Tax Statement",
+		type: "deal",
 	},
 ];
+
+export const dealForms = forms.filter((f) => f.type === "deal");
