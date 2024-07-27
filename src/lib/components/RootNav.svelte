@@ -1,18 +1,15 @@
 <script lang="ts">
 import { page } from "$app/stores";
-
-const routes: {
-	route: string;
-	title?: string;
-}[] = [
+import { accountID } from "$lib/stores";
+$: routes = [
 	{
 		route: "/home",
 	},
 	{
-		route: "/payments",
+		route: !$accountID.value ? "/payments" : `/payments/${$accountID.value}`,
 	},
 	{
-		route: "/accounts",
+		route: !$accountID.value ? "/accounts" : `/accounts/${$accountID.value}`,
 	},
 	{
 		route: "/inventory",
@@ -21,7 +18,10 @@ const routes: {
 	{
 		route: "/deals",
 	},
-];
+] as {
+	route: string;
+	title?: string;
+}[];
 </script>
 
 <ul
@@ -38,7 +38,7 @@ const routes: {
       <li
         class="w-full text-center 2xl:vertical-writing-lr 2xl:orientation-sideways 2xl:rotate-180 2xl:pl-2"
       >
-        {route.title || route.route.slice(1)}
+        {route.title || route.route.slice(1).split("/")[0]}
       </li>
     </a>
   {/each}
