@@ -80,7 +80,7 @@ export const generate = async ({
 
 	if (!fs.existsSync(inputPath)) {
 		// Download from s3 client
-		throw new Error(`Form at path does not exists: ${inputPath}`);
+		if (dev) throw new Error(`Form at path does not exists: ${inputPath}`);
 		await downloadFromBucket({
 			bucket: bucketPaths.templates,
 			key: pdfFormName,
