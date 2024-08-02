@@ -1,9 +1,8 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
-import { goto } from "$app/navigation";
 import { page } from "$app/stores";
 import { el } from "$lib/element";
-import { handleAccNav, handleInvNav } from "$lib/navState";
+import { handleInvNav } from "$lib/navState";
 import type { InventoryField } from "$lib/server/database/inventory";
 import type { ParsedNHTA } from "$lib/server/inventory";
 import { allInventory, selectedStates } from "$lib/stores";
