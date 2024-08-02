@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@prisma/autosales"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+}
+
+model Image {
+  id        Int        @id(map: "image_pk") @default(autoincrement())
+  source    String     @default("r2")
+  url       String     @unique(map: "image_url_uindex")
+  inventory Int?
+  order     Int?       @db.SmallInt
+  title     String     @default("")
+  Inventory Inventory? @relation("image_inventoryToinventory", fields: [inventory], references: [id], map: "image_inventory_id_fk")
+
+  @@map("image")
+}
+
+model Inventory {
+  id           Int     @id(map: "inventory_pk") @default(autoincrement())
+  title        String?
+  business     String
+  price        Int
+  transmission String?
+  drivetrain   String?
+  mileage      String?
+  make         String?
+  model        String?
+  body         String?
+  year         String?
+  sold         Boolean @default(false)
+  vin          String?
+  hidden       Boolean @default(false)
+  fuel         String?
+  color        String?
+  images       Image[] @relation("image_inventoryToinventory")
+
+  @@map("inventory")
+}
+
+model Users {
+  id        Int      @id(map: "users_pk") @default(autoincrement())
+  name      String   @unique(map: "users_name_uindex")
+  email     String
+  image     String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@map("users")
+}
