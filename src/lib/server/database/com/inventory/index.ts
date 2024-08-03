@@ -16,6 +16,38 @@ export const getSingleInventory = async (id: number) => {
 	});
 };
 
+export const getSingleImage = async ({
+	id,
+	url,
+}: { id?: number; url?: string }) => {
+	return comClient.image.findFirst({
+		where: id ? { id } : url ? { url } : undefined,
+		include: {
+			Inventory: true,
+		},
+	});
+};
+
+export const insertInventoryImage = async (data: Partial<Image>) => {
+	const { url } = data;
+	if (!url) {
+		throw new Error("Must provide url");
+	}
+	if (!data.inventory) {
+		throw new Error("Must link image to inventory");
+	}
+	return comClient.image.upsert({
+		where: {
+			url,
+		},
+		create: {
+			...data,
+			url,
+		},
+		update: data,
+	});
+};
+
 export const updateInventoryImage = async (
 	id: number,
 	data: Partial<Image>,

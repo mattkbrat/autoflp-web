@@ -2,8 +2,7 @@
 import { el } from "$lib/element";
 import { formatCurrency } from "$lib/format";
 import type { ComSingleInventory } from "$lib/types";
-import type { LocalInventory } from "$lib/types/local";
-import { TabGroup, Tab, TabAnchor } from "@skeletonlabs/skeleton";
+import { TabGroup, Tab } from "@skeletonlabs/skeleton";
 import type { ActionData, PageData } from "./$types";
 
 type ComInventory = NonNullable<ComSingleInventory>;
@@ -12,18 +11,10 @@ export let data: PageData;
 export let form: ActionData;
 
 let tabSet = 0;
-let files: FileList = [];
 let selected = data.selected;
+let renderedFile = "";
 
-$: console.log("got form response", form);
-
-let images = data.selected.images.map((i) => {
-	return {
-		...i,
-		render: false,
-		replace: false,
-	};
-});
+let images = data.images;
 
 const fieldMap: (keyof ComInventory)[][] = [
 	["vin", "year", "fuel"],
@@ -31,7 +22,7 @@ const fieldMap: (keyof ComInventory)[][] = [
 	["price", "sold"],
 ];
 
-$: image = images[tabSet];
+$: image = images[tabSet] || {};
 
 const renderImageInput = (file: File) => {
 	const reader = new FileReader();
@@ -41,27 +32,36 @@ const renderImageInput = (file: File) => {
 		el<HTMLImageElement>`new-image`.setAttribute("src", result);
 	};
 
+	if (!file) return;
+
 	reader.readAsDataURL(file);
 
 	const newName = file.name.split(".").slice(0, -1).join(".");
 	const newImages = images;
 	newImages[tabSet].title = newName;
+	renderedFile = file.name;
 	// newImages[tabSet].newUrl = "";
 	images = newImages;
 };
-$: if (files.length > 0) {
-	renderImageInput(files[0]);
-}
 
 function populateProd() {
 	throw new Error("Function not implemented.");
+}
+
+$: if (image.file && image.file[0].name !== renderedFile) {
+	console.debug("rendering", image.file);
+	if (image.file instanceof FileList) {
+		renderImageInput(image.file[0]);
+	} else {
+		renderImageInput(image.file);
+	}
 }
 
 async function handleSaveImage(
 	event: SubmitEvent & { currentTarget: EventTarget & HTMLFormElement },
 ) {
 	const data = new FormData(event.currentTarget);
-	data.append("file-input", files[0]);
+	// data.append("fwle-input", files[0]);
 	const response = await fetch(event.currentTarget.action, {
 		method: "POST",
 		body: data,
@@ -144,7 +144,6 @@ async function handleSaveImage(
 
 <section>
   <h2>Images</h2>
-
   <TabGroup>
     {#each images as image, i}
       <Tab bind:group={tabSet} name={image.title} value={i}>
@@ -165,6 +164,8 @@ async function handleSaveImage(
       >
         <div class="flex flex-row flex-wrap">
           <input type="hidden" name="image-id" value={image.id} />
+          <input type="hidden" name="inventory" value={selected.id} />
+          <input type="hidden" name="vin" value={selected.vin} />
           <label>
             Render order
             <input
@@ -189,7 +190,7 @@ async function handleSaveImage(
             bind:value={images[tabSet].url}
           />
           <div class="flex flex-col self-end">
-            {#if !image.replace}
+            {#if !image.replace && image.url}
               <label class="flex flex-row justify-between">
                 Render Image
                 <input
@@ -222,14 +223,14 @@ async function handleSaveImage(
             >
           </div>
         </div>
-        {#if image.replace}
+        {#if image.replace || image.file}
           <input
             accept="image/*"
             class="input"
             type="file"
             name="file"
             id="file"
-            bind:files
+            bind:files={images[tabSet].file}
           />
           <img id={"new-image"} src={"#"} alt={image.title} />
         {:else if image.render}

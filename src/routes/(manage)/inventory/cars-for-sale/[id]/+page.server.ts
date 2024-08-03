@@ -1,5 +1,7 @@
 import {
 	getSingleInventory as getComInventory,
+	getSingleImage,
+	insertInventoryImage,
 	updateInventoryImage,
 } from "$lib/server/database/com";
 import { getSingleInventory } from "$lib/server/database/inventory";
@@ -20,10 +22,37 @@ export const load: PageServerLoad = async ({ params }) => {
 	const local =
 		selected.vin && (await getSingleInventory({ vin: selected.vin }));
 
+	const { images, ...data } = selected;
+	type ImageWithLogic = (typeof images)[number] & {
+		render: boolean;
+		replace: boolean;
+		file: FileList | null;
+	};
+
+	const imagesWithLogic: ImageWithLogic[] = images.map((i) => {
+		return {
+			...i,
+			render: false,
+			replace: false,
+			file: null,
+		};
+	});
+	imagesWithLogic.push({
+		render: false,
+		replace: true,
+		file: null,
+		id: -1,
+		source: "",
+		url: "",
+		inventory: null,
+		order: null,
+		title: "",
+	});
 	console.log({ local, selected, images: selected.images });
 	return {
-		selected,
+		selected: data,
 		local,
+		images: imagesWithLogic,
 	};
 };
 type Result = Promise<
@@ -34,36 +63,40 @@ const handleReplaceImage = async ({
 	url,
 	title,
 	file,
+	vin,
 }: {
 	url: FormDataEntryValue;
 	title: string;
 	file: File;
+	vin: string;
 }): Result => {
 	const oldPath = url;
-	if (typeof oldPath !== "string" || !oldPath) {
-		return {
-			result: "error",
-			code: 400,
-			message: "Image to replace is missing url.",
-		};
-	}
-	const oldFilename = oldPath.split("/").slice(-1)[0];
-	if (!oldFilename) {
-		console.log("Invalid filename", { oldFilename, oldPath });
-		return {
-			result: "error",
-			code: 400,
-			message: `Image to replace hash invalid url: ${oldPath}`,
-		};
+	const titleWithVin = `${vin}-${title}`;
+	// if (typeof oldPath !== "string" || !oldPath) {
+	// 	return {
+	// 		result: "error",
+	// 		code: 400,
+	// 		message: "Image to replace is missing url.",
+	// 	};
+	// }
+	const oldFilename =
+		typeof oldPath === "string" && oldPath.split("/").slice(-1)[0];
+	if (oldFilename) {
+		await deleteFromBucket(env.SALES_BUCKET, oldFilename);
+		// console.log("Invalid filename", { oldFilename, oldPath });
+		// return {
+		// 	result: "error",
+		// 	code: 400,
+		// 	message: `Image to replace hash invalid url: ${oldPath}`,
+		// };
 	}
 
-	const titleIsImageFile = imageRegex.test(title);
+	const titleIsImageFile = imageRegex.test(titleWithVin);
 	const filename = encodeURIComponent(
-		titleIsImageFile ? title : `${title}.png`,
+		titleIsImageFile ? titleWithVin : `${titleWithVin}.png`,
 	);
 	const newUrl = getCDNUrl(filename);
 
-	await deleteFromBucket(env.SALES_BUCKET, oldFilename);
 	await upload({
 		bucket: env.SALES_BUCKET,
 		filename,
@@ -83,14 +116,18 @@ export const actions = {
 		const data = Object.fromEntries(await request.formData());
 		console.log("Saving image", data);
 		const replaceImage = data["replace-image"] === "on";
-		const id = data["image-id"];
-		if (typeof id !== "string" || !id) {
-			return {
-				result: "error",
-				code: 400,
-				message: "Image to replace is missing id.",
-			};
+		const id = Number(data["image-id"]);
+		const vin = data.vin;
+		const url = data.url as string;
+		const isNew = id === -1;
+		const inventoryId =
+			typeof data.inventory === "string" && Number(data.inventory);
+		if ((replaceImage && Number.isNaN(inventoryId)) || (replaceImage && !vin)) {
+			return fail(400, {
+				message: "Must provide inventory ID and VIN",
+			});
 		}
+
 		const file =
 			replaceImage && data.file instanceof Blob && data.file.size && data.file;
 		if (replaceImage && !file) {
@@ -98,13 +135,16 @@ export const actions = {
 				message: "Must provide a new image file when replacing an image.",
 			});
 		}
-		const title = data.title;
-		if (typeof title !== "string" || !title) {
+		if (typeof data.title !== "string" || !data.title) {
 			return fail(400, { message: "Must provide the image's title" });
 		}
+		const title = data.title;
 
+		if (file && typeof vin !== "string") {
+			return fail(400, { message: "Must provide the VIN" });
+		}
 		const replaceResult = file
-			? await handleReplaceImage({ url: data.url, title, file })
+			? await handleReplaceImage({ url, title, file, vin: vin as string })
 			: undefined;
 
 		if (
@@ -115,11 +155,27 @@ export const actions = {
 		}
 
 		const order = Number.isNaN(Number(data.order)) ? 0 : Number(data.order);
-		await updateInventoryImage(Number(id), {
-			url: replaceResult?.newUrl,
-			title,
-			order,
-		});
+
+		if (!isNew) {
+			console.log("Updating com inv", { replaceResult, title, order, id });
+			await updateInventoryImage(id, {
+				url: replaceResult?.newUrl,
+				title,
+				order,
+			});
+		} else if (replaceResult?.result === "ok" && !Number.isNaN(inventoryId)) {
+			console.log("Inserting new com inv", { replaceResult, title, order });
+			await insertInventoryImage({
+				url: replaceResult.newUrl,
+				title,
+				order,
+				inventory: inventoryId as number,
+			});
+		} else {
+			return fail(400, {
+				message: "nothing to do",
+			});
+		}
 	},
 	deleteImage: async ({ request }) => {
 		const data = await request.formData();
