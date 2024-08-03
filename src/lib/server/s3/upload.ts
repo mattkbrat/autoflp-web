@@ -12,10 +12,12 @@ export const upload = async ({
 	bucket = bucketName,
 	filename,
 	file,
+	contentType,
 }: {
 	bucket?: string;
 	filename: string;
-	file: string | Buffer | Uint8Array;
+	file: PutObjectCommandInput["Body"];
+	contentType?: PutObjectCommandInput["ContentType"];
 }) => {
 	file = typeof file === "string" ? fs.readFileSync(file) : file;
 
@@ -26,6 +28,7 @@ export const upload = async ({
 		Bucket: bucket,
 		Key: filename,
 		ContentDisposition: `inline; filename="${filename}"`,
+		ContentType: contentType,
 	};
 
 	const command = new PutObjectCommand(putObjectInput);
