@@ -4,6 +4,9 @@ import { formatCurrency } from "$lib/format";
 import type { ComSingleInventory } from "$lib/types";
 import { TabGroup, Tab } from "@skeletonlabs/skeleton";
 import type { ActionData, PageData } from "./$types";
+import { invalidate, invalidateAll } from "$app/navigation";
+import { applyAction, deserialize } from "$app/forms";
+import type { ActionResult } from "@sveltejs/kit";
 
 type ComInventory = NonNullable<ComSingleInventory>;
 
@@ -23,6 +26,8 @@ const fieldMap: (keyof ComInventory)[][] = [
 ];
 
 $: image = images[tabSet] || {};
+
+let deleteImage = false;
 
 const renderImageInput = (file: File) => {
 	const reader = new FileReader();
@@ -91,14 +96,25 @@ async function handleSaveImage(
 ) {
 	const data = new FormData(event.currentTarget);
 	// data.append("fwle-input", files[0]);
+	console.log(event.currentTarget);
 	const response = await fetch(event.currentTarget.action, {
 		method: "POST",
 		body: data,
+		headers: {
+			"x-sveltekit-action": "true",
+		},
 	}).catch((e) => {
 		console.error("Failed to save image", e);
 	});
+	const result: ActionResult | null = response
+		? deserialize(await response.text())
+		: null;
+	console.log("Got response", response, { result });
+	if (!response || result?.type !== "success") return;
 
-	console.log("Got response", response);
+	await invalidateAll();
+
+	applyAction(result);
 }
 </script>
 
@@ -240,7 +256,19 @@ async function handleSaveImage(
             bind:value={images[tabSet].url}
           />
           <div class="flex flex-col self-end">
-            {#if !image.replace && image.url}
+            {#if image.source && !image.replace}
+              <label class="flex flex-row justify-between">
+                Delete Image
+                <input
+                  class="btn variant-outline-secondary"
+                  name={"delete"}
+                  type="checkbox"
+                  id="render-image"
+                  bind:checked={deleteImage}
+                />
+              </label>
+            {/if}
+            {#if !deleteImage && !image.replace && image.url}
               <label class="flex flex-row justify-between">
                 Render Image
                 <input
@@ -252,16 +280,18 @@ async function handleSaveImage(
                 />
               </label>
             {/if}
-            <label class="flex flex-row justify-between">
-              Replace Image
-              <input
-                class="btn variant-outline-secondary"
-                bind:checked={images[tabSet].replace}
-                name={"replace-image"}
-                type="checkbox"
-                id="replace-image"
-              />
-            </label>
+            {#if !deleteImage}
+              <label class="flex flex-row justify-between">
+                Replace Image
+                <input
+                  class="btn variant-outline-secondary"
+                  bind:checked={images[tabSet].replace}
+                  name={"replace-image"}
+                  type="checkbox"
+                  id="replace-image"
+                />
+              </label>
+            {/if}
           </div>
           <div class="btn-group">
             <button type="submit" class="btn variant-filled-primary self-start"

@@ -1,4 +1,5 @@
 import {
+	deleteImage,
 	getSingleInventory as getComInventory,
 	getSingleImage,
 	insertInventoryImage,
@@ -60,6 +61,11 @@ type Result = Promise<
 	| { result: "ok"; newUrl: string }
 	| { result: "error"; code: number; message: string }
 >;
+
+const getCDNFilename = (file: unknown) => {
+	return typeof file === "string" && file.split("/").slice(-1)[0];
+};
+
 const handleReplaceImage = async ({
 	url,
 	title,
@@ -73,37 +79,27 @@ const handleReplaceImage = async ({
 }): Result => {
 	const oldPath = url;
 	const titleWithVin = `${vin}-${title}`;
-	// if (typeof oldPath !== "string" || !oldPath) {
-	// 	return {
-	// 		result: "error",
-	// 		code: 400,
-	// 		message: "Image to replace is missing url.",
-	// 	};
-	// }
-	const oldFilename =
-		typeof oldPath === "string" && oldPath.split("/").slice(-1)[0];
-	if (oldFilename) {
-		await deleteFromBucket(env.SALES_BUCKET, oldFilename);
-		// console.log("Invalid filename", { oldFilename, oldPath });
-		// return {
-		// 	result: "error",
-		// 	code: 400,
-		// 	message: `Image to replace hash invalid url: ${oldPath}`,
-		// };
+	if (oldPath) {
+		const filename = getCDNFilename(oldPath);
+		if (filename) {
+			await deleteFromBucket(env.SALES_BUCKET);
+		}
 	}
 
 	const titleIsImageFile = imageRegex.test(titleWithVin);
-	const filename = encodeURIComponent(
-		titleIsImageFile ? titleWithVin : `${titleWithVin}.png`,
-	);
+	const filename = (
+		titleIsImageFile ? titleWithVin : `${titleWithVin}.png`
+	).replaceAll(" ", "-");
 	const newUrl = getCDNUrl(filename);
 
-	await upload({
+	const sent = await upload({
 		bucket: env.SALES_BUCKET,
 		filename,
 		file: new Uint8Array(await file.arrayBuffer()),
 		contentType: file.type,
 	});
+
+	console.log("sent", sent.$metadata);
 
 	return { result: "ok", newUrl };
 };
@@ -126,9 +122,28 @@ export const actions = {
 	},
 	saveImage: async ({ request }) => {
 		const data = Object.fromEntries(await request.formData());
+		const shouldDelete = data.delete === "on";
+		const id = Number(data["image-id"]);
+		if (Number.isNaN(id)) {
+			return fail(400, {
+				message: "Must provide image ID",
+			});
+		}
+		if (shouldDelete) {
+			const image = await getSingleImage({ id });
+			const filename = getCDNFilename(image?.url);
+			console.log("delete", data, filename);
+			if (!filename) {
+				return fail(400, {
+					message: "Must provide filename",
+				});
+			}
+			await deleteFromBucket(env.SALES_BUCKET, filename);
+			await deleteImage({ id });
+			return {};
+		}
 		console.log("Saving image", data);
 		const replaceImage = data["replace-image"] === "on";
-		const id = Number(data["image-id"]);
 		const vin = data.vin;
 		const url = data.url as string;
 		const isNew = id === -1;
@@ -191,6 +206,5 @@ export const actions = {
 	},
 	deleteImage: async ({ request }) => {
 		const data = await request.formData();
-		console.log("delete", data);
 	},
 } satisfies Actions;

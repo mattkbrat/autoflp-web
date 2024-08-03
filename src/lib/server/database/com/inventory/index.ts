@@ -33,6 +33,12 @@ export const getSingleImage = async ({
 	});
 };
 
+export const deleteImage = async ({ id }: { id: number }) => {
+	return comClient.image.delete({
+		where: { id },
+	});
+};
+
 export const insertInventoryImage = async (data: Partial<Image>) => {
 	const { url } = data;
 	if (!url) {
