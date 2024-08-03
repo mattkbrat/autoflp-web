@@ -7,9 +7,8 @@ import type { ActionData, PageData } from "./$types";
 import { invalidate, invalidateAll } from "$app/navigation";
 import { applyAction, deserialize } from "$app/forms";
 import type { ActionResult } from "@sveltejs/kit";
-
 type ComInventory = NonNullable<ComSingleInventory>;
-
+import { applyLocal, getInvTitle } from "$lib/inventory";
 export let data: PageData;
 export let form: ActionData;
 
@@ -48,39 +47,6 @@ const renderImageInput = (file: File) => {
 	// newImages[tabSet].newUrl = "";
 	images = newImages;
 };
-
-function setDefaultTitle() {
-	const newSelected = selected;
-	selected.title = [
-		[selected.year, selected.make, selected.model].filter(Boolean).join(" "),
-		selected.color,
-	]
-		.filter(Boolean)
-		.join(", ")
-		.trim()
-		.toUpperCase();
-	selected = newSelected;
-}
-function populateProd() {
-	const { local } = data;
-	if (!local) return;
-	const newSelected = selected;
-	newSelected.vin = local.vin;
-	newSelected.body = local.body;
-	newSelected.fuel = local.fuel;
-	newSelected.year = local.year;
-	newSelected.make = local.make;
-	newSelected.color = selected.color || local.color;
-	newSelected.model = selected.model || local.model;
-	newSelected.mileage = selected.mileage || local.mileage;
-	newSelected.price = selected.price || Number(local.credit || local.cash || 0);
-
-	selected = newSelected;
-
-	if (!selected.title) {
-		setDefaultTitle();
-	}
-}
 
 $: if (image.file && image.file[0].name !== renderedFile) {
 	console.debug("rendering", image.file);
@@ -136,13 +102,16 @@ async function handleSaveImage(
             <button
               type="button"
               class="btn variant-ringed-tertiary"
-              on:click={populateProd}
+              on:click={() => {
+                if (!data.local) return;
+                selected = applyLocal(selected, data.local);
+              }}
             >
-              Populate prod from local</button
+              Fill from local</button
             >
             <button
               class="btn variant-ringed-tertiary"
-              on:click={setDefaultTitle}
+              on:click={() => (selected.title = getInvTitle(selected))}
               type="button"
             >
               Set default title</button
@@ -214,7 +183,7 @@ async function handleSaveImage(
     {#each images as image, i}
       <Tab bind:group={tabSet} name={image.title} value={i}>
         <svelte:fragment slot="lead">{image.order}</svelte:fragment>
-        <span>{image.title || "No title"}</span>
+        <span>{image.title || "Untitled"}</span>
       </Tab>
     {/each}
     <svelte:fragment slot="panel">
@@ -246,6 +215,7 @@ async function handleSaveImage(
             <input
               class="input"
               name={"title"}
+              placeholder="Untitled"
               bind:value={images[tabSet].title}
             />
           </label>
@@ -297,10 +267,6 @@ async function handleSaveImage(
             <button type="submit" class="btn variant-filled-primary self-start"
               >Save Image</button
             >
-            <button
-              class="btn variant-filled-warning self-start"
-              formaction="?/deleteImage">Delete Image</button
-            >
           </div>
         </div>
         {#if image.replace || image.file}
@@ -310,6 +276,7 @@ async function handleSaveImage(
             type="file"
             name="file"
             id="file"
+            required
             bind:files={images[tabSet].file}
           />
           <img id={"new-image"} src={"#"} alt={image.title} />
