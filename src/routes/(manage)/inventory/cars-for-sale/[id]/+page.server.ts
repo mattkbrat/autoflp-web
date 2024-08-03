@@ -2,6 +2,7 @@ import {
 	getSingleInventory as getComInventory,
 	getSingleImage,
 	insertInventoryImage,
+	updateInventory,
 	updateInventoryImage,
 } from "$lib/server/database/com";
 import { getSingleInventory } from "$lib/server/database/inventory";
@@ -110,7 +111,18 @@ const handleReplaceImage = async ({
 export const actions = {
 	saveInv: async ({ request }) => {
 		const data = await request.formData();
-		console.log("save inv", data);
+		const dataObject = Object.fromEntries(data);
+		const { inventory, price, sold, ...update } = dataObject;
+		if (Number.isNaN(+inventory)) {
+			return fail(400, {
+				message: "Must provide inventory ID",
+			});
+		}
+		return updateInventory(+inventory, {
+			...update,
+			price: Number(price || 0),
+			sold: sold === "on",
+		});
 	},
 	saveImage: async ({ request }) => {
 		const data = Object.fromEntries(await request.formData());

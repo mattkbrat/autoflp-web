@@ -1,6 +1,6 @@
 import { comClient } from "$lib/server/database";
 import type { Prisma } from "@prisma/client";
-import type { Image } from "@prisma/autosales";
+import type { Image, Inventory } from "@prisma/autosales";
 export const getCurrentInventory = async () => comClient.inventory.findMany({});
 
 export const getSingleInventory = async (id: number) => {
@@ -14,6 +14,11 @@ export const getSingleInventory = async (id: number) => {
 			},
 		},
 	});
+};
+
+export const updateInventory = async (id: number, data: Partial<Inventory>) => {
+	console.log("Update com inv", { id, data });
+	return comClient.inventory.update({ where: { id }, data });
 };
 
 export const getSingleImage = async ({

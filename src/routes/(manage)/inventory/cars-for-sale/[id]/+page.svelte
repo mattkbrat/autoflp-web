@@ -19,7 +19,7 @@ let images = data.images;
 const fieldMap: (keyof ComInventory)[][] = [
 	["vin", "year", "fuel"],
 	["make", "model", "body", "mileage", "color"],
-	["price", "sold"],
+	["price", "title"],
 ];
 
 $: image = images[tabSet] || {};
@@ -44,8 +44,37 @@ const renderImageInput = (file: File) => {
 	images = newImages;
 };
 
+function setDefaultTitle() {
+	const newSelected = selected;
+	selected.title = [
+		[selected.year, selected.make, selected.model].filter(Boolean).join(" "),
+		selected.color,
+	]
+		.filter(Boolean)
+		.join(", ")
+		.trim()
+		.toUpperCase();
+	selected = newSelected;
+}
 function populateProd() {
-	throw new Error("Function not implemented.");
+	const { local } = data;
+	if (!local) return;
+	const newSelected = selected;
+	newSelected.vin = local.vin;
+	newSelected.body = local.body;
+	newSelected.fuel = local.fuel;
+	newSelected.year = local.year;
+	newSelected.make = local.make;
+	newSelected.color = selected.color || local.color;
+	newSelected.model = selected.model || local.model;
+	newSelected.mileage = selected.mileage || local.mileage;
+	newSelected.price = selected.price || Number(local.credit || local.cash || 0);
+
+	selected = newSelected;
+
+	if (!selected.title) {
+		setDefaultTitle();
+	}
 }
 
 $: if (image.file && image.file[0].name !== renderedFile) {
@@ -73,30 +102,59 @@ async function handleSaveImage(
 }
 </script>
 
-<h1 class="text-lg underline font-bold">Car for Sale</h1>
-<section>
-  {#if data.local}
-    {@const local = data.local}
-    <div>
-      <p>
-        {local.vin}
-      </p>
-      <button class="btn variant-ringed-secondary" on:click={populateProd}>
-        Populate prod from local</button
-      >
-    </div>
-  {:else}
-    <p>No local match</p>
-  {/if}
-</section>
+<div class="flex">
+  <a class="anchor" href="/inventory/cars-for-sale"> Cars for sale</a>
+  <span>/</span>
+
+  <h1 class="text-lg underline font-bold">{selected.title || "Untitled"}</h1>
+</div>
 
 <section>
   <h2>Com Inventory</h2>
   <form method="POST" action="?/saveInv">
+    <input type="hidden" name="inventory" value={selected.id} />
+    <section>
+      {#if data.local}
+        <div class=" flex flex-row justify-between">
+          <div class="btn-group">
+            <button
+              type="button"
+              class="btn variant-ringed-tertiary"
+              on:click={populateProd}
+            >
+              Populate prod from local</button
+            >
+            <button
+              class="btn variant-ringed-tertiary"
+              on:click={setDefaultTitle}
+              type="button"
+            >
+              Set default title</button
+            >
+          </div>
+          <div class="btn-group">
+            <button type="submit" class="btn variant-filled-success px-8"
+              >Save</button
+            >
+          </div>
+        </div>
+      {:else}
+        <p>No local match</p>
+      {/if}
+    </section>
+    <label>
+      Sold
+      <input
+        class="checkbox"
+        type="checkbox"
+        name="sold"
+        bind:checked={selected.sold}
+      />
+    </label>
     {#each fieldMap as fieldRow}
       <div class={`flex flex-row flex-wrap gap-4`}>
         {#each fieldRow as key}
-          {@const value = data.selected[key]}
+          {@const value = selected[key]}
           {@const inputType =
             typeof value === "boolean"
               ? "checkbox"
@@ -108,19 +166,11 @@ async function handleSaveImage(
             class:!flex-row={inputType === "checkbox"}
             class:!self-center={inputType === "checkbox"}
           >
-            {#if inputType === "checkbox"}
-              {key}
-              <input
-                bind:checked={selected[key]}
-                name={key}
-                type="checkbox"
-                class="checkbox"
-              />
-            {:else if inputType === "number"}
+            {#if inputType === "number"}
               {key}
               {formatCurrency(Number(value))}
               <input
-                bind:value={data.selected[key]}
+                bind:value={selected[key]}
                 name={key}
                 type="number"
                 step={key === "year" ? 1 : 10}
@@ -129,7 +179,7 @@ async function handleSaveImage(
             {:else}
               {key}
               <input
-                bind:value={data.selected[key]}
+                bind:value={selected[key]}
                 name={key}
                 type="text"
                 class="uppercase input"
