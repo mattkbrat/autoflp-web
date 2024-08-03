@@ -38,7 +38,10 @@ export const load = async () => {
 		missingVins.push({
 			type: "com",
 			id: inv.id,
-			description: inv.title || inv.make || inv.id.toString(),
+			description:
+				inv.title ||
+				[inv.make, inv.model, inv.year, inv.vin].join(" ").trim() ||
+				inv.id.toString(),
 		});
 	}
 

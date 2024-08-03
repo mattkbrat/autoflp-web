@@ -32,7 +32,6 @@ $: totalExpected = termExceeded
 $: totalPaid = scheduleRows.reduce((acc, curr) => acc + (curr.paid || 0), 0);
 $: totalOwed = Math.max(totalDelinquent, scheduleRows[0].lastBalance);
 
-
 $: defaultPmt = Math.min(selected?.pmt || 0, totalOwed);
 $: totalDelinquent = Math.floor(
 	schedule.totalDelinquent > selected.lien - totalPaid

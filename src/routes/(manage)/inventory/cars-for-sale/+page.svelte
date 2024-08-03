@@ -152,7 +152,7 @@ $: missing = data.missingVins.reduce(
           </thead>
           <tbody id="missing-vins">
             <tr>
-              <th> Local </th>
+              <th colspan="2"> Missing from .com </th>
             </tr>
             {#each missing.local as v}
               {@const id = v.id.toString()}
@@ -172,14 +172,20 @@ $: missing = data.missingVins.reduce(
                 <td>
                   {v.description}
                   <br />
-                  {id.slice(-4)}
+                  <span class="text-xs">
+                    {id}
+                  </span>
                 </td>
               </tr>
             {/each}
-            <hr />
+            <tr>
+              <td colspan="2">
+                <hr />
+              </td>
+            </tr>
             {#if missing.com.length > 0}
               <tr>
-                <th> .com </th>
+                <th colspan="2"> Missing from local </th>
               </tr>
             {/if}
             {#each missing.com as v}
@@ -200,7 +206,10 @@ $: missing = data.missingVins.reduce(
                 <td>
                   {v.description}
                   <br />
-                  {id.slice(-4)}
+                  <span class="text-xs">
+                    ID #{id}
+                  </span>
+                  <a href="/inventory/"> Add to inventory </a>
                 </td>
               </tr>
             {/each}
