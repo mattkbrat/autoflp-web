@@ -6,6 +6,15 @@ export const getSingleInventory = async (id: number) => {
 	return comClient.inventory.findUnique({
 		where: { id },
 		include: { images: true },
+export const updateInventoryImage = async (
+	id: number,
+	data: Partial<Image>,
+) => {
+	return comClient.image.update({
+		where: {
+			id,
+		},
+		data,
 	});
 };
 
