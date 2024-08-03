@@ -16,19 +16,26 @@ export const deleteFromBucket = async (
 		Key: fileName,
 	};
 
+	console.log("Trying to delete", input);
 	for (const file of filesToDelete) {
 		if (!file) continue;
 		const removeCommand = new DeleteObjectCommand(input);
 
 		const result = await s3Client.send(removeCommand);
 
-		if (!result.DeleteMarker) {
+		if (
+			!result.DeleteMarker &&
+			result.$metadata.httpStatusCode &&
+			result.$metadata.httpStatusCode > 300
+		) {
 			console.warn("Failed to remove file", file, result.$metadata);
 			continue;
 		}
 
 		deletedFiles.push(file);
 	}
+
+	console.log("Deleted", deletedFiles);
 
 	return deletedFiles;
 };
