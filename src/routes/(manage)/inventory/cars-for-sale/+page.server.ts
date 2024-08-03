@@ -1,7 +1,12 @@
+import { BUSINESS_NAME } from "$env/static/private";
 import { getProdUrl } from "$lib/server/com";
+import { comClient, prisma } from "$lib/server/database";
 import { getCurrentInventory } from "$lib/server/database/com/inventory";
 import { getInventory } from "$lib/server/database/inventory";
 import type { GroupedComInv, MissingVins } from "$lib/types";
+import type { Actions } from "@sveltejs/kit";
+import type { Inventory as ComInv } from "@prisma/autosales";
+import { applyLocal } from "$lib/inventory";
 
 export const load = async () => {
 	const currentInventory = await getCurrentInventory();
@@ -47,3 +52,33 @@ export const load = async () => {
 
 	return { grouped, missingVins };
 };
+export const actions = {
+	populateProd: async ({ request }) => {
+		const data = await request.formData();
+		const locals = data.getAll("local") as string[];
+
+		const prod = data.getAll("com");
+		console.log("populate prod", { locals, prod });
+
+		if (Array.isArray(locals) && locals.length > 0) {
+			const localInv = await prisma.inventory.findMany({
+				where: {
+					vin: {
+						in: locals,
+					},
+				},
+			});
+			await comClient.inventory.createMany({
+				data: locals.map((vin) => {
+					const matchingLocal = localInv.find((i) => i.vin === vin);
+					const applied =
+						(matchingLocal && applyLocal({}, matchingLocal)) || ({} as ComInv);
+					applied.hidden = true;
+					applied.price = applied.price || 0;
+					applied.business = BUSINESS_NAME;
+					return applied as ComInv;
+				}),
+			});
+		}
+	},
+} satisfies Actions;

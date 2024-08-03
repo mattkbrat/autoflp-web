@@ -111,43 +111,38 @@ $: missing = data.missingVins.reduce(
 
   {#if data.missingVins.length > 0}
     <section class="flex flex-col border-solid border-2 border-white/25 p-4">
-      <form
-        method="POST"
-        on:submit|preventDefault={(e) => {
-          const data = new FormData(e.currentTarget);
-          console.log("com", data.getAll("com"));
-          console.log("local", data.getAll("local"));
-        }}
-      >
+      <form method="POST" action="?/populateProd">
         <div class="flex flex-col justify-between flex-wrap gap-4">
           <h2 class="text-xl underline">Missing</h2>
           <div class="btn-group">
             <button type="submit" class="btn variant-ringed-primary flex-1">
-              Update Prod from Local
-            </button>
-            <button
-              type="button"
-              class="btn variant-ringed-secondary"
-              on:click={() => {
-                const form = document.getElementById("missing-vins");
-                if (!form) {
-                  console.log("no form");
-                  return;
-                }
-                const checkboxes = Array.from(
-                  form.getElementsByTagName("input"),
-                ).filter((i) => (i.type = "checkbox"));
-                console.log(checkboxes);
-                checkboxes.forEach((c) => (c.checked = true));
-              }}
-            >
-              Select all
+              Populate Prod from Local
             </button>
           </div>
         </div>
         <table class="table text-left">
           <thead>
-            <th> Select </th>
+            <th>
+              <button
+                type="button"
+                class="btn variant-ringed-secondary"
+                on:click={() => {
+                  const form = document.getElementById("missing-vins");
+                  if (!form) {
+                    console.log("no form");
+                    return;
+                  }
+                  const checkboxes = Array.from(
+                    form.getElementsByTagName("input"),
+                  ).filter((i) => (i.type = "checkbox"));
+                  console.log(checkboxes);
+                  const someUnchecked = checkboxes.some((c) => !c.checked);
+                  checkboxes.forEach((c) => (c.checked = someUnchecked));
+                }}
+              >
+                Select all
+              </button>
+            </th>
             <th> VIN </th>
           </thead>
           <tbody id="missing-vins">
