@@ -4,21 +4,24 @@ import { formatCurrency } from "$lib/format";
 import type { ComSingleInventory } from "$lib/types";
 import type { LocalInventory } from "$lib/types/local";
 import { TabGroup, Tab, TabAnchor } from "@skeletonlabs/skeleton";
-
-let tabSet = 0;
+import type { ActionData, PageData } from "./$types";
 
 type ComInventory = NonNullable<ComSingleInventory>;
-export let data: {
-	selected: ComInventory;
-	local: LocalInventory | null;
-};
 
+export let data: PageData;
+export let form: ActionData;
+
+let tabSet = 0;
+let files: FileList = [];
 let selected = data.selected;
+
+$: console.log("got form response", form);
 
 let images = data.selected.images.map((i) => {
 	return {
 		...i,
 		render: false,
+		replace: false,
 	};
 });
 
@@ -30,23 +33,7 @@ const fieldMap: (keyof ComInventory)[][] = [
 
 $: image = images[tabSet];
 
-let replaceImage = false;
-
-const toggleRender = () => {
-	let newImages = images;
-	newImages[tabSet].render = !newImages[tabSet].render;
-	// newImages[tabSet].newUrl = "";
-	images = newImages;
-};
-
-const renderImageInput = (
-	event: Event & { currentTarget: EventTarget & HTMLInputElement },
-) => {
-	const files = event.currentTarget.files;
-	if (!files || files.length !== 1) {
-		return;
-	}
-
+const renderImageInput = (file: File) => {
 	const reader = new FileReader();
 	reader.onload = (e) => {
 		const result = e.target?.result;
@@ -54,16 +41,35 @@ const renderImageInput = (
 		el<HTMLImageElement>`new-image`.setAttribute("src", result);
 	};
 
-	reader.readAsDataURL(files[0]);
+	reader.readAsDataURL(file);
 
-	let newImages = images;
-	newImages[tabSet].title = files[0].name.split(".").slice(0, -1).join(".");
+	const newName = file.name.split(".").slice(0, -1).join(".");
+	const newImages = images;
+	newImages[tabSet].title = newName;
 	// newImages[tabSet].newUrl = "";
 	images = newImages;
 };
+$: if (files.length > 0) {
+	renderImageInput(files[0]);
+}
 
 function populateProd() {
 	throw new Error("Function not implemented.");
+}
+
+async function handleSaveImage(
+	event: SubmitEvent & { currentTarget: EventTarget & HTMLFormElement },
+) {
+	const data = new FormData(event.currentTarget);
+	data.append("file-input", files[0]);
+	const response = await fetch(event.currentTarget.action, {
+		method: "POST",
+		body: data,
+	}).catch((e) => {
+		console.error("Failed to save image", e);
+	});
+
+	console.log("Got response", response);
 }
 </script>
 
@@ -86,7 +92,7 @@ function populateProd() {
 
 <section>
   <h2>Com Inventory</h2>
-  <form>
+  <form method="POST" action="?/saveInv">
     {#each fieldMap as fieldRow}
       <div class={`flex flex-row flex-wrap gap-4`}>
         {#each fieldRow as key}
@@ -152,56 +158,78 @@ function populateProd() {
           {image.source}
         </h3>
       </section>
-      <form class="flex flex-col gap-4">
-        <div class="flex flex-row">
+      <form
+        class="flex flex-col gap-4"
+        method="post"
+        on:submit|preventDefault={handleSaveImage}
+      >
+        <div class="flex flex-row flex-wrap">
+          <input type="hidden" name="image-id" value={image.id} />
           <label>
             Render order
             <input
               class="input"
               name={"order"}
               required
-              bind:value={image.order}
+              bind:value={images[tabSet].order}
             />
           </label>
           <label>
             Title
-            <input class="input" name={"title"} bind:value={image.title} />
+            <input
+              class="input"
+              name={"title"}
+              bind:value={images[tabSet].title}
+            />
           </label>
-          <label>
-            URL
-            <input class="input" name={"title"} bind:value={image.url} />
-          </label>
-          <div class="flex flex-col">
+          <input
+            type="hidden"
+            class="input"
+            name={"url"}
+            bind:value={images[tabSet].url}
+          />
+          <div class="flex flex-col self-end">
+            {#if !image.replace}
+              <label class="flex flex-row justify-between">
+                Render Image
+                <input
+                  class="btn variant-outline-secondary"
+                  bind:checked={images[tabSet].render}
+                  name={"render-image"}
+                  type="checkbox"
+                  id="render-image"
+                />
+              </label>
+            {/if}
             <label class="flex flex-row justify-between">
               Replace Image
               <input
                 class="btn variant-outline-secondary"
-                bind:checked={replaceImage}
+                bind:checked={images[tabSet].replace}
                 name={"replace-image"}
                 type="checkbox"
                 id="replace-image"
               />
             </label>
-            {#if !replaceImage}
-              <label class="flex flex-row justify-between">
-                Render Image
-                <input
-                  class="btn variant-outline-secondary"
-                  bind:checked={image.render}
-                  name={"replace-image"}
-                  type="checkbox"
-                  id="replace-image"
-                />
-              </label>
-            {/if}
+          </div>
+          <div class="btn-group">
+            <button type="submit" class="btn variant-filled-primary self-start"
+              >Save Image</button
+            >
+            <button
+              class="btn variant-filled-warning self-start"
+              formaction="?/deleteImage">Delete Image</button
+            >
           </div>
         </div>
-        {#if replaceImage}
+        {#if image.replace}
           <input
             accept="image/*"
             class="input"
             type="file"
-            on:change={renderImageInput}
+            name="file"
+            id="file"
+            bind:files
           />
           <img id={"new-image"} src={"#"} alt={image.title} />
         {:else if image.render}
