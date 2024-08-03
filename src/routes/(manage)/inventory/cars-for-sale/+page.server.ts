@@ -1,15 +1,7 @@
-import { dev } from "$app/environment";
-import { env } from "$env/dynamic/private";
-import {
-	getCurrentInventory,
-	type ComInventory,
-} from "$lib/server/database/com/inventory";
+import { getProdUrl } from "$lib/server/com";
+import { getCurrentInventory } from "$lib/server/database/com/inventory";
 import { getInventory } from "$lib/server/database/inventory";
 import type { GroupedComInv, MissingVins } from "$lib/types";
-
-const getProdUrl = (id: ComInventory[number]["id"]) => {
-	return `${dev ? env.COM_URL_DEV : env.COM_URL_PROD}/cars-for-sale/${id}`;
-};
 
 export const load = async () => {
 	const currentInventory = await getCurrentInventory();
