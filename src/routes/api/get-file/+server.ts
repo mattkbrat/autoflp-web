@@ -1,9 +1,9 @@
-import { AUTOFLP_DATA_DIR } from "$env/static/private";
-import { error, fail, type RequestHandler } from "@sveltejs/kit";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
+import type { RequestHandler } from "@sveltejs/kit";
 
 import AdmZip from "adm-zip";
+import { AUTOFLP_DATA_DIR } from "$lib/server";
 
 export const GET: RequestHandler = ({ url }) => {
 	const params = url.searchParams;

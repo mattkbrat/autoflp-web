@@ -1,7 +1,7 @@
-import { AUTOFLP_DATA_DIR } from "$env/static/private";
 import fs from "node:fs";
 import path from "node:path";
 import type { CheckDocsDirParams } from ".";
+import { AUTOFLP_DATA_DIR } from "..";
 
 const fileNameRegex = /(.*?)\.(jpg|gif|doc|pdf)$/;
 /**
@@ -29,7 +29,6 @@ export const checkDocsDir = ({
 		dir,
 		isFullPath,
 		checkPath,
-		AUTOFLP_DATA_DIR,
 		withoutFilename,
 	});
 	if (doesExist || !createIfNotExists) return doesExist ? dir : null;

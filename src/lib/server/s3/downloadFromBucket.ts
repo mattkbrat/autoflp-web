@@ -3,8 +3,7 @@ import { createBucketIfNotExists } from "./bucket";
 import { s3Client } from "./s3Client";
 import fs from "node:fs";
 import path from "node:path";
-
-import { AUTOFLP_DATA_DIR } from "$env/static/private";
+import { AUTOFLP_DATA_DIR } from "..";
 
 export const downloadFromBucket = async ({
 	bucket,
@@ -19,7 +18,7 @@ export const downloadFromBucket = async ({
 	filename: string;
 	directory?: string;
 }) => {
-	const outputFile = path.join(AUTOFLP_DATA_DIR, directory, filename);
+	const outputFile = path.join(directory, filename);
 	console.debug(`Download ${filename} from s3 store to ${outputFile}`);
 	if (handleCreate) {
 		await createBucketIfNotExists(bucket);

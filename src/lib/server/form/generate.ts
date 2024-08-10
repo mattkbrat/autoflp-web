@@ -6,7 +6,6 @@ import { PDFDocument } from "pdf-lib";
 import { checkDocsDir } from "./checkDocsDir";
 import { randomUUID } from "node:crypto";
 import { dev } from "$app/environment";
-import { AUTOFLP_DATA_DIR } from "$env/static/private";
 
 export const generate = async ({
 	form,
@@ -80,7 +79,6 @@ export const generate = async ({
 
 	if (!fs.existsSync(inputPath)) {
 		// Download from s3 client
-		if (dev) throw new Error(`Form at path does not exists: ${inputPath}`);
 		await downloadFromBucket({
 			bucket: bucketPaths.templates,
 			key: pdfFormName,
