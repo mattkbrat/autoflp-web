@@ -140,7 +140,7 @@ export const actions = {
 			}
 			await deleteFromBucket(env.SALES_BUCKET, filename);
 			await deleteImage({ id });
-			return {};
+			return { deleted: id };
 		}
 		console.log("Saving image", data);
 		const replaceImage = data["replace-image"] === "on";
