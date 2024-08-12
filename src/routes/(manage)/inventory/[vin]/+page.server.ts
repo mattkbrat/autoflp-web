@@ -7,6 +7,9 @@ import {
 	upsertInventory,
 } from "$lib/server/database/inventory";
 import type { Inventory } from "@prisma/client";
+import type { Actions } from "./$types";
+import { inventoryForms } from "$lib/types/forms";
+import { builder } from "$lib/server/form/builder";
 
 export const load = async ({ params }) => {
 	const inventory =
@@ -63,4 +66,28 @@ export const actions = {
 		await deleteInventory(vin);
 		return { delete: vin };
 	},
-};
+
+	printForms: async ({ request }) => {
+		const builtForms: string[] = [];
+		const data = await request.formData();
+		for await (const form of inventoryForms) {
+			const built = await builder({
+				form: form.key,
+				inventory: {
+					make: data.get("make") as string,
+					model: data.get("model") as string,
+					vin: data.get("vin") as string,
+					year: data.get("year") as string,
+				},
+			}).then((form) => form?.output);
+
+			if (!built) continue;
+			builtForms.push(built);
+		}
+
+		console.log(builtForms);
+		return {
+			forms: builtForms || [],
+		};
+	},
+} satisfies Actions;

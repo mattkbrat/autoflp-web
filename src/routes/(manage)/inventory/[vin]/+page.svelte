@@ -1,6 +1,7 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import { page } from "$app/stores";
+import { getZip } from "$lib";
 import { el } from "$lib/element";
 import { handleInvNav } from "$lib/navState";
 import type { InventoryField } from "$lib/server/database/inventory";
@@ -13,6 +14,7 @@ const thisYear = new Date().getFullYear();
 
 let shouldFocus = false;
 let hasLoaded = false;
+let forms: string[] = [];
 
 export let data: { inventory: Inventory };
 
@@ -203,12 +205,24 @@ onMount(() => {
   id="inventory-form"
   use:enhance={() => {
     return async ({ result, update }) => {
-      if ("data" in result && result.data && "data" in result.data) {
+      if (!("data" in result) || !result.data) return;
+      if (result.data && "data" in result.data && result.data.data) {
         //await update();
-        const vin = result.data.data && result.data.data.vin;
+        const vin = result.data.data.vin;
         if (vin) {
           updateAllInventory(vin, result.data.data);
         }
+      } else if (result.data && "forms" in result.data) {
+        //await update();
+        const { forms } = result.data || {
+          id: "",
+          forms: [],
+        };
+        if (!Array.isArray(forms)) {
+          console.log("Failed to get forms", result.data);
+          return;
+        }
+        await getZip(forms, { type: "inventory", inventory: selected });
       }
     };
   }}
@@ -274,6 +288,7 @@ onMount(() => {
         Make {selected.state === 0 ? "Active" : "Inactive"}
       </button>
     {/if}
+    <button formaction="?/printForms" type="submit">Print forms</button>
   </div>
 </form>
 
