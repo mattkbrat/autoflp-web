@@ -19,11 +19,6 @@ const currencyFormat = new Intl.NumberFormat("en-US", {
 	style: "currency",
 	currency: "USD",
 });
-const dateTimeFormat = new Intl.DateTimeFormat("en-US", {
-	dateStyle: "long",
-	timeStyle: "short",
-	timeZone: "America/Denver",
-});
 
 export const formatCurrency = (
 	amount: string | number | undefined,
@@ -44,12 +39,11 @@ export const formatCurrency = (
 
 export const dateFormatStandard = "MM/dd/yyyy";
 
-export const formatDate = (
-	date: string | Date,
-	withTime = false,
-	formatStr = "E, LLL d, y",
-) => {
-	return withTime
-		? dateTimeFormat.format(new Date(date))
-		: format(date, formatStr);
+export const formatDate = (date: string | Date, formatStr = "E, LLL d, y") => {
+	try {
+		return format(date, formatStr);
+	} catch (e: unknown) {
+		console.error("Failed to format date", date, "with format", formatStr);
+		return "";
+	}
 };

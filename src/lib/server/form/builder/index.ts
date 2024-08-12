@@ -82,7 +82,7 @@ export const builder = async (p: FormBuilderParams) => {
 	console.log(p.form, obj);
 	const output = `${fullNameFromPerson({
 		person: p.deal?.account.contact,
-	})}/${formatDate(p.deal?.date || new Date(), false, "yy-MM-dd")}/`
+	})}/${formatDate(p.deal?.date || new Date(), "yy-MM-dd")}/`
 		.replaceAll(" ", "-")
 		.replaceAll(",", "");
 

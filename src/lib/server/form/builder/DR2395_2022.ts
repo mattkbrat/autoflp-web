@@ -20,7 +20,7 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 	const creditorAddress =
 		deal.creditor && addressFromPerson(deal.creditor.contact);
 
-	let vinSplit = deal.inventory.vin.split("");
+	const vinSplit = deal.inventory.vin.split("");
 	if (vinSplit.length !== 17) {
 		console.log("Invalid vin lenth", deal.inventory.vin, vinSplit.length);
 		for (let i = vinSplit.length; i < 18; i++) {
@@ -32,7 +32,7 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 		.filter(Boolean)
 		.join("\n");
 
-	const date = formatDate(deal.date, false, dateFormatStandard);
+	const date = formatDate(deal.date, dateFormatStandard);
 	const obj: Partial<DR2395_2022Template> = {
 		"Vehicle Identification Number VIN_1": vinSplit[0],
 		"Vehicle Identification Number VIN_2": vinSplit[1],
@@ -83,15 +83,11 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 		"ID #": deal.account.licenseNumber,
 		Expires:
 			(deal.account.licenseExpiration &&
-				formatDate(
-					deal.account.licenseExpiration,
-					false,
-					dateFormatStandard,
-				)) ||
+				formatDate(deal.account.licenseExpiration, dateFormatStandard)) ||
 			"",
 		DOB:
 			(deal.account.dateOfBirth &&
-				formatDate(deal.account.dateOfBirth, false, dateFormatStandard)) ||
+				formatDate(deal.account.dateOfBirth, dateFormatStandard)) ||
 			"",
 		Date_2: date,
 		//"Previous Title Number": "",
