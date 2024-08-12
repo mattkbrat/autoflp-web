@@ -1,6 +1,5 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
-import { page } from "$app/stores";
 import AccountSelect from "$lib/components/AccountSelect.svelte";
 import CreditorSelect from "$lib/components/CreditorSelect.svelte";
 import InventorySelect from "$lib/components/InventorySelect.svelte";
@@ -12,6 +11,7 @@ import type { NavType } from "$lib/navState";
 import type { ParsedNHTA } from "$lib/server/inventory";
 import { allAccounts, allCreditors, allInventory } from "$lib/stores";
 import { accountID, creditorID, inventoryID } from "$lib/stores/selected";
+import { getZip } from "$lib/index";
 
 const deal = defaultDeal;
 
@@ -32,7 +32,10 @@ $: deal.priceTrade = trades.reduce((acc, t) => {
 
 $: creditor = $allCreditors.find((c) => c.id === $creditorID.value);
 let lastCreditor = "";
+
+// biome-ignore lint/style/useConst: Is later assigned
 let forms: string[] = [];
+
 $: if (creditor && lastCreditor !== creditor.id) {
 	deal.apr = +creditor.apr;
 	deal.filingFees = +creditor.filingFees;
@@ -42,36 +45,13 @@ $: if (creditor && lastCreditor !== creditor.id) {
 $: inventory = $allInventory.find((i) => i.vin === $inventoryID.value);
 let lastInventory = "";
 
-const getZip = async (forms: string[]) => {
-	const formsSearch = forms.map((form) => {
-		return ["file", form];
-	});
-	const search = new URLSearchParams(formsSearch);
-	return fetch(`/api/get-file?${search.toString()}`)
-		.then((resp) =>
-			resp.status === 200
-				? resp.blob()
-				: Promise.reject("something went wrong"),
-		)
-		.then((blob) => {
-			const account = $allAccounts.find((a) => a.id === deal.account);
-			const name = fullNameFromPerson({ person: account?.contact || {} });
-			const url = window.URL.createObjectURL(blob);
-			const a = document.createElement("a");
-			a.style.display = "none";
-			a.href = url;
-			// the filename you want
-			// const urlEncoded = encodeURIComponent(name);
-			const nameBase = `${name}_${
-				deal.vin
-			}_${deal.date.toDateString()}`.replace(/[^a-zA-Z0-9]/g, "_");
-			a.download = `${nameBase}.zip`;
-			document.body.appendChild(a);
-			a.click();
-			window.URL.revokeObjectURL(url);
-			// or you know, something with better UX...
-			alert("your file has downloaded!");
-		});
+const handleGetZip = async (forms: string[]) => {
+	const account = $allAccounts.find((a) => a.id === deal.account);
+	if (!account?.contact) {
+		console.error("Could not submit deal", { account, deal });
+		throw new Error("No account assigned");
+	}
+	await getZip(forms, { deal, person: account.contact, type: "deal" });
 };
 
 $: if (inventory && inventory.id !== lastInventory) {
@@ -128,7 +108,7 @@ const navType: NavType = "query";
   <button
     type="button"
     on:click={async () => {
-      await getZip(forms);
+      await handleGetZip(forms);
     }}
   >
     Download Forms
@@ -153,7 +133,7 @@ const navType: NavType = "query";
           console.log("Failed to get forms", result.data);
           return;
         }
-        await getZip(forms);
+        await handleGetZip(forms);
       }
     };
   }}
