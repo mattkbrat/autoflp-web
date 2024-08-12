@@ -6,14 +6,7 @@ const getStoredValue = (key: string) => {
 	return (browser && localStorage.getItem(key)) || "";
 };
 
-const ids = [
-	"deal",
-	"inventory",
-	"salesman",
-	"account",
-	"payment",
-	"creditor",
-] as const;
+const ids = ["deal", "inventory", "account", "payment", "creditor"] as const;
 
 type BaseId = (typeof ids)[number];
 
@@ -28,10 +21,6 @@ const defaultState: State = {
 	},
 	inventoryID: {
 		value: getStoredValue("inventoryId"),
-		state: "folder",
-	},
-	salesmanID: {
-		value: getStoredValue("salesmanId"),
 		state: "folder",
 	},
 	accountID: {

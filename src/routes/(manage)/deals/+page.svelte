@@ -10,17 +10,11 @@ import { calcFinance } from "$lib/finance/calc";
 import { formatCurrency, formatDate, fullNameFromPerson } from "$lib/format";
 import type { NavType } from "$lib/navState";
 import type { ParsedNHTA } from "$lib/server/inventory";
-import {
-	allAccounts,
-	allCreditors,
-	allInventory,
-	selectedStates,
-} from "$lib/stores";
+import { allAccounts, allCreditors, allInventory } from "$lib/stores";
 import { accountID, creditorID, inventoryID } from "$lib/stores/selected";
 
 const deal = defaultDeal;
 
-$: search = $page.url.searchParams;
 let currTrade = "";
 
 let trades: {
@@ -166,13 +160,7 @@ const navType: NavType = "query";
 >
   <AccountSelect {navType} baseRoute={"account"} />
   <InventorySelect {navType} />
-  <SalesmenSelect {navType} />
-  <input
-    name="salesmen"
-    type="hidden"
-    class="input"
-    value={$page.url.searchParams.get("salesmen")}
-  />
+  <SalesmenSelect />
   <input
     type={"hidden"}
     value={JSON.stringify(finance || {})}
