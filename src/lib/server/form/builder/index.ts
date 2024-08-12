@@ -6,6 +6,7 @@ import {
 } from "$lib/format";
 import type { DetailedDeal } from "$lib/server/database/deal";
 import type { Form } from "$lib/types/forms";
+import type { Inventory } from "@prisma/client";
 import type { GenerateFormParams } from "..";
 import { generate } from "../generate";
 import { fillBuyersGuideData } from "./BUYERS_GUIDE";
@@ -18,21 +19,48 @@ import { fillSalesTax0024Data } from "./SALES_TAX_RECEIPT";
 import { fillSecurityData } from "./SECURITY";
 import { fillStatementOfFact } from "./STATEMENT_OF_FACT";
 
-export type FormBuilderParams = {
-	deal?: NonNullable<DetailedDeal>;
+type FormBuilderBaseParams = {
 	form: Form;
 	obj?: GenerateFormParams["data"];
 	finance?: FinanceCalcResult;
 };
 
-export type DealFormParams = FormBuilderParams & {
+export type DealFormParams = FormBuilderBaseParams & {
 	deal: NonNullable<DetailedDeal>;
 };
 
-export const builder = async (p: FormBuilderParams) => {
+export type InventoryFormParams = FormBuilderBaseParams & {
+	inventory: Partial<Inventory>;
+};
+
+type FormBuilderParams = DealFormParams | InventoryFormParams;
+
+const getOutput = (p: FormBuilderParams) => {
+	console.log({ p });
+	const isDeal = "deal" in p;
+	const isInventory = !isDeal && "vin" in p;
+	const now = formatDate(isDeal ? p.deal.date : new Date(), "yy-MM-dd");
+
+	let output = "";
+
+	if (isDeal) {
+		output = `${fullNameFromPerson({
+			person: p.deal?.account.contact,
+		})}/${now}/`;
+	} else if (isInventory) {
+		const {
+			inventory: { make, model, year },
+		} = p;
+		output = make || model || year || "form";
+	}
+	return output.replaceAll(" ", "-").replaceAll(",", "");
+};
+
+export const builder = async (p: DealFormParams | InventoryFormParams) => {
 	let obj: GenerateFormParams["data"] | null = p.obj || null;
 
-	if (!obj && p.deal) {
+	const output = getOutput(p);
+	if (!obj && "deal" in p) {
 		switch (p.form) {
 			case "DR2395_2022":
 				obj = DR2395_2022(p.deal);
@@ -62,14 +90,19 @@ export const builder = async (p: FormBuilderParams) => {
 				obj = [];
 				break;
 			case "Security":
-				obj = fillSecurityData(p as DealFormParams);
+				obj = fillSecurityData(p as DealFormParams) || [];
 				break;
-			case "Inventory":
 			case "Application":
 			case "billing":
 			case "Receipt":
 			default:
 				obj = [];
+				break;
+		}
+	} else if (!obj && "inventory" in p) {
+		switch (p.form) {
+			case "Buyers Guide":
+				obj = fillBuyersGuideData(p.inventory);
 				break;
 		}
 	}
@@ -80,11 +113,6 @@ export const builder = async (p: FormBuilderParams) => {
 	}
 
 	console.log(p.form, obj);
-	const output = `${fullNameFromPerson({
-		person: p.deal?.account.contact,
-	})}/${formatDate(p.deal?.date || new Date(), "yy-MM-dd")}/`
-		.replaceAll(" ", "-")
-		.replaceAll(",", "");
 
 	return generate({
 		form: p.form,

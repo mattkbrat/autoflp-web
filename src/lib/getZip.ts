@@ -1,21 +1,33 @@
+import type { Inventory } from "@prisma/client";
 import type { DealFields } from "./finance";
 import { fullNameFromPerson, type FullNameParams } from "./format";
 
-type ZipFilenameParams = {
-	type: "deal";
-	person: Partial<FullNameParams["person"]>;
-	deal: DealFields;
-};
+type ZipFilenameParams =
+	| {
+			type: "deal";
+			person: Partial<FullNameParams["person"]>;
+			deal: DealFields;
+	  }
+	| {
+			type: "inventory";
+			inventory: Partial<Inventory>;
+	  };
 
 const getName = (p: ZipFilenameParams) => {
+	const now = (p.type === "deal" ? p.deal.date : new Date()).toDateString();
 	if (p.type === "deal") {
 		const { person, deal } = p;
 		const name = fullNameFromPerson({ person: person });
-		const nameBase = `${name}_${deal.vin}_${deal.date.toDateString()}`;
-		return nameBase;
+		return `${name}_${deal.vin}_${deal.date.toDateString()}`;
+	}
+	if (p.type === "inventory") {
+		const {
+			inventory: { make, model, year, vin },
+		} = p;
+		return [make, model, year, vin].filter(Boolean).join("_");
 	}
 
-	return new Date().toDateString();
+	return now;
 };
 
 export const getZipFilename = (p: ZipFilenameParams) => {

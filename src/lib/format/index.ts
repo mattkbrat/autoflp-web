@@ -1,7 +1,7 @@
 type DealPerson = NonNullable<DetailedDeal>["account"]["contact"];
 
 export type FullNameParams = {
-	person: Person | DealPerson;
+	person: Partial<Person | DealPerson>;
 	format?: "firstLast" | "lastFirst";
 	titleCase?: boolean;
 };
