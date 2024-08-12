@@ -66,9 +66,6 @@ async function handleSaveImage(
 	const response = await fetch(event.currentTarget.action, {
 		method: "POST",
 		body: data,
-		headers: {
-			"x-sveltekit-action": "true",
-		},
 	}).catch((e) => {
 		console.error("Failed to save image", e);
 	});
@@ -195,6 +192,7 @@ async function handleSaveImage(
       <form
         class="flex flex-col gap-4"
         method="post"
+        action="?/saveImage"
         on:submit|preventDefault={handleSaveImage}
       >
         <div class="flex flex-row flex-wrap">
