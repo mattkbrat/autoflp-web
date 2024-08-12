@@ -1,5 +1,6 @@
 import {
 	deleteImage,
+	deleteImages,
 	getSingleInventory as getComInventory,
 	getSingleImage,
 	insertInventoryImage,
@@ -8,37 +9,63 @@ import {
 } from "$lib/server/database/com";
 import { getSingleInventory } from "$lib/server/database/inventory";
 import { fail, redirect, type Actions } from "@sveltejs/kit";
-import { deleteFromBucket, upload } from "$lib/server/s3";
+import { deleteFromBucket, listObjects, upload } from "$lib/server/s3";
 import { env } from "$env/dynamic/private";
 import { getCDNUrl } from "$lib/server/com";
 import type { PageServerLoad } from "./$types";
+import type { ArrayElement, ImageWithLogic } from "$lib/types";
+import { notEmpty } from "$lib";
 
 const imageRegex = /[\w-]+.(jpg|png|bmp)/g;
 
 export const load: PageServerLoad = async ({ params }) => {
 	const selected = await getComInventory(Number(params.id));
-
 	if (!selected) {
 		return redirect(307, "/inventory/cars-for-sale");
 	}
+
+	const cdnObjects = selected?.vin
+		? (await listObjects(env.SALES_BUCKET, selected?.vin)) || []
+		: [];
+
+	// console.log(cdnObjects, "cdn");
 	const local =
 		selected.vin && (await getSingleInventory({ vin: selected.vin }));
 
 	const { images, ...data } = selected;
-	type ImageWithLogic = (typeof images)[number] & {
-		render: boolean;
-		replace: boolean;
-		file: FileList | null;
-	};
 
-	const imagesWithLogic: ImageWithLogic[] = images.map((i) => {
-		return {
-			...i,
-			render: false,
-			replace: false,
-			file: null,
-		};
-	});
+	const imagesWithLogic: ImageWithLogic[] = cdnObjects
+		.map((i) => {
+			const { Key } = i;
+			if (!Key) return null;
+			const matching = images.find((img) => img.url.includes(Key));
+			if (typeof matching === "undefined") {
+				console.error("No image found for", Key);
+				return null;
+			}
+			return {
+				...i,
+				...matching,
+				render: false,
+				replace: false,
+				file: null,
+			};
+		})
+		.filter(notEmpty);
+
+	const badDb = images
+		.map((img) => {
+			const cdnObject = cdnObjects.find(
+				(o) => o.Key && img.url.includes(o.Key),
+			);
+			return typeof cdnObject === "undefined" ? img : null;
+		})
+		.filter(notEmpty);
+
+	if (badDb.length > 0) {
+		console.error("Found invalidated db images", badDb);
+		await deleteImages({ ids: badDb.map((r) => r.id) });
+	}
 	imagesWithLogic.push({
 		render: false,
 		replace: true,
@@ -47,10 +74,9 @@ export const load: PageServerLoad = async ({ params }) => {
 		source: "",
 		url: "",
 		inventory: null,
-		order: null,
+		order: images?.length - 1 || 1,
 		title: "",
 	});
-	console.log({ local, selected, images: selected.images });
 	return {
 		selected: data,
 		local,
@@ -78,7 +104,7 @@ const handleReplaceImage = async ({
 	vin: string;
 }): Result => {
 	const oldPath = url;
-	const titleWithVin = `${vin}-${title}`;
+	const titleWithVin = `${vin}/${title}`;
 	if (oldPath) {
 		const filename = getCDNFilename(oldPath);
 		if (filename) {
@@ -184,14 +210,14 @@ export const actions = {
 		const order = Number.isNaN(Number(data.order)) ? 0 : Number(data.order);
 
 		if (!isNew) {
-			console.log("Updating com inv", { replaceResult, title, order, id });
+			// console.log("Updating com inv", { replaceResult, title, order, id });
 			await updateInventoryImage(id, {
 				url: replaceResult?.newUrl,
 				title,
 				order,
 			});
 		} else if (replaceResult?.result === "ok" && !Number.isNaN(inventoryId)) {
-			console.log("Inserting new com inv", { replaceResult, title, order });
+			// console.log("Inserting new com inv", { replaceResult, title, order });
 			await insertInventoryImage({
 				url: replaceResult.newUrl,
 				title,

@@ -39,6 +39,12 @@ export const deleteImage = async ({ id }: { id: number }) => {
 	});
 };
 
+export const deleteImages = async ({ ids }: { ids: number[] }) => {
+	return comClient.image.deleteMany({
+		where: { id: { in: ids } },
+	});
+};
+
 export const insertInventoryImage = async (data: Partial<Image>) => {
 	const { url } = data;
 	if (!url) {

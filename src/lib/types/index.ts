@@ -7,6 +7,7 @@ export type AsyncReturnType<T extends (...args: any) => Promise<unknown>> =
 export type StringObj = { [key: string]: string };
 
 export type * from "./com/index.ts";
+export type { ArrayElement } from "./ArrayElement";
 
 export type GroupedComInv = {
 	com: ComInventoryWithUrl[number];
