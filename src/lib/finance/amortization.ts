@@ -2,7 +2,7 @@ import { addMonths, isAfter, isSameMonth, startOfMonth } from "date-fns";
 import { roundToPenny } from "./roundToPenny";
 import type { Deal } from "@prisma/client";
 import { getPercent } from "./getPercent";
-import type { Payments } from "$lib/server/database/deal";
+import type { AmortizationPayments } from "$lib/types";
 
 export type AmortizationParams = {
 	term: number;
@@ -10,7 +10,7 @@ export type AmortizationParams = {
 	apr: number;
 	pmt: number;
 	startDate: Date;
-	history?: Payments;
+	history?: AmortizationPayments;
 };
 
 export type AmortizationSchedule = ReturnType<typeof amoritization>;
@@ -32,9 +32,9 @@ export const amoritization = ({
 	let n = -1;
 	const today = new Date();
 
-	console.log({ monthlyRate, term, apr, balance, pmt });
+	// console.log({ monthlyRate, term, apr, balance, pmt });
 
-	let schedule = [];
+	const schedule = [];
 
 	while (lastBalance > 0 && n < 100) {
 		n++;
@@ -102,9 +102,10 @@ export const amoritization = ({
 		schedule.push(scheduleRow);
 	}
 
-	const owed = isAfter(schedule[0].date, today)
-		? schedule[0].lastBalance
-		: schedule.find((s) => isSameMonth(s.date, today))?.lastBalance;
+	const owed =
+		schedule[0] && isAfter(schedule[0].date, today)
+			? schedule[0].lastBalance
+			: schedule.find((s) => isSameMonth(s.date, today))?.lastBalance;
 	return {
 		schedule,
 		monthlyRate,
@@ -116,7 +117,10 @@ export const amoritization = ({
 	};
 };
 
-export const dealAmortization = (deal: Deal, payments: Payments) => {
+export const dealAmortization = (
+	deal: Deal,
+	payments: AmortizationPayments,
+) => {
 	const balance = Number(deal?.finance);
 	const term = Number(deal.term);
 
@@ -142,4 +146,5 @@ export const defaultSchedule: AmortizedDeal = {
 	pmt: 0,
 	totalDelinquent: 0,
 	totalPaid: 0,
+	owed: 0,
 };
