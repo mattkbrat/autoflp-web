@@ -1,19 +1,21 @@
 import { randomUUID } from "node:crypto";
 import { deletePayment, recordPayment } from "$lib/server/database/payment";
-import { fail } from "@sveltejs/kit";
+import { fail, type Actions } from "@sveltejs/kit";
 import { getPayments } from "$lib/server/database/deal/getPayments";
 import type { Payment } from "@prisma/client";
-import { amoritization, dealAmortization } from "$lib/finance/amortization";
 import {
-	getDeal,
-	updateDeal,
-	updatePartialDeal,
-} from "$lib/server/database/deal";
-import { updateAccount } from "$lib/server/database/account";
-export const load = async ({ params }) => {
+	dealAmortization,
+	defaultSchedule,
+	type AmortizedDeal,
+} from "$lib/finance/amortization";
+import { getDeal, updatePartialDeal } from "$lib/server/database/deal";
+import type { PageServerLoad } from "./$types";
+export const load: PageServerLoad = async ({ params }) => {
 	const payments = await getPayments(params.deal);
 	const deal = await getDeal({ id: params.deal });
-	const schedule = deal?.finance && dealAmortization(deal, payments);
+	const schedule: AmortizedDeal = deal?.finance
+		? dealAmortization(deal, payments)
+		: defaultSchedule;
 	// console.log({ deal }, schedule);
 	return {
 		payments,
@@ -34,7 +36,7 @@ export const actions = {
 
 		await recordPayment(payment);
 
-		const { deal: _, ...inserted } = payment;
+		const { dealId: _, ...inserted } = payment;
 
 		return { inserted };
 	},
@@ -60,4 +62,4 @@ export const actions = {
 			(deal) => deal.state,
 		);
 	},
-};
+} satisfies Actions;

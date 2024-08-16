@@ -40,6 +40,7 @@ export const amoritization = ({
 		n++;
 
 		const dueDate = addMonths(startDate, n);
+
 		const dateAfterToday = withHistory && isAfter(dueDate, today);
 		const date = startOfMonth(dueDate);
 
@@ -101,6 +102,9 @@ export const amoritization = ({
 		schedule.push(scheduleRow);
 	}
 
+	const owed = isAfter(schedule[0].date, today)
+		? schedule[0].lastBalance
+		: schedule.find((s) => isSameMonth(s.date, today))?.lastBalance;
 	return {
 		schedule,
 		monthlyRate,
@@ -108,6 +112,7 @@ export const amoritization = ({
 		pmt,
 		totalDelinquent: actualTotalDelinquent,
 		totalPaid,
+		owed: Math.max(actualTotalDelinquent, owed || 0),
 	};
 };
 
@@ -127,6 +132,7 @@ export const dealAmortization = (deal: Deal, payments: Payments) => {
 
 	return amoritization(params);
 };
+
 export type AmortizedDeal = ReturnType<typeof dealAmortization>;
 
 export const defaultSchedule: AmortizedDeal = {
