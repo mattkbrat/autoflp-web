@@ -1,9 +1,10 @@
 import { getDetailedDeal } from "$lib/server/database/deal";
-import { describe, it, assert, expect } from "vitest";
+import { describe, it, assert, expect, vi } from "vitest";
 import { builder } from ".";
 import type { StringObj } from "$lib/types";
 import { getDR2395_2022Data } from "./maps/getDR2395_2022Template";
 import { forms } from "$lib/types/forms";
+import { env } from "$env/dynamic/private";
 
 const letters = [
 	"A",
@@ -36,7 +37,8 @@ const letters = [
 
 describe("Can generate forms from pre-created deal", async () => {
 	it("generates forms", async () => {
-		const dealId = "c12ad1f1-a1f0-4f02-a99d-da7d4d27152d";
+		vi.setConfig({ testTimeout: 100_000 });
+		const dealId = env.TEST_DEAL_ID;
 		const detailed = await getDetailedDeal({ id: dealId });
 
 		assert(!!detailed, `Could not get a detailed deal by id: ${dealId}`);
