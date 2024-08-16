@@ -126,7 +126,41 @@ export const getOpenInventoryDeals = async (vin: string) => {
 	});
 };
 
+export const getBilling = async () => {
+	return prisma.deal.findMany({
+		where: {
+			state: 1,
+			AND: [
+				{
+					lien: {
+						not: null,
+					},
+				},
+				{
+					lien: {
+						not: "0",
+					},
+				},
+			],
+		},
+		include: {
+			account: {
+				select: {
+					contact: true,
+				},
+			},
+			payments: {
+				select: {
+					amount: true,
+					date: true,
+				},
+			},
+		},
+	});
+};
+
 export type Deals = Prisma.PromiseReturnType<typeof getDeals>;
 export type SimpleDeal = Prisma.PromiseReturnType<typeof getDeal>;
 export type DetailedDeal = Prisma.PromiseReturnType<typeof getDetailedDeal>;
 export type GroupedDeals = AsyncReturnType<typeof getAndGroupDeals>;
+export type BillingAccounts = AsyncReturnType<typeof getBilling>;
