@@ -1,12 +1,12 @@
 <script lang="ts">
-import { goto } from "$app/navigation";
-import { page } from "$app/stores";
 import { fullNameFromPerson } from "$lib/format";
-import { type NavType, handleAccNav } from "$lib/navState";
-import { allAccounts, selectedStates } from "$lib/stores";
+import type { NavType } from "$lib/navState";
+import { allAccounts, type BaseId } from "$lib/stores";
+
 // biome-ignore lint/style/useConst: changes between routes
 export let navType: NavType = "folder";
-export let baseRoute: "account" | "deal" | "payment" | "person" = "account";
+
+export let baseRoute: BaseId;
 
 import { accountID, handleSelect } from "$lib/stores/selected";
 

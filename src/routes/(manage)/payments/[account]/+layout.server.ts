@@ -1,6 +1,7 @@
 import { getDeals } from "$lib/server/database/deal/getDeals";
-import { getPayments } from "$lib/server/database/deal/getPayments";
-export const load = async ({ params }) => {
+import type { LayoutServerLoad } from "./$types";
+
+export const load: LayoutServerLoad = async ({ params }) => {
 	if (!params.account) {
 		return { accountDeals: [] };
 	}

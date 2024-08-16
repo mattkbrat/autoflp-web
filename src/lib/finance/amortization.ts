@@ -1,11 +1,4 @@
-import {
-	addMonths,
-	isAfter,
-	isBefore,
-	isSameMonth,
-	nextMonday,
-	startOfMonth,
-} from "date-fns";
+import { addMonths, isAfter, isSameMonth, startOfMonth } from "date-fns";
 import { roundToPenny } from "./roundToPenny";
 import type { Deal } from "@prisma/client";
 import { getPercent } from "./getPercent";
@@ -80,13 +73,6 @@ export const amoritization = ({
 				totalDelinquent + delinquentBalance,
 				balance - totalPaid,
 			);
-			console.log({
-				schedulePmt,
-				delinquentBalance,
-				date,
-				pmtDiff,
-				totalDelinquent,
-			});
 		}
 
 		let principal = ignore ? 0 : roundToPenny(schedulePmt - interest);
@@ -115,7 +101,6 @@ export const amoritization = ({
 		schedule.push(scheduleRow);
 	}
 
-	// console.log({ totalPaid, actualTotalDelinquent, lastBalance, balance });
 	return {
 		schedule,
 		monthlyRate,
@@ -141,4 +126,14 @@ export const dealAmortization = (deal: Deal, payments: Payments) => {
 	};
 
 	return amoritization(params);
+};
+export type AmortizedDeal = ReturnType<typeof dealAmortization>;
+
+export const defaultSchedule: AmortizedDeal = {
+	schedule: [],
+	monthlyRate: 0,
+	lastBalance: 0,
+	pmt: 0,
+	totalDelinquent: 0,
+	totalPaid: 0,
 };

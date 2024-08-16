@@ -8,7 +8,7 @@ const getStoredValue = (key: string) => {
 
 const ids = ["deal", "inventory", "account", "payment", "creditor"] as const;
 
-type BaseId = (typeof ids)[number];
+export type BaseId = (typeof ids)[number];
 
 type Id = `${BaseId}ID`;
 

@@ -100,7 +100,7 @@ export const groupDeals = (deals: Deals) => {
 			}).toUpperCase();
 
 			const { account, ...thisDeal } = curr;
-			console.log(key, { curr });
+			// console.log(key, { curr });
 			if (!acc[key]) {
 				acc[key] = [thisDeal];
 			} else {

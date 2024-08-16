@@ -3,22 +3,6 @@ import { page } from "$app/stores";
 import { TabAnchor, TabGroup } from "@skeletonlabs/skeleton";
 
 import { accountDeals } from "$lib/stores";
-import { goto } from "$app/navigation";
-import { paymentID } from "$lib/stores/selected";
-import { fullNameFromPerson } from "$lib/format";
-
-$: firstDeal = $accountDeals[0];
-
-$: console.log("first deal", $accountDeals);
-
-// $: if (!!firstDeal && $paymentID.value) {
-// 	console.log("Navigating to first deal of");
-// 	goto(`/payments/${firstDeal.accountId}/${firstDeal.id}`);
-// }
-
-$: fullName =
-	firstDeal?.account &&
-	fullNameFromPerson({ person: firstDeal.account.contact });
 </script>
 
 <TabGroup
