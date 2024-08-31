@@ -12,7 +12,6 @@ export const load = async () => {
 	const currentInventory = await getCurrentInventory();
 	const localInventory = await getInventory(1);
 	console.log({ currentInventory });
-
 	const missingVins: MissingVins = [];
 	const grouped = localInventory.reduce((acc, local) => {
 		const matching = currentInventory.find(

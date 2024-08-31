@@ -50,9 +50,6 @@ export const insertInventoryImage = async (data: Partial<Image>) => {
 	if (!url) {
 		throw new Error("Must provide url");
 	}
-	if (!data.inventory) {
-		throw new Error("Must link image to inventory");
-	}
 	return comClient.image.upsert({
 		where: {
 			url,
