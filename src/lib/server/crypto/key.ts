@@ -1,3 +1,6 @@
 import { env } from "$env/dynamic/private";
 
-export const key = env.ENCRYPT_KEY;
+export const keys = {
+	default: env.ENCRYPT_KEY,
+	credit: env.CREDIT_ENCRYPT_KEY,
+};
