@@ -1,4 +1,6 @@
 import Cryptr from "cryptr";
-import { key } from "./key";
+import { keys } from "./key";
 
-export const cryptr = new Cryptr(key);
+export const cryptr = new Cryptr(keys.default);
+
+export const cryptrCredit = new Cryptr(keys.credit);

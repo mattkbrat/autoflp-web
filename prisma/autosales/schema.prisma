@@ -9,45 +9,232 @@ datasource db {
 }
 
 model Image {
-  id        Int        @id(map: "image_pk") @default(autoincrement())
-  source    String     @default("r2")
-  url       String     @unique(map: "image_url_uindex")
-  inventory Int?
-  order     Int?       @db.SmallInt
-  title     String     @default("")
-  Inventory Inventory? @relation("image_inventoryToinventory", fields: [inventory], references: [id], map: "image_inventory_id_fk")
+  id                                       Int              @id(map: "image_pk") @default(autoincrement())
+  source                                   String           @default("r2")
+  url                                      String           @unique(map: "image_url_uindex")
+  title                                    String           @default("")
+  inventoryImageInventoryImageImageToimage InventoryImage[] @relation("inventory_image_imageToimage")
+  userImageUserImageImageToimage           UserImage[]      @relation("user_image_imageToimage")
 
   @@map("image")
 }
 
 model Inventory {
-  id           Int     @id(map: "inventory_pk") @default(autoincrement())
-  title        String?
-  business     String
-  price        Int
-  transmission String?
-  drivetrain   String?
-  mileage      String?
-  make         String?
-  model        String?
-  body         String?
-  year         String?
-  sold         Boolean @default(false)
-  vin          String?
-  hidden       Boolean @default(false)
-  fuel         String?
-  color        String?
-  images       Image[] @relation("image_inventoryToinventory")
+  id                                               Int              @id(map: "inventory_pk") @default(autoincrement())
+  title                                            String?
+  business                                         String
+  price                                            Int
+  transmission                                     String?
+  drivetrain                                       String?
+  mileage                                          String?
+  make                                             String?
+  model                                            String?
+  body                                             String?
+  year                                             String?
+  sold                                             Boolean          @default(false)
+  vin                                              String?
+  hidden                                           Boolean          @default(false)
+  fuel                                             String?
+  color                                            String?
+  inventoryImageInventoryImageInventoryToinventory InventoryImage[] @relation("inventory_image_inventoryToinventory")
 
   @@map("inventory")
 }
 
 model Users {
-  id        Int      @id(map: "users_pk") @default(autoincrement())
-  name      String   @unique(map: "users_name_uindex")
-  email     String
-  image     String
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  id                String              @id
+  name              String
+  email             String              @unique(map: "users_email_uindex")
+  image             String?
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamp(6)
+  serial            Int                 @unique(map: "users_pk") @default(autoincrement())
+  updatedAt         DateTime
+  emailVerified     Boolean?            @default(false) @map("email_verified")
+  account           Account[]
+  authenticator     Authenticator[]
+  creditApplication CreditApplication[]
+  session           Session[]
+  userImage         UserImage[]
 
   @@map("users")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Account {
+  userId                String   @map("user_id")
+  type                  String
+  provider              String
+  providerAccountId     String   @map("provider_account_id")
+  refreshToken          String?  @map("refresh_token")
+  accessToken           String?  @map("access_token")
+  expiresAt             Int?     @map("expires_at")
+  tokenType             String?  @map("token_type")
+  scope                 String?
+  idToken               String?  @map("id_token")
+  sessionState          String?  @map("session_state")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @default(now()) @map("updated_at")
+  refreshTokenExpiresIn Int?     @map("refresh_token_expires_in")
+  users                 Users    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Account_userId_fkey")
+
+  @@id([provider, providerAccountId], map: "Account_pkey")
+  @@map("account")
+}
+
+model Authenticator {
+  credentialId         String  @unique(map: "Authenticator_credentialID_key") @map("credential_id")
+  userId               String  @map("user_id")
+  providerAccountId    String  @map("provider_account_id")
+  credentialPublicKey  String  @map("credential_public_key")
+  counter              Int
+  credentialDeviceType String  @map("credential_device_type")
+  credentialBackedUp   Boolean @map("credential_backed_up")
+  transports           String?
+  users                Users   @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Authenticator_userId_fkey")
+
+  @@id([userId, credentialId], map: "Authenticator_pkey")
+  @@map("authenticator")
+}
+
+model CreditApplication {
+  section               String?
+  breadcrumbs           Json?       @db.Json
+  formSelection         String?
+  housingOrRenting      String?
+  name_1                String?     @map("name-1")
+  street_1              String?     @map("Street-1")
+  city_1                String?     @map("city-1")
+  state_1               String?     @map("state-1")
+  zip_1                 String?     @map("zip-1")
+  phone_1               String?     @map("phone-1")
+  lastName              String?
+  firstName             String?
+  phoneNumber           String?
+  street                String?
+  city                  String?
+  state                 String?
+  zip                   String?
+  middleInitial         String?
+  lengthOfStayAtAddress String?
+  ssn                   String?     @map("SSN")
+  driversLicenseNumber  String?
+  licenseExpiration     String?
+  dateOfBirth           String?
+  company               String?
+  employmentLength      String?
+  companyAddress        String?
+  companyTel            String?
+  supervisor            String?
+  department            String?
+  jobDescription        String?
+  income                String?
+  mortgage              String?
+  phone                 String?
+  ownPayment            String?
+  name_2                String?     @map("name-2")
+  street_2              String?     @map("Street-2")
+  number_2              String?     @map("Number-2")
+  floor_2               String?     @map("floor-2")
+  city_2                String?     @map("city-2")
+  state_2               String?     @map("state-2")
+  zip_2                 String?     @map("zip-2")
+  phone_2               String?     @map("phone-2")
+  phone2_2              String?     @map("phone2-2")
+  name_3                String?     @map("name-3")
+  street_3              String?     @map("Street-3")
+  number_3              String?     @map("Number-3")
+  floor_3               String?     @map("floor-3")
+  city_3                String?     @map("city-3")
+  state_3               String?     @map("state-3")
+  zip_3                 String?     @map("zip-3")
+  phone_3               String?     @map("phone-3")
+  phone2_3              String?     @map("phone2-3")
+  name_4                String?     @map("name-4")
+  street_4              String?     @map("Street-4")
+  number_4              String?     @map("Number-4")
+  floor_4               String?     @map("floor-4")
+  city_4                String?     @map("city-4")
+  state_4               String?     @map("state-4")
+  zip_4                 String?     @map("zip-4")
+  phone_4               String?     @map("phone-4")
+  phone2_4              String?     @map("phone2-4")
+  name_5                String?     @map("name-5")
+  street_5              String?     @map("Street-5")
+  number_5              String?     @map("Number-5")
+  floor_5               String?     @map("floor-5")
+  city_5                String?     @map("city-5")
+  state_5               String?     @map("state-5")
+  zip_5                 String?     @map("zip-5")
+  phone_5               String?     @map("phone-5")
+  phone2_5              String?     @map("phone2-5")
+  name_6                String?     @map("name-6")
+  street_6              String?     @map("Street-6")
+  number_6              String?     @map("Number-6")
+  floor_6               String?     @map("floor-6")
+  city_6                String?     @map("city-6")
+  state_6               String?     @map("state-6")
+  zip_6                 String?     @map("zip-6")
+  phone_6               String?     @map("phone-6")
+  phone2_6              String?     @map("phone2-6")
+  number_1              String?     @map("Number-1")
+  floor_1               String?     @map("floor-1")
+  phone2_1              String?     @map("phone2-1")
+  email                 String
+  id                    Int         @id(map: "credit_application_pk") @default(autoincrement())
+  timestamp             DateTime    @default(now()) @db.Timestamp(6)
+  rentpayment           Int?
+  landlordname          String?
+  landlordphone         String?
+  ownphone              String?
+  users                 Users       @relation(fields: [email], references: [email], onDelete: SetDefault, map: "credit_application_users_email_fk")
+  userImage             UserImage[]
+
+  @@map("credit_application")
+}
+
+model InventoryImage {
+  id                                          Int       @id(map: "inventory_image_pk") @default(autoincrement())
+  inventory                                   Int
+  image                                       Int
+  order                                       Int       @default(1)
+  imageInventoryImageImageToimage             Image     @relation("inventory_image_imageToimage", fields: [image], references: [id], onDelete: Cascade, map: "inventory_image_image_id_fk")
+  inventoryInventoryImageInventoryToinventory Inventory @relation("inventory_image_inventoryToinventory", fields: [inventory], references: [id], onDelete: Cascade, map: "inventory_image_inventory_id_fk")
+
+  @@unique([inventory, image], map: "inventory_image_inventory_image_uindex")
+  @@map("inventory_image")
+}
+
+model Session {
+  sessionToken String   @unique(map: "Session_sessionToken_key") @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @map("updated_at")
+  users        Users    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Session_userId_fkey")
+
+  @@map("session")
+}
+
+model UserImage {
+  id                         Int                @id(map: "user_image_pk") @default(autoincrement())
+  user                       String
+  image                      Int
+  creditApp                  Int?               @map("credit_app")
+  uploaded                   DateTime?          @default(now()) @db.Timestamp(6)
+  creditApplication          CreditApplication? @relation(fields: [creditApp], references: [id], onDelete: Cascade, map: "user_image___fk")
+  imageUserImageImageToimage Image              @relation("user_image_imageToimage", fields: [image], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_image_image_id_fk")
+  users                      Users              @relation(fields: [user], references: [email], onDelete: Cascade, map: "user_image_users_email_fk")
+
+  @@unique([image, creditApp], map: "user_image_image_credit_app_uindex")
+  @@unique([user, image], map: "user_image_user_image_uindex")
+  @@map("user_image")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token], map: "VerificationToken_pkey")
+  @@map("verification_token")
 }

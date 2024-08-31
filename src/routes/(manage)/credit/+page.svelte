@@ -1,0 +1,28 @@
+<script lang="ts">
+import type { PageData } from "./$types";
+export let data: PageData;
+</script>
+
+<a class="text-lg underline text-blue-200 col-span-full" href={`/credit/blank`}
+  >Blank</a
+>
+<ul class="ml-2 grid grid-cols-3">
+  {#each data.applications as app}
+    <li class="contents">
+      <span>
+        {new Date(app.timestamp).toDateString()}
+      </span>
+      <span>
+        {app.users.email}
+      </span>
+      <span>
+        {app.users.name}
+      </span>
+    </li>
+    <a
+      class="text-lg underline text-blue-200 col-span-full"
+      href={`/credit/${app.id}`}>Review</a
+    >
+    <hr class="col-span-full" />
+  {/each}
+</ul>

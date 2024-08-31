@@ -53,6 +53,7 @@
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.620.0",
 		"@aws-sdk/credential-providers": "^3.620.0",
+		"@aws-sdk/s3-request-presigner": "^3.637.0",
 		"@floating-ui/dom": "1.6.5",
 		"@google-cloud/local-auth": "^3.0.1",
 		"@libsql/client": "^0.6.2",

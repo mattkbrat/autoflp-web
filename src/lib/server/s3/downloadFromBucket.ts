@@ -3,27 +3,14 @@ import { createBucketIfNotExists } from "./bucket";
 import { s3Client } from "./s3Client";
 import fs from "node:fs";
 import path from "node:path";
-import { AUTOFLP_DATA_DIR } from "..";
 
-export const downloadFromBucket = async ({
+export const getFromBucket = async ({
 	bucket,
 	key,
-	createBucketIfNotExists: handleCreate = true,
-	filename,
-	directory = ".",
 }: {
 	bucket: string;
 	key: string;
-	createBucketIfNotExists?: boolean;
-	filename: string;
-	directory?: string;
 }) => {
-	const outputFile = path.join(directory, filename);
-	console.debug(`Download ${filename} from s3 store to ${outputFile}`);
-	if (handleCreate) {
-		await createBucketIfNotExists(bucket);
-	}
-
 	const command = new GetObjectCommand({
 		Bucket: bucket,
 		Key: key,
@@ -39,6 +26,26 @@ export const downloadFromBucket = async ({
 
 	const byteArr = await readStream?.transformToByteArray();
 
+	return byteArr;
+};
+
+export const downloadFromBucket = async ({
+	filename,
+	directory = ".",
+	bucket,
+	key,
+}: {
+	bucket: string;
+	key: string;
+	createBucketIfNotExists?: boolean;
+	filename: string;
+	directory?: string;
+}) => {
+	const outputFile = path.join(directory, filename);
+	console.debug(`Download ${filename} from s3 store to ${outputFile}`);
+	const byteArr = await getFromBucket({ bucket, key });
+
+	if (!byteArr) return null;
 	fs.writeFileSync(outputFile, byteArr);
 
 	return outputFile;

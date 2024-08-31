@@ -3,6 +3,8 @@ import type { AsyncReturnType } from "..";
 import type { ArrayElement } from "../ArrayElement";
 import type { Image } from "@prisma/autosales";
 
+export type * from "./credit";
+
 export type {
 	ComInventory,
 	ComInventoryWithUrl,

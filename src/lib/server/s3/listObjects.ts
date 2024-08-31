@@ -2,8 +2,7 @@ import { s3Client } from ".";
 
 import { ListObjectsCommand } from "@aws-sdk/client-s3";
 
-export const listObjects = async (bucketName: string, prefix: string) => {
-	console.log("listing", { bucketName, prefix });
+export const listObjects = async (bucketName: string, prefix?: string) => {
 	const command = new ListObjectsCommand({
 		Bucket: bucketName,
 		Prefix: prefix,

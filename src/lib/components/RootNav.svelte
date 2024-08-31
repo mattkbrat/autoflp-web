@@ -18,6 +18,9 @@ $: routes = [
 	{
 		route: "/deals",
 	},
+	{
+		route: "/credit",
+	},
 ] as {
 	route: string;
 	title?: string;
