@@ -102,7 +102,7 @@ export const fillBuyersOrderData = ({ deal, finance }: DealFormParams) => {
 		"42": formatCurrency(finance.totalLoan - finance.financeAmount),
 		"43": formatCurrency(finance.totalLoan),
 		"44": formatCurrency(finance.deferredPayment),
-		"45": formatCurrency(creditor.apr),
+		"45": Number(creditor.apr).toFixed(2),
 		"46": `${Number(deal.term) - 1}; 1`,
 		"47": formatCurrency(finance.monthlyPayment),
 		"48": formatDate(finance.firstPaymentDueDate, dateFormatStandard),

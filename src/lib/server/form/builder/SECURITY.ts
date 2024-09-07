@@ -1,15 +1,10 @@
 import {
-	BUSINESS_ADDRESS,
 	BUSINESS_CITY_STATE_ZIP,
 	BUSINESS_NAME,
-	EMAIL,
-	PHONE_NUMBER,
 	PRIMARY_DEALER_NAME,
 	STREET,
 } from "$env/static/private";
-import type { DetailedDeal } from "$lib/server/database/deal";
-import { randomBytes, randomUUID } from "crypto";
-import type { BuyersGuideTemplate, SecurityTemplate } from "./maps";
+import type { SecurityTemplate } from "./maps";
 import { add, formatDate } from "date-fns";
 import {
 	addressFromPerson,
@@ -17,11 +12,10 @@ import {
 	formatCurrency,
 	fullNameFromPerson,
 } from "$lib/format";
-import type { FinanceCalcCredit, FinanceCalcResult } from "$lib/finance/calc";
 import { getPercent } from "$lib/finance";
 import type { DealFormParams } from ".";
 
-export const fillSecurityData = ({ deal, finance, trades }: DealFormParams) => {
+export const fillSecurityData = ({ deal, finance }: DealFormParams) => {
 	const { creditor, inventory } = deal;
 	if (!deal.lien || !creditor || finance?.type !== "credit") {
 		console.log("Missing data for security", {
@@ -45,13 +39,6 @@ export const fillSecurityData = ({ deal, finance, trades }: DealFormParams) => {
 		? deal.term
 		: `${Number(deal.term) - 1} & 1`;
 
-	const paymentsDue = firstEqualsLast
-		? `${finance.monthlyPayment}: ${finance.firstPaymentDueDate} - ${add(
-				finance.lastPaymentDueDate,
-				{ months: -1 },
-			)}`
-		: "";
-
 	const { contact, cosigner } = deal.account;
 	const contactName = fullNameFromPerson({ person: contact });
 	const contactAddress = addressFromPerson(contact);
@@ -60,8 +47,8 @@ export const fillSecurityData = ({ deal, finance, trades }: DealFormParams) => {
 	const financeAmount = formatCurrency(finance.financeAmount);
 	const dealDate = formatDate(deal.date, dateFormatStandard);
 	const obj: Partial<SecurityTemplate> = {
-		"0": deal.account.id.split("-").slice(-1)[0],
-		"1": deal.id.split("-").slice(-1)[0],
+		"0": deal.account.id.split("-").slice(-1)[0].slice(-4),
+		"1": deal.id.split("-").slice(-1)[0].slice(-4),
 		"2": formatCurrency(deal.lien),
 		"3": dealDate,
 		"4": formatDate(finance.lastPaymentDueDate, dateFormatStandard),
@@ -72,18 +59,24 @@ export const fillSecurityData = ({ deal, finance, trades }: DealFormParams) => {
 		"9": BUSINESS_NAME,
 		"10": STREET,
 		"11": BUSINESS_CITY_STATE_ZIP,
-		"12": getPercent(+creditor.apr).toFixed(2),
-		"13": filing,
+		"12": (+creditor.apr).toFixed(2),
+		"13": formatCurrency(Number(deal.lien) - finance.financeAmount),
 		"14": financeAmount,
 		"15": formatCurrency(finance.totalLoan),
 		"16": formatCurrency(deal.down || 0),
-		"17": financeAmount,
+		"17": formatCurrency(finance.financeAmount + Number(deal.down || 0)),
 		"18": noOfPayments,
 		"19": payments,
-		"20": paymentsDue,
+		"20": `${formatCurrency(finance.monthlyPayment)}: starting ${formatDate(
+			finance.firstPaymentDueDate,
+			dateFormatStandard,
+		)}`,
 		"21": firstEqualsLast
 			? undefined
-			: `${formatCurrency(finance.lastPayment)}: ${finance.lastPaymentDueDate}`,
+			: `${formatCurrency(finance.lastPayment)}: on ${formatDate(
+					finance.lastPaymentDueDate,
+					dateFormatStandard,
+				)}`,
 		"22": creditor.businessName,
 		"23": creditorAddress.full,
 		"24": formatCurrency(deal.cash),
