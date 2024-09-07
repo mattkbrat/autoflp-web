@@ -60,7 +60,6 @@ $: missing = data.missingVins.reduce(
         <tbody class="items-center" id="cars-for-sale-body">
           {#each data.grouped as inv}
             {@const comId = inv.com.id.toString()}
-            <tr>
             <tr class:text-gray-400={inv.com.hidden}>
               <th>
                 <label for={comId} class="flex flex-row gap-2">
@@ -96,8 +95,15 @@ $: missing = data.missingVins.reduce(
                 </span>
               </td>
               <td>
-                <span class="text-lg">
+                <span
+                  class="text-lg"
+                  class:text-red-400={inv.com.sold !== (inv.local.state === 0)}
+                >
                   {inv.com.sold ? "Sold" : "Not sold"}
+                  <br />
+                  <span class="text-sm">
+                    {!inv.local.state ? "Closed" : "Current"}
+                  </span>
                 </span>
               </td>
               <td>
