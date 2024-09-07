@@ -40,17 +40,28 @@ $: missing = data.missingVins.reduce(
       <table class="text-left table">
         <thead>
           <tr>
-            <th> Select </th>
+            <th>
+              Select
+
+              <button
+                type="button"
+                class="btn variant-ringed-secondary"
+                on:click={() => selectAll("cars-for-sale-body")}
+              >
+                Select all
+              </button>
+            </th>
             <th> Price </th>
             <th> Sold </th>
             <th> Visible </th>
             <th> Goto </th>
           </tr>
         </thead>
-        <tbody class="items-center">
+        <tbody class="items-center" id="cars-for-sale-body">
           {#each data.grouped as inv}
             {@const comId = inv.com.id.toString()}
             <tr>
+            <tr class:text-gray-400={inv.com.hidden}>
               <th>
                 <label for={comId} class="flex flex-row gap-2">
                   <input
@@ -121,58 +132,45 @@ $: missing = data.missingVins.reduce(
           </div>
         </div>
         <table class="table text-left">
-          <thead>
-            <th>
-              <button
-                type="button"
-                class="btn variant-ringed-secondary"
-                on:click={() => {
-                  const form = document.getElementById("missing-vins");
-                  if (!form) {
-                    console.log("no form");
-                    return;
-                  }
-                  const checkboxes = Array.from(
-                    form.getElementsByTagName("input"),
-                  ).filter((i) => (i.type = "checkbox"));
-                  console.log(checkboxes);
-                  const someUnchecked = checkboxes.some((c) => !c.checked);
-                  checkboxes.forEach((c) => (c.checked = someUnchecked));
-                }}
-              >
-                Select all
-              </button>
-            </th>
-            <th> VIN </th>
-          </thead>
           <tbody id="missing-vins">
             <tr>
-              <th colspan="2"> Missing from .com </th>
+              <th> Missing from .com </th>
+              <th>
+                <button
+                  type="button"
+                  class="btn variant-ringed-secondary w-full"
+                  on:click={() => selectAll("missing-com")}
+                >
+                  Select all
+                </button>
+              </th>
             </tr>
-            {#each missing.local as v}
-              {@const id = v.id.toString()}
-              <tr>
-                <td class="flex flex-row gap-2">
-                  <label for={id}>
-                    <input
-                      type="checkbox"
+            <section class="contents" id="missing-com">
+              {#each missing.local as v}
+                {@const id = v.id.toString()}
+                <tr>
+                  <td class="flex flex-row gap-2">
+                    <label for={id}>
+                      <input
+                        type="checkbox"
+                        {id}
+                        name={v.type}
+                        class="checkbox"
+                        value={id}
+                      />
+                      Select
+                    </label>
+                  </td>
+                  <td>
+                    {v.description}
+                    <br />
+                    <span class="text-xs">
                       {id}
-                      name={v.type}
-                      class="checkbox"
-                      value={id}
-                    />
-                    Select
-                  </label>
-                </td>
-                <td>
-                  {v.description}
-                  <br />
-                  <span class="text-xs">
-                    {id}
-                  </span>
-                </td>
-              </tr>
-            {/each}
+                    </span>
+                  </td>
+                </tr>
+              {/each}
+            </section>
             <tr>
               <td colspan="2">
                 <hr />
@@ -180,34 +178,43 @@ $: missing = data.missingVins.reduce(
             </tr>
             {#if missing.com.length > 0}
               <tr>
-                <th colspan="2"> Missing from local </th>
+                <th> Missing from local </th>
+                <button
+                  type="button"
+                  class="btn variant-ringed-secondary w-full"
+                  on:click={() => selectAll("missing-local")}
+                >
+                  Select all
+                </button>
               </tr>
             {/if}
-            {#each missing.com as v}
-              {@const id = v.id.toString()}
-              <tr>
-                <td class="flex flex-row gap-2">
-                  <label for={id}>
-                    <input
-                      type="checkbox"
-                      {id}
-                      name={v.type}
-                      class="checkbox"
-                      value={id}
-                    />
-                    Select
-                  </label>
-                </td>
-                <td>
-                  {v.description}
-                  <br />
-                  <span class="text-xs">
-                    ID #{id}
-                  </span>
-                  <a href="/inventory/"> Add to inventory </a>
-                </td>
-              </tr>
-            {/each}
+            <section class="contents" id="missing-local">
+              {#each missing.com as v}
+                {@const id = v.id.toString()}
+                <tr>
+                  <td class="flex flex-row gap-2">
+                    <label for={id}>
+                      <input
+                        type="checkbox"
+                        {id}
+                        name={v.type}
+                        class="checkbox"
+                        value={id}
+                      />
+                      Select
+                    </label>
+                  </td>
+                  <td>
+                    {v.description}
+                    <br />
+                    <span class="text-xs">
+                      ID #{id}
+                    </span>
+                    <a href="/inventory/"> Add to inventory </a>
+                  </td>
+                </tr>
+              {/each}
+            </section>
           </tbody>
         </table>
       </form>
