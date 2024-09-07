@@ -455,6 +455,16 @@ const navType: NavType = "query";
     />
   </label>
   <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
+    Finance Amount
+    <input
+      disabled
+      value={finance.type === "credit"
+        ? formatCurrency(finance.financeAmount)
+        : 0}
+      class="input"
+    />
+  </label>
+  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
     Total Cost (price, interest, tax, fees)
     <input
       disabled

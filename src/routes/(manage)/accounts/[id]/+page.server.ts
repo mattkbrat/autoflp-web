@@ -5,10 +5,11 @@ import {
 	type DetailedAccount,
 } from "$lib/server/database/account";
 import type { Account, Person } from "@prisma/client";
-import { fail } from "@sveltejs/kit";
+import { fail, type Actions } from "@sveltejs/kit";
 import { randomUUID } from "node:crypto";
+import type { PageServerLoad } from "./$types";
 
-export const load = async ({ params }) => {
+export const load: PageServerLoad = async ({ params }) => {
 	const id = params.id;
 
 	const account =
@@ -92,4 +93,4 @@ export const actions = {
 	delete: async ({ request }) => {},
 
 	search: async ({ request }) => {},
-};
+} satisfies Actions;

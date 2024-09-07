@@ -31,7 +31,7 @@ export const generate = async ({
 		});
 	}
 
-	const isArrayOfArrays = (data: any) => {
+	const isArrayOfArrays = (data: unknown) => {
 		return Array.isArray(data) && data.every(Array.isArray);
 	};
 
@@ -120,8 +120,10 @@ export const generate = async ({
 		try {
 			if (type === "Text") {
 				const formField = f.getTextField(key);
-				formField.setText(value?.toUpperCase() || "");
-				//formField.setText(value?.toUpperCase() || dev ? key : "");
+				// formField.setText(value?.toUpperCase() || "");
+				formField.setText(
+					typeof value === "undefined" ? (dev ? key : "") : value.toUpperCase(),
+				);
 			} else if (type === "Radio") {
 				const formField = f.getRadioGroup(key);
 				formField.select(value || "");

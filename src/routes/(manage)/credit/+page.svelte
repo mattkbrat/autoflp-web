@@ -6,7 +6,7 @@ export let data: PageData;
 <a class="text-lg underline text-blue-200 col-span-full" href={`/credit/blank`}
   >Blank</a
 >
-<ul class="ml-2 grid grid-cols-3">
+<ul class="ml-2 grid grid-cols-1 md:grid-cols-3">
   {#each data.applications as app}
     <li class="contents">
       <span>

@@ -33,7 +33,7 @@ $: console.log(baseRoute, navType);
 >
   <option value={navType === "query" ? "" : "new"}>Select an account</option>
   {#each $allAccounts as { id, contact, licenseNumber }}
-    {@const value = baseRoute === "person" ? contact.id : id}
+    {@const value = baseRoute === "account" ? contact.id : id}
     {@const fullName = fullNameFromPerson({ person: contact })}
     <option {value}>{fullName} | {licenseNumber}</option>
   {/each}

@@ -44,8 +44,6 @@ export const upsertDeal = async (
 	);
 	const account = await getAccount({ id: deal.account });
 
-	console.log({ account, id: deal.account });
-
 	const creditor =
 		deal.term > 0 ? await getCreditor({ id: deal.creditor }) : null;
 

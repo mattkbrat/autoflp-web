@@ -31,7 +31,14 @@ export let images: CreditAppImages;
 // 	// handleImages();
 // });
 
-$: sigPrint = `${(credit.lastName && `${credit.lastName}, ${credit.firstName} ${credit.middleInitial?.[0] || ""}`) || credit.users?.name || ""}`;
+$: sigPrint = `${
+	(credit.lastName &&
+		`${credit.lastName}, ${credit.firstName} ${
+			credit.middleInitial?.[0] || ""
+		}`) ||
+	credit.users?.name ||
+	""
+}`;
 
 onMount(() => {
 	for (const [k, v] of Object.entries(credit)) {

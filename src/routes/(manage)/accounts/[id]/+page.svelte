@@ -1,12 +1,9 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
-import { page } from "$app/stores";
-import { handleAccNav } from "$lib/navState";
 import type { DetailedAccount } from "$lib/server/database/account";
-import { accountID, selectedStates } from "$lib/stores";
-import { onMount } from "svelte";
+import type { PageData } from "./$types";
 
-export let data: { account: DetailedAccount };
+export let data: PageData;
 type Selected = Partial<
 	Omit<DetailedAccount, "contact"> & DetailedAccount["contact"]
 >;
@@ -20,7 +17,7 @@ const fieldMap: (keyof Selected)[][] = [
 	["emailPrimary", "emailSecondary", "licenseNumber", "licenseExpiration"],
 ];
 
-$: if (selected.id !== data.account.id) {
+$: if (data.account && selected.id !== data.account?.id) {
 	const { contact, ...rest } = data.account;
 	selected = { ...contact, ...rest };
 }
