@@ -9,34 +9,34 @@ datasource db {
 }
 
 model Image {
-  id                                       Int              @id(map: "image_pk") @default(autoincrement())
-  source                                   String           @default("r2")
-  url                                      String           @unique(map: "image_url_uindex")
-  title                                    String           @default("")
-  inventoryImageInventoryImageImageToimage InventoryImage[] @relation("inventory_image_imageToimage")
-  userImageUserImageImageToimage           UserImage[]      @relation("user_image_imageToimage")
+  id              Int              @id(map: "image_pk") @default(autoincrement())
+  source          String           @default("r2")
+  url             String           @unique(map: "image_url_uindex")
+  title           String           @default("")
+  inventoryImages InventoryImage[] @relation("inventory_image_imageToimage")
+  userImages      UserImage[]      @relation("user_image_imageToimage")
 
   @@map("image")
 }
 
 model Inventory {
-  id                                               Int              @id(map: "inventory_pk") @default(autoincrement())
-  title                                            String?
-  business                                         String
-  price                                            Int
-  transmission                                     String?
-  drivetrain                                       String?
-  mileage                                          String?
-  make                                             String?
-  model                                            String?
-  body                                             String?
-  year                                             String?
-  sold                                             Boolean          @default(false)
-  vin                                              String?
-  hidden                                           Boolean          @default(false)
-  fuel                                             String?
-  color                                            String?
-  inventoryImageInventoryImageInventoryToinventory InventoryImage[] @relation("inventory_image_inventoryToinventory")
+  id              Int              @id(map: "inventory_pk") @default(autoincrement())
+  title           String?
+  business        String
+  price           Int
+  transmission    String?
+  drivetrain      String?
+  mileage         String?
+  make            String?
+  model           String?
+  body            String?
+  year            String?
+  sold            Boolean          @default(false)
+  vin             String?
+  hidden          Boolean          @default(false)
+  fuel            String?
+  color           String?
+  inventoryImages InventoryImage[] @relation("inventory_image_inventoryToinventory")
 
   @@map("inventory")
 }
@@ -193,14 +193,14 @@ model CreditApplication {
 }
 
 model InventoryImage {
-  id                                          Int       @id(map: "inventory_image_pk") @default(autoincrement())
-  inventory                                   Int
-  image                                       Int
-  order                                       Int       @default(1)
-  imageInventoryImageImageToimage             Image     @relation("inventory_image_imageToimage", fields: [image], references: [id], onDelete: Cascade, map: "inventory_image_image_id_fk")
-  inventoryInventoryImageInventoryToinventory Inventory @relation("inventory_image_inventoryToinventory", fields: [inventory], references: [id], onDelete: Cascade, map: "inventory_image_inventory_id_fk")
+  id          Int       @id(map: "inventory_image_pk") @default(autoincrement())
+  inventoryId Int       @map("inventory")
+  imageId     Int       @map("image")
+  order       Int       @default(1)
+  image       Image     @relation("inventory_image_imageToimage", fields: [imageId], references: [id], onDelete: Cascade, map: "inventory_image_image_id_fk")
+  inventory   Inventory @relation("inventory_image_inventoryToinventory", fields: [inventoryId], references: [id], onDelete: Cascade, map: "inventory_image_inventory_id_fk")
 
-  @@unique([inventory, image], map: "inventory_image_inventory_image_uindex")
+  @@unique([inventoryId, imageId], map: "inventory_image_inventory_image_uindex")
   @@map("inventory_image")
 }
 
@@ -216,17 +216,17 @@ model Session {
 }
 
 model UserImage {
-  id                         Int                @id(map: "user_image_pk") @default(autoincrement())
-  user                       String
-  image                      Int
-  creditApp                  Int?               @map("credit_app")
-  uploaded                   DateTime?          @default(now()) @db.Timestamp(6)
-  creditApplication          CreditApplication? @relation(fields: [creditApp], references: [id], onDelete: Cascade, map: "user_image___fk")
-  imageUserImageImageToimage Image              @relation("user_image_imageToimage", fields: [image], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_image_image_id_fk")
-  users                      Users              @relation(fields: [user], references: [email], onDelete: Cascade, map: "user_image_users_email_fk")
+  id                Int                @id(map: "user_image_pk") @default(autoincrement())
+  user              String
+  imageId           Int                @map("image")
+  creditApp         Int?               @map("credit_app")
+  uploaded          DateTime?          @default(now()) @db.Timestamp(6)
+  creditApplication CreditApplication? @relation(fields: [creditApp], references: [id], onDelete: Cascade, map: "user_image___fk")
+  image             Image              @relation("user_image_imageToimage", fields: [imageId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_image_image_id_fk")
+  users             Users              @relation(fields: [user], references: [email], onDelete: Cascade, map: "user_image_users_email_fk")
 
-  @@unique([image, creditApp], map: "user_image_image_credit_app_uindex")
-  @@unique([user, image], map: "user_image_user_image_uindex")
+  @@unique([imageId, creditApp], map: "user_image_image_credit_app_uindex")
+  @@unique([user, imageId], map: "user_image_user_image_uindex")
   @@map("user_image")
 }
 

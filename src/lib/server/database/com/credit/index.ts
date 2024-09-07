@@ -33,7 +33,7 @@ export const getApplication = async ({
 					name: true,
 					userImage: {
 						select: {
-							imageUserImageImageToimage: true,
+							image: true,
 						},
 					},
 				},
@@ -47,7 +47,7 @@ export const getPresignedImages = async (
 ) => {
 	const images =
 		application?.users.userImage.map((ui) => {
-			const { source, url, title } = ui.imageUserImageImageToimage;
+			const { source, url, title } = ui.image;
 			const bucket = source.startsWith("r2") ? source.split("r2/")[1] : null;
 
 			return {

@@ -32,13 +32,13 @@ export const load: PageServerLoad = async ({ params }) => {
 	const local =
 		selected.vin && (await getSingleInventory({ vin: selected.vin }));
 
-	const { images, ...data } = selected;
+	const { inventoryImages: images, ...data } = selected;
 
 	const imagesWithLogic: ImageWithLogic[] = cdnObjects
 		.map((i) => {
 			const { Key } = i;
 			if (!Key) return null;
-			const matching = images.find((img) => img.url.includes(Key));
+			const matching = images.find(({ image: img }) => img.url.includes(Key));
 			if (typeof matching === "undefined") {
 				console.error("No image found for", Key);
 				return null;
@@ -54,7 +54,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		.filter(notEmpty);
 
 	const badDb = images
-		.map((img) => {
+		.map(({ image: img }) => {
 			const cdnObject = cdnObjects.find(
 				(o) => o.Key && img.url.includes(o.Key),
 			);
@@ -73,8 +73,6 @@ export const load: PageServerLoad = async ({ params }) => {
 		id: -1,
 		source: "",
 		url: "",
-		inventory: null,
-		order: images?.length - 1 || 1,
 		title: "",
 	});
 	return {
@@ -150,7 +148,8 @@ export const actions = {
 		const data = Object.fromEntries(await request.formData());
 		const shouldDelete = data.delete === "on";
 		const id = Number(data["image-id"]);
-		if (Number.isNaN(id)) {
+		const invId = Number(data["inv-image-id"]);
+		if (Number.isNaN(id) || Number.isNaN(invId)) {
 			return fail(400, {
 				message: "Must provide image ID",
 			});
@@ -209,26 +208,26 @@ export const actions = {
 
 		const order = Number.isNaN(Number(data.order)) ? 0 : Number(data.order);
 
-		if (!isNew) {
-			// console.log("Updating com inv", { replaceResult, title, order, id });
-			await updateInventoryImage(id, {
-				url: replaceResult?.newUrl,
-				title,
-				order,
-			});
-		} else if (replaceResult?.result === "ok" && !Number.isNaN(inventoryId)) {
-			// console.log("Inserting new com inv", { replaceResult, title, order });
-			await insertInventoryImage({
-				url: replaceResult.newUrl,
-				title,
-				order,
-				inventory: inventoryId as number,
-			});
-		} else {
+		const shouldInsert =
+			replaceResult?.result === "ok" && !Number.isNaN(inventoryId);
+
+		if (!shouldInsert && !isNew) {
 			return fail(400, {
 				message: "nothing to do",
 			});
 		}
+
+		await updateInventoryImage({
+			invImage: {
+				id,
+				order,
+			},
+			image: {
+				id,
+				url: replaceResult?.newUrl,
+				title,
+			},
+		});
 	},
 	deleteImage: async ({ request }) => {
 		const data = await request.formData();

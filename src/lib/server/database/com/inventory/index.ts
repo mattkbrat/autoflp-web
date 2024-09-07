@@ -1,13 +1,16 @@
 import { comClient } from "$lib/server/database";
 import type { Prisma } from "@prisma/client";
-import type { Image, Inventory } from "@prisma/autosales";
+import type { Image, Inventory, InventoryImage } from "@prisma/autosales";
 export const getCurrentInventory = async () => comClient.inventory.findMany({});
 
 export const getSingleInventory = async (id: number) => {
 	return comClient.inventory.findUnique({
 		where: { id },
 		include: {
-			images: {
+			inventoryImages: {
+				select: {
+					image: true,
+				},
 				orderBy: {
 					order: "asc",
 				},
@@ -28,7 +31,11 @@ export const getSingleImage = async ({
 	return comClient.image.findFirst({
 		where: id ? { id } : url ? { url } : undefined,
 		include: {
-			Inventory: true,
+			inventoryImages: {
+				select: {
+					inventory: true,
+				},
+			},
 		},
 	});
 };
@@ -45,32 +52,48 @@ export const deleteImages = async ({ ids }: { ids: number[] }) => {
 	});
 };
 
-export const insertInventoryImage = async (data: Partial<Image>) => {
-	const { url } = data;
-	if (!url) {
-		throw new Error("Must provide url");
+export const upsertInventoryImage = async ({
+	image,
+	invImage,
+}: {
+	image: Partial<Image> & { id?: number };
+	invImage: Partial<InventoryImage> & { id?: number };
+}) => {
+	if (image.id) {
+		return comClient.$transaction([
+			comClient.image.update({
+				where: {
+					id: image.id,
+				},
+				data: image,
+			}),
+			comClient.inventoryImage.update({
+				where: {
+					id: invImage.id,
+				},
+				data: invImage,
+			}),
+		]);
 	}
-	return comClient.image.upsert({
-		where: {
-			url,
-		},
-		create: {
-			...data,
-			url,
-		},
-		update: data,
-	});
-};
-
-export const updateInventoryImage = async (
-	id: number,
-	data: Partial<Image>,
-) => {
-	return comClient.image.update({
-		where: {
-			id,
-		},
-		data,
+	return comClient.$transaction(async (tx) => {
+		const { url } = image;
+		if (!url) {
+			throw new Error("Must provide image URL");
+		}
+		image.url = url;
+		const newImage = await tx.image.create({
+			data: {
+				...image,
+				url,
+			},
+		});
+		invImage.imageId = newImage.id;
+		await tx.inventoryImage.update({
+			where: {
+				id: invImage.id,
+			},
+			data: invImage,
+		});
 	});
 };
 
