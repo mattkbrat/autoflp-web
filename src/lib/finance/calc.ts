@@ -93,7 +93,8 @@ export const calcFinance = (
 	const lastPayment =
 		paymentRoundedToCents + totalLoan - paymentRoundedToCents * p.term;
 
-	const lastPaymentDueDate = add(p.date, { months: p.term });
+	const firstPaymentDueDate = add(p.date, { months: 1 });
+	const lastPaymentDueDate = add(firstPaymentDueDate, { months: p.term });
 
 	const totalCost =
 		p.priceSelling + totalTaxDollar + p.filingFees + deferredPayment;
@@ -108,9 +109,11 @@ export const calcFinance = (
 		deferredPayment: roundToPenny(deferredPayment),
 		totalCost: roundToPenny(totalCost),
 		financeAmount: roundToPenny(financeAmount),
-		firstPaymentDueDate: add(p.date, { months: 1 }),
+		firstPaymentDueDate,
 		deferred: roundToPenny(deferred),
 	};
+
+	console.table(financeCalcCredit);
 
 	return financeCalcCredit;
 };
