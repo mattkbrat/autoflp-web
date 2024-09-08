@@ -29,7 +29,7 @@ export const getDetailedAccount = async ({
 }: { id?: string; contact?: string }) => {
 	return prisma.account.findFirst({
 		where: {
-			OR: [{ id }, { contact_id: contact }],
+			OR: [{ id }, { contact_id: contact || id }],
 		},
 		include: { contact: true },
 	});

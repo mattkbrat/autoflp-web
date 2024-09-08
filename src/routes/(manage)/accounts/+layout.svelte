@@ -10,5 +10,5 @@ onMount(() => {
 });
 </script>
 
-<AccountSelect />
+<AccountSelect baseRoute="account" />
 <slot />
