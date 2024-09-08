@@ -232,7 +232,7 @@ let showMissingPayments = false;
             {@const dateAfter = isAfter(row.date, today)}
             {@const isCurrentMonth = isSameMonth(row.date, today)}
             <tr
-              class:text-gray-600={dateAfter && !isCurrentMonth}
+              class:text--600={dateAfter && !isCurrentMonth}
               class:!bg-gray-400={isCurrentMonth}
               class:dark:text-gray-200={!dateAfter && !isCurrentMonth}
               class:dark:!bg-gray-800={isCurrentMonth}
@@ -245,13 +245,13 @@ let showMissingPayments = false;
               <td>
                 {formatCurrency(row.expected)}
               </td>
-              <td>
+              <td class:text-center={!row.paid} class:text-red-600={!row.paid && !dateAfter}>
                 {formatCurrency(row.paid)}
               </td>
-              <td>
+              <td class:text-center={!row.paid} class:text-red-600={!row.paid && !dateAfter}>
                 {formatCurrency(row.interest)}
               </td>
-              <td>
+              <td class:text-center={!row.paid} class:text-red-600={!row.paid && !dateAfter}>
                 {formatCurrency(row.principal)}
               </td>
               <td>
