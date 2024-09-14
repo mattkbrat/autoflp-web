@@ -31,7 +31,7 @@ $: routes = [
   class="flex flex-row flex-wrap gap-4 2xl:flex-nowrap 2xl:overflow-auto 2xl:flex-col 2xl:my-auto 2xl:flex-1 2xl:border-r-2 2xl:pr-1 h-full"
 >
   {#each routes as route}
-    {@const isSelected = $page.url.pathname.startsWith(route.route)}
+    {@const isSelected = $page.url.pathname.includes(route.route)}
     <a
       class="flex flex-1 items-center py-4 text-lg font-bold text-center text-black uppercase cursor-pointer min-w-8 hover:opacity-25"
       class:bg-surface-200={isSelected}
