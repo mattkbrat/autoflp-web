@@ -3,9 +3,8 @@ import {
 	deleteImages,
 	getSingleInventory as getComInventory,
 	getSingleImage,
-	insertInventoryImage,
 	updateInventory,
-	updateInventoryImage,
+	upsertInventoryImage,
 } from "$lib/server/database/com";
 import { getSingleInventory } from "$lib/server/database/inventory";
 import { fail, redirect, type Actions } from "@sveltejs/kit";
@@ -217,7 +216,7 @@ export const actions = {
 			});
 		}
 
-		await updateInventoryImage({
+		await upsertInventoryImage({
 			invImage: {
 				id,
 				order,
