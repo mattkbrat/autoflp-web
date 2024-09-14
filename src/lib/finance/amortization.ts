@@ -1,4 +1,10 @@
-import { addMonths, isAfter, isSameMonth, startOfMonth } from "date-fns";
+import {
+	addDays,
+	addMonths,
+	isAfter,
+	isSameMonth,
+	startOfMonth,
+} from "date-fns";
 import { roundToPenny } from "./roundToPenny";
 import type { Deal } from "@prisma/client";
 import { getPercent } from "./getPercent";
@@ -26,9 +32,9 @@ export const amoritization = ({
 	const withHistory = !!history;
 	const monthlyRate = apr / term;
 	let lastBalance = balance;
-	let totalDelinquent = 0;
-	let actualTotalDelinquent = 0;
 	let totalPaid = 0;
+	let totalDelinquent = 0;
+	let actualDelinquent = 0;
 	let n = -1;
 	const today = new Date();
 
@@ -41,54 +47,58 @@ export const amoritization = ({
 
 		const dueDate = addMonths(startDate, n);
 
-		const dateAfterToday = withHistory && isAfter(dueDate, today);
+		const dateAfterToday =
+			withHistory && isAfter(dueDate, today) && !isSameMonth(today, dueDate);
 		const date = startOfMonth(dueDate);
 
 		const matchingPayments = history?.filter((p) => isSameMonth(date, p.date));
 		const ignore = !dateAfterToday && !matchingPayments?.length;
-		const totalPaidInMonth = matchingPayments?.reduce(
-			(acc, p) => acc + Number(p.amount),
-			0,
-		);
+		const totalPaidInMonth =
+			matchingPayments?.reduce((acc, p) => acc + Number(p.amount), 0) || 0;
 
 		if (totalPaidInMonth) {
-			totalPaid += totalPaidInMonth || 0;
+			totalPaid += totalPaidInMonth;
 		}
 
-		const pmtDiff = totalDelinquent
-			? Math.min(totalDelinquent, balance - totalPaid)
-			: 0;
-		const schedulePmt = !dateAfterToday ? totalPaidInMonth || 0 : pmt + pmtDiff;
-		if (dateAfterToday) {
-			totalDelinquent = 0;
+		const pmtDiff = dateAfterToday ? 0 : pmt - totalPaidInMonth;
+		if ((pmtDiff > 0 && totalDelinquent < balance - totalPaid) || pmtDiff < 0) {
+			totalDelinquent += pmtDiff;
+		} else if (dateAfterToday && totalDelinquent > 0) {
+			totalDelinquent -= Math.min(pmt, totalDelinquent);
+			// totalDelinquent = Math.max(0, totalDelinquent);
 		}
+
+		const schedulePmt = pmt + pmtDiff;
 
 		const interest = ignore ? 0 : lastBalance * monthlyRate;
-		const delinquentBalance = dateAfterToday
+
+		let principal = ignore
 			? 0
-			: pmt - (totalPaidInMonth || 0);
-
-		if (withHistory) {
-			actualTotalDelinquent += delinquentBalance;
-			totalDelinquent = Math.min(
-				totalDelinquent + delinquentBalance,
-				balance - totalPaid,
-			);
-		}
-
-		let principal = ignore ? 0 : roundToPenny(schedulePmt - interest);
+			: roundToPenny(
+					dateAfterToday ? schedulePmt : totalPaidInMonth - interest,
+				);
 		lastBalance -= principal;
 		if (lastBalance < 1) {
 			principal += lastBalance;
 			lastBalance = 0;
 		}
+
+		if (totalDelinquent > lastBalance) {
+			totalDelinquent = lastBalance;
+		}
+
+		if (!dateAfterToday) {
+			actualDelinquent = totalDelinquent;
+		}
+
+		// totalDelinquent
 		const percentPrincipal = roundToPenny(principal / (interest + principal));
 		const percentInterest = roundToPenny(1 - percentPrincipal);
 
 		const scheduleRow = {
-			lastBalance,
-			principal,
-			interest,
+			lastBalance: roundToPenny(lastBalance),
+			principal: roundToPenny(principal),
+			interest: roundToPenny(interest),
 			date,
 			paid: totalPaidInMonth,
 			expected: !dateAfterToday ? pmt : schedulePmt,
@@ -96,24 +106,22 @@ export const amoritization = ({
 				percentPrincipal < 1 && percentPrincipal > 0 ? percentPrincipal : 0,
 			percentInterest:
 				percentInterest < 1 && percentInterest > 0 ? percentInterest : 0,
-			delinquentBalance,
+			delinquentBalance: totalDelinquent,
 		};
 
 		schedule.push(scheduleRow);
 	}
 
-	const owed =
-		schedule[0] && isAfter(schedule[0].date, today)
-			? schedule[0].lastBalance
-			: schedule.find((s) => isSameMonth(s.date, today))?.lastBalance;
+	console.log({ schedule, totalDelinquent });
+	const owed = balance - totalPaid;
 	return {
 		schedule,
 		monthlyRate,
 		lastBalance,
 		pmt,
-		totalDelinquent: actualTotalDelinquent,
 		totalPaid,
-		owed: Math.max(actualTotalDelinquent, owed || 0),
+		totalDelinquent: Math.min(owed, actualDelinquent),
+		owed,
 	};
 };
 
