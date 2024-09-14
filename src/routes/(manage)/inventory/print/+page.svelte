@@ -3,28 +3,30 @@ import { formatCurrency } from "$lib/format";
 import { allInventory } from "$lib/stores";
 import { onMount } from "svelte";
 
-$: inventory = $allInventory.sort(
-	(a, b) =>
-		b.make.localeCompare(a.make) ||
-		b.model?.localeCompare(a.model || "") ||
-		+b.year - +a.year,
-);
+$: inventory = $allInventory
+	.sort(
+		(a, b) =>
+			b.make.localeCompare(a.make) ||
+			b.model?.localeCompare(a.model || "") ||
+			+b.year - +a.year,
+	)
+	.filter((i) => i.state);
 
 // $: printInventory = inventory
 // 	.concat(inventory)
 // 	.concat(inventory)
 // 	.concat(inventory);
 
-onMount(() => {
-	const root = document.getElementsByTagName("html")?.[0];
-	root?.classList.remove("dark");
-	root?.classList.add("light");
-
-	return () => {
-		root?.classList.remove("light");
-		root?.classList.add("dark");
-	};
-});
+// onMount(() => {
+// 	const root = document.getElementsByTagName("html")?.[0];
+// 	root?.classList.remove("dark");
+// 	root?.classList.add("light");
+//
+// 	return () => {
+// 		root?.classList.remove("light");
+// 		root?.classList.add("dark");
+// 	};
+// });
 </script>
 
 <table class="border-separate">
@@ -42,8 +44,8 @@ onMount(() => {
   </thead>
   <tbody>
     {#each inventory as i, n}
-      <tr id={i.vin} class="uppercase even:bg-gray-50 odd:bg-white">
-        <th scope="row" class="bg-gray-50">
+      <tr id={i.vin} class="uppercase print:even:bg-gray-50 print:odd:bg-white">
+        <th scope="row" class="print:bg-gray-50">
           <span class="text-gray-400/75">
             {n + 1})
           </span>

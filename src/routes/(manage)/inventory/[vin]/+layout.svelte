@@ -13,13 +13,6 @@ onMount(() => {
 });
 </script>
 
-<a
-  class="underline font-bold text-secondary-300 hover:text-secondary-200"
-  href={"/inventory/cars-for-sale"}
->
-  Manage Cars for Sale
-</a>
-
 <InventorySelect />;
 
 <slot />
