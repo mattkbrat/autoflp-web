@@ -38,10 +38,6 @@ export const amoritization = ({
 	let n = -1;
 	const today = new Date();
 
-	const paymentsBeforeStart = history?.filter((r) =>
-		isBefore(r.date, startDate),
-	);
-
 	const schedule = [];
 
 	while (lastBalance > 0 && n < 100) {
@@ -53,11 +49,16 @@ export const amoritization = ({
 		const dateAfterToday = withHistory && isAfter(dueDate, today) && !sameMonth;
 		const date = startOfMonth(dueDate);
 
-		let matchingPayments =
+		const matchingPayments =
 			history?.filter((p) => isSameMonth(date, p.date)) || [];
 
-		if (n === 0 && paymentsBeforeStart?.length) {
-			matchingPayments = matchingPayments.concat(paymentsBeforeStart);
+		if (n === 0) {
+			const matchingIds = matchingPayments.map((p) => p.id);
+			for (const p of history || []) {
+				if (!isBefore(p.date, startDate)) break;
+				if (matchingIds.includes(p.id)) continue;
+				matchingPayments.push(p);
+			}
 		}
 
 		const totalPaidInMonth =
@@ -84,6 +85,10 @@ export const amoritization = ({
 			principal += lastBalance;
 			lastBalance = 0;
 		}
+
+		// if (totalDelinquent < 1) {
+		// 	totalDelinquent = 0;
+		// }
 
 		if (totalDelinquent > lastBalance) {
 			totalDelinquent = lastBalance;
