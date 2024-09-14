@@ -1,8 +1,8 @@
 <script lang="ts">
-import AccountSelect from "$lib/components/AccountSelect.svelte";
 import { groupedDeals, deals } from "$lib/stores";
 import { onMount } from "svelte";
 import type { PageData } from "./$types";
+import AccountCombobox from "$lib/components/AccountCombobox.svelte";
 
 export let data: PageData;
 
@@ -12,5 +12,5 @@ onMount(() => {
 });
 </script>
 
-<AccountSelect baseRoute={"payment"} />
+<AccountCombobox />
 <slot />
