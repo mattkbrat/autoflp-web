@@ -27,6 +27,7 @@ export const actions = {
 	record: async ({ request }) => {
 		const data = await request.formData();
 
+		const balance = data.get("balance");
 		const payment: Payment = {
 			amount: data.get("pmt") as string,
 			date: data.get("date") as string,
@@ -36,6 +37,9 @@ export const actions = {
 
 		await recordPayment(payment);
 
+		if (Number(balance) - Number(payment.amount) <= 10) {
+			await updatePartialDeal(payment.dealId, { state: 0 });
+		}
 		const { dealId: _, ...inserted } = payment;
 
 		return { inserted };
@@ -44,8 +48,10 @@ export const actions = {
 	delete: async ({ request }) => {
 		const data = await request.formData();
 		const paymentId = data.get("id") as string;
+		const dealId = data.get("deal") as string;
 		if (!paymentId) return fail(400, { id: paymentId, incorrect: true });
 
+		await updatePartialDeal(dealId, { state: 1 });
 		await deletePayment(paymentId);
 
 		return {};

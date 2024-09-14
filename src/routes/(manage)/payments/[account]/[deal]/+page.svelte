@@ -1,67 +1,102 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import { page } from "$app/stores";
-import { el } from "$lib/element";
-import type { AmortizationSchedule } from "$lib/finance/amortization";
+import { el, getElement, waitForElm } from "$lib/element";
 import { formatCurrency, formatDate, fullNameFromPerson } from "$lib/format";
-import type { Deals, Payments } from "$lib/server/database/deal";
+import type { Deals } from "$lib/server/database/deal";
 import { accountDeals } from "$lib/stores";
 import { differenceInMonths, isAfter, isSameMonth } from "date-fns";
 import type { PageData } from "./$types";
+import { browser } from "$app/environment";
 export let data: PageData;
 
 let selected: Deals[number] | null = null;
 
 $: deal = $page.params.deal;
 const now = new Date();
-const nowTime = new Date().getTime();
-let today = now.toISOString().split("T")[0];
+let today = "";
 
-$: if (!today) {
-	today = now.toISOString().split("T")[0];
+$: if (!today && browser) {
+	console.log("no today");
+	waitForElm<HTMLInputElement>("#pmt-date-input").then((el) => {
+		console.log(el);
+		if (!el) return;
+		today = now.toISOString().split("T")[0];
+		el.value = today;
+	});
 }
 $: if (deal && $accountDeals) {
 	selected = $accountDeals.find((d) => d.id === deal) || null;
 }
 
-$: selectedLien = +(selected?.lien || 0);
+$: selectedFinance = +(selected?.finance || 0);
 $: schedule = data.schedule;
 $: scheduleRows = data.schedule.schedule.toReversed();
-$: termExceeded = scheduleRows.length > +(selected?.term || 0);
-$: totalExpected = termExceeded
-	? selectedLien
-	: scheduleRows.reduce((acc, curr) => acc + (curr.expected || 0), 0);
-$: totalPaid = scheduleRows.reduce((acc, curr) => acc + (curr.paid || 0), 0);
 $: totalOwed = schedule.owed;
 
-$: defaultPmt = Math.min(selected ? +(selected.pmt || 0) : 0, totalOwed);
-$: totalDelinquent = Math.floor(
-	schedule.totalDelinquent > -totalPaid
-		? selectedLien - totalPaid
-		: Math.abs(schedule.totalDelinquent),
-);
-
-$: muchOwed = totalExpected - totalPaid > 10;
+$: fullName =
+	selected && fullNameFromPerson({ person: selected?.account.contact });
+let defaultPmt = { account: "", amount: 0 };
+$: totalDelinquent = schedule.totalDelinquent;
+$: inventory = `${selected?.inventory?.make} ${selected?.inventory?.model}`;
 
 let showMissingPayments = false;
+let showFuturePayments = false;
+
+$: filteredSchedule = scheduleRows.filter((r) => {
+	if (r.paid) return true;
+	const monthDiff = differenceInMonths(r.date, today);
+	if (isSameMonth(r.date, today)) return true;
+	if (monthDiff >= 0) return showFuturePayments;
+	return showMissingPayments;
+});
+
+$: if (selected?.id) {
+	waitForElm<HTMLInputElement>("#pmt-amount").then((elm) => {
+		elm?.focus();
+	});
+}
+
+$: if (
+	selected?.pmt &&
+	(defaultPmt.amount === 0 || defaultPmt.account !== selected.id)
+) {
+	defaultPmt = {
+		account: selected.id,
+		amount: Math.floor(
+			Math.min(selected ? +(selected.pmt || 0) : 0, totalOwed),
+		),
+	};
+	waitForElm<HTMLInputElement>("#pmt-date-input").then((el) => {
+		console.log(el);
+		if (!el) return;
+		today = now.toISOString().split("T")[0];
+		el.value = today;
+	});
+}
+
+$: console.log(schedule.payoff);
 </script>
 
+<svelte:head>
+  <title>{fullName} - Payments - {inventory}</title>
+</svelte:head>
 <h2 class="flex flex-col uppercase items-center">
-  <span class="text-xl tracking-wider underline underline-offset-4">
-    {selected?.inventory?.make}
-    {selected?.inventory?.model}
+  <span class="text-xl tracking-wider underline underline-offset-4"> </span>
+  <span class="text-lg tracking-tight">
+    {fullName}
   </span>
-  <span class=" tracking-tight">
-    {selected && fullNameFromPerson({ person: selected?.account.contact })}
+  <span class={"text-2xl"}>
+    {inventory}
   </span>
 </h2>
 <hr />
 <div class="flex flex-row uppercase justify-around text-center">
   <span>
     <span class="text-lg">
-      {selected && formatCurrency(selectedLien)}
+      {selected && formatCurrency(selectedFinance)}
     </span>
-    <br />Lien
+    <br />Financed
   </span>
   <span>
     <span class="text-lg">
@@ -71,7 +106,7 @@ let showMissingPayments = false;
   </span>
   <span class:hidden={!totalDelinquent}>
     <span class="text-lg">
-      {formatCurrency(totalDelinquent)}
+      {formatCurrency(Math.abs(totalDelinquent))}
     </span>
     <br /> total {totalDelinquent > 0 ? "delinquent" : "advanced"}
   </span>
@@ -92,127 +127,170 @@ let showMissingPayments = false;
 <hr />
 
 {#if selected}
-  <section class="print:hidden">
-    {selected?.state ? "open" : "closed"}
-    <form
-      method="post"
-      action="?/toggleState"
-      class="contents"
-      use:enhance={() => {
-        return async ({ result, update, ...rest }) => {
-          await update();
-        };
-      }}
-    >
-      <input type="hidden" name="id" value={selected.id} />
-      <input type="hidden" name="state" value={selected.state} />
-      <button type="submit" class="btn variant-outline-secondary"
-        >Toggle State</button
-      >
-    </form>
-    <button
-      type="button"
-      class="btn variant-outline-tertiary"
-      on:click={() => (showMissingPayments = !showMissingPayments)}
-      >Toggle Missing Payments</button
-    >
-  </section>
-
-  <div class="flex flex-col lg:flex-row">
-    <div
-      class="grid grid-cols-[1fr_1fr_auto] max-w-fit self-start gap-2 print:hidden"
-    >
-      <section id="heading" class="contents text-lg font-bold text-primary-300">
-        <div>Date</div>
-        <div class="text-right">$ (USD)</div>
-        <div class="text-right"></div>
-      </section>
-      <section id="body" class="contents">
+  <div
+    class="flex flex-col 2xl:flex-row gap-x-4"
+    class:flex-row={data.payments.length > 10}
+  >
+    <section class="bg-black/20 py-6 px-2 print:hidden">
+      <h2>Admin Panel</h2>
+      <section class="flex flex-row">
         <form
           method="post"
-          class="contents print:hidden"
-          action="?/record"
+          action="?/toggleState"
+          class="contents"
           use:enhance={() => {
-            return async ({ result, update }) => {
-              if (
-                "data" in result &&
-                result.data &&
-                "inserted" in result.data
-              ) {
-                await update();
-                setTimeout(() => {
-                  const element = el < HTMLInputElement > `pmt-date-input`;
-                  if (element) {
-                    element.value = today;
-                  }
-                }, 200);
-              }
+            return async ({ result, update, ...rest }) => {
+              await update();
             };
           }}
         >
-          <input
-            bind:value={today}
-            name="date"
-            type="date"
-            required
-            class="input"
-            id="pmt-date-input"
-          />
-          <input
-            type="number"
-            name="pmt"
-            max={totalOwed || 0}
-            min={0}
-            required
-            class="input"
-            value={Math.floor(+defaultPmt)}
-          />
-          <input
-            type="hidden"
-            name="deal"
-            value={deal}
-            required
-            class="input"
-          />
+          <input type="hidden" name="id" value={selected.id} />
+          <input type="hidden" name="state" value={selected.state} />
           <button
             type="submit"
-            class="btn variant-filled-success"
-            disabled={!selected.state}>Save</button
+            class="btn variant-outline-secondary flex flex-col"
+            class:bg-secondary-700={selected.state}
           >
+            <span> Toggle State </span>
+            <span class="text-sm">
+              {selected?.state ? "open" : "closed"}
+            </span>
+          </button>
         </form>
-        {#each data.payments as pmt}
+        <button
+          type="button"
+          class="btn variant-outline-tertiary"
+          class:bg-tertiary-700={showMissingPayments}
+          on:click={() => (showMissingPayments = !showMissingPayments)}
+          >Show Missing Payments</button
+        >
+        <button
+          type="button"
+          class="btn variant-outline-tertiary"
+          on:click={() => (showFuturePayments = !showFuturePayments)}
+          class:bg-tertiary-700={showFuturePayments}
+          >Show future payments
+        </button>
+      </section>
+      <div class="grid grid-cols-[1fr_1fr_auto] max-w-fit self-start gap-2">
+        <section
+          id="heading"
+          class="contents text-lg font-bold text-primary-300"
+        >
+          <div>Date</div>
+          <div class="text-right">$ (USD)</div>
+          <div class="text-right"></div>
+        </section>
+        <section id="body" class="contents">
           <form
             method="post"
-            action="?/delete"
-            class="even:bg-unset odd:bg-surface-700 contents"
+            class="contents"
+            action="?/record"
             use:enhance={() => {
               return async ({ result, update }) => {
-                if (result.status === 200) {
-                  update();
+                if (
+                  "data" in result &&
+                  result.data &&
+                  "inserted" in result.data
+                ) {
+                  await update();
+                  setTimeout(() => {
+                    const element = el < HTMLInputElement > `pmt-date-input`;
+                    if (element) {
+                      element.value = today;
+                    }
+                  }, 200);
                 }
               };
             }}
           >
-            <div>{formatDate(pmt.date)}</div>
-            <div class="text-right">{formatCurrency(pmt.amount)}</div>
-            <input type="hidden" name="id" value={pmt.id} />
+            <input
+              value={today}
+              name="date"
+              type="date"
+              required
+              class="input"
+              id="pmt-date-input"
+              disabled={!selected.state}
+            />
+            <input
+              type="number"
+              name="pmt"
+              id={"pmt-amount"}
+              min={0}
+              required
+              class="input"
+              bind:value={defaultPmt.amount}
+              disabled={!selected.state}
+            />
+            <input
+              type="hidden"
+              name="deal"
+              value={deal}
+              required
+              class="input"
+            />
+            <input
+              type="hidden"
+              name="balance"
+              value={totalOwed}
+              required
+              class="input"
+            />
             <button
               type="submit"
-              class="btn variant-outline-error"
-              disabled={!selected.state}>Remove</button
+              class="btn variant-filled-success"
+              disabled={!selected.state}
+            >
+              Save
+            </button>
+            <button
+              class="btn variant-outline-secondary col-span-full"
+              type="button"
+              on:click={() => {
+                defaultPmt.amount = Math.ceil(schedule.payoff);
+              }}>Apply remaining owed</button
             >
           </form>
-        {/each}
-      </section>
-    </div>
+          {#each data.payments as pmt}
+            <form
+              method="post"
+              action="?/delete"
+              class="even:bg-unset odd:bg-surface-700 contents"
+              use:enhance={() => {
+                return async ({ result, update }) => {
+                  if (result.status === 200) {
+                    update();
+                  }
+                };
+              }}
+            >
+              <div>{formatDate(pmt.date)}</div>
+              <input
+                type="hidden"
+                name="deal"
+                value={deal}
+                required
+                class="input"
+              />
+              <div class="text-right">{formatCurrency(pmt.amount)}</div>
+              <input type="hidden" name="id" value={pmt.id} />
+              <button type="submit" class="btn variant-outline-error">
+                Remove
+              </button>
+            </form>
+          {/each}
+        </section>
+      </div>
+    </section>
 
-    <section class="flex-1 print:block">
+    <section class="flex-1">
       <h2>Amortization Schedule</h2>
       <table class="w-full">
         <thead>
           <tr>
             <th>Date</th>
-            <th>Expected</th>
+            <th>Monthly</th>
             <th>Paid</th>
             <th>Interest</th>
             <th>Principal</th>
@@ -224,11 +302,7 @@ let showMissingPayments = false;
         </thead>
         <tbody class="font-mono text-right">
           <!-- (r) => r.paid || Math.abs(differenceInMonths(r.date, today)) < 2 -->
-          {#each scheduleRows.filter((r) => {
-            const monthDiff = differenceInMonths(r.date, today);
-            const hasMissingPayment = !r.paid;
-            return monthDiff <= 1 && showMissingPayments ? !hasMissingPayment : true;
-          }) as row}
+          {#each filteredSchedule as row}
             {@const dateAfter = isAfter(row.date, today)}
             {@const isCurrentMonth = isSameMonth(row.date, today)}
             <tr
@@ -245,13 +319,22 @@ let showMissingPayments = false;
               <td>
                 {formatCurrency(row.expected)}
               </td>
-              <td class:text-center={!row.paid} class:text-red-600={!row.paid && !dateAfter}>
+              <td
+                class:text-center={!row.paid}
+                class:text-red-600={!row.paid && !dateAfter}
+              >
                 {formatCurrency(row.paid)}
               </td>
-              <td class:text-center={!row.paid} class:text-red-600={!row.paid && !dateAfter}>
+              <td
+                class:text-center={!row.interest}
+                class:text-red-600={!row.paid && !dateAfter}
+              >
                 {formatCurrency(row.interest)}
               </td>
-              <td class:text-center={!row.paid} class:text-red-600={!row.paid && !dateAfter}>
+              <td
+                class:text-center={!row.principal}
+                class:text-red-600={!row.paid && !dateAfter}
+              >
                 {formatCurrency(row.principal)}
               </td>
               <td>
@@ -272,13 +355,6 @@ let showMissingPayments = false;
               </td>
             </tr>
           {/each}
-          <tr>
-            <td />
-            <td class:text-red-500={muchOwed} class:font-bold={muchOwed}>
-              {formatCurrency(totalExpected)}
-            </td>
-            <td>{formatCurrency(totalPaid)} </td>
-          </tr>
         </tbody>
         <!-- <tfoot> -->
         <!-- </tfoot> -->
