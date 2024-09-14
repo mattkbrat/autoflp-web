@@ -1,7 +1,7 @@
 import {
-	addDays,
 	addMonths,
 	isAfter,
+	isBefore,
 	isSameMonth,
 	startOfMonth,
 } from "date-fns";
@@ -38,7 +38,9 @@ export const amoritization = ({
 	let n = -1;
 	const today = new Date();
 
-	// console.log({ monthlyRate, term, apr, balance, pmt });
+	const paymentsBeforeStart = history?.filter((r) =>
+		isBefore(r.date, startDate),
+	);
 
 	const schedule = [];
 
@@ -47,12 +49,17 @@ export const amoritization = ({
 
 		const dueDate = addMonths(startDate, n);
 
-		const dateAfterToday =
-			withHistory && isAfter(dueDate, today) && !isSameMonth(today, dueDate);
+		const sameMonth = isSameMonth(today, dueDate);
+		const dateAfterToday = withHistory && isAfter(dueDate, today) && !sameMonth;
 		const date = startOfMonth(dueDate);
 
-		const matchingPayments = history?.filter((p) => isSameMonth(date, p.date));
-		const ignore = !dateAfterToday && !matchingPayments?.length;
+		let matchingPayments =
+			history?.filter((p) => isSameMonth(date, p.date)) || [];
+
+		if (n === 0 && paymentsBeforeStart?.length) {
+			matchingPayments = matchingPayments.concat(paymentsBeforeStart);
+		}
+
 		const totalPaidInMonth =
 			matchingPayments?.reduce((acc, p) => acc + Number(p.amount), 0) || 0;
 
@@ -65,18 +72,13 @@ export const amoritization = ({
 			totalDelinquent += pmtDiff;
 		} else if (dateAfterToday && totalDelinquent > 0) {
 			totalDelinquent -= Math.min(pmt, totalDelinquent);
-			// totalDelinquent = Math.max(0, totalDelinquent);
 		}
 
 		const schedulePmt = pmt + pmtDiff;
 
-		const interest = ignore ? 0 : lastBalance * monthlyRate;
+		const interest = lastBalance * monthlyRate;
 
-		let principal = ignore
-			? 0
-			: roundToPenny(
-					dateAfterToday ? schedulePmt : totalPaidInMonth - interest,
-				);
+		let principal = dateAfterToday ? schedulePmt : totalPaidInMonth - interest;
 		lastBalance -= principal;
 		if (lastBalance < 1) {
 			principal += lastBalance;
@@ -95,8 +97,9 @@ export const amoritization = ({
 		const percentPrincipal = roundToPenny(principal / (interest + principal));
 		const percentInterest = roundToPenny(1 - percentPrincipal);
 
+		lastBalance = roundToPenny(lastBalance);
 		const scheduleRow = {
-			lastBalance: roundToPenny(lastBalance),
+			lastBalance,
 			principal: roundToPenny(principal),
 			interest: roundToPenny(interest),
 			date,
@@ -112,8 +115,11 @@ export const amoritization = ({
 		schedule.push(scheduleRow);
 	}
 
-	console.log({ schedule, totalDelinquent });
 	const owed = balance - totalPaid;
+
+	const { lastBalance: currLastBal, interest } = schedule?.find((i) =>
+		isSameMonth(i.date, today),
+	) || { lastBalance: owed, interest: 0 };
 	return {
 		schedule,
 		monthlyRate,
@@ -121,7 +127,8 @@ export const amoritization = ({
 		pmt,
 		totalPaid,
 		totalDelinquent: Math.min(owed, actualDelinquent),
-		owed,
+		owed: currLastBal,
+		payoff: currLastBal + interest,
 	};
 };
 
@@ -155,4 +162,5 @@ export const defaultSchedule: AmortizedDeal = {
 	totalDelinquent: 0,
 	totalPaid: 0,
 	owed: 0,
+	payoff: 0,
 };
