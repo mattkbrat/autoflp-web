@@ -27,18 +27,29 @@ export const getDeals = async (account?: string) => {
 				select: {
 					make: true,
 					model: true,
+					vin: true,
 				},
 			},
 		},
 		orderBy: [
 			{
-				state: "desc",
-			},
-			{
 				account: {
 					contact: {
 						lastName: "asc",
 					},
+				},
+			},
+			{
+				state: "desc",
+			},
+			{
+				inventory: {
+					make: "asc",
+				},
+			},
+			{
+				inventory: {
+					model: "asc",
 				},
 			},
 			{
