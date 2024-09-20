@@ -28,6 +28,7 @@ export const generate = async ({
 	data,
 	concat,
 	attachments,
+	returnType = "pdf",
 }: GenerateFormParams) => {
 	const dataObj: {
 		[key: string]: string;
@@ -173,6 +174,9 @@ export const generate = async ({
 	}
 
 	const bytes = await pdfDoc.save();
+	if (returnType === "bytes") {
+		return bytes;
+	}
 
 	// Write to file
 	//
