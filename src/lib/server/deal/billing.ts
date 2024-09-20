@@ -1,17 +1,42 @@
 import { dealAmortization } from "$lib/finance/amortization";
+import type { AsyncReturnType } from "$lib/types";
 import { getBilling, type BillingAccounts } from "../database/deal";
 
-const getSchedules = (accounts: BillingAccounts) => {
-	return accounts.map((a) => {
-		return { account: a.id, schedule: dealAmortization(a, a.payments || []) };
+type SortOrder = "asc" | "desc";
+
+const getSchedules = (
+	accounts: BillingAccounts,
+	sortDelinquent: SortOrder = "desc",
+) => {
+	const mapped = accounts.map((a) => {
+		return { account: a, schedule: dealAmortization(a, a.payments || []) };
 	});
+
+	if (sortDelinquent === "desc") {
+		return mapped.sort(
+			(
+				{ schedule: { totalDelinquent: a } },
+				{ schedule: { totalDelinquent: b } },
+			) => {
+				return b - a;
+			},
+		);
+	}
+	return mapped.sort(
+		(
+			{ schedule: { totalDelinquent: a } },
+			{ schedule: { totalDelinquent: b } },
+		) => {
+			return a - b;
+		},
+	);
 };
 
 const chunkSize = 3;
 
-type Schedule = ReturnType<typeof getSchedules>[number];
+export type Schedule = ReturnType<typeof getSchedules>[number];
 
-type GroupedShedules = Schedule[][];
+export type GroupedShedules = Schedule[][];
 
 const chunk = (schedules: Schedule[]): GroupedShedules => {
 	return schedules.reduce((resultArray, item, index) => {
@@ -27,10 +52,18 @@ const chunk = (schedules: Schedule[]): GroupedShedules => {
 	}, [] as GroupedShedules);
 };
 
-export const getGroupedBillableAccounts = async () => {
-	const accounts = await getBilling();
-	console.log(accounts.slice(0, 3));
-	const schedules = getSchedules(accounts);
-	console.log(schedules);
+export const getGroupedBillableAccounts = async (
+	sortOrder?: SortOrder,
+	accountList?: AsyncReturnType<typeof getBilling>,
+): Promise<GroupedShedules> => {
+	const accounts = accountList || (await getBilling());
+	const schedules = getSchedules(accounts, sortOrder);
 	return chunk(schedules);
+};
+
+export const getBillingParams = (s: GroupedShedules[number][number]) => {
+	return {
+		schedule: s,
+		deal: s.account,
+	};
 };
