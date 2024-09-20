@@ -87,8 +87,6 @@ export const generate = async ({
 	const inputPath = path.join(formsDirectory, pdfFormName);
 	const outputPath = path.join(docsDirectory, outputName);
 	const mappedPath = path.join(mappedDir, `${withoutFilename}.json`);
-	console.log({ inputPath });
-	// const outputPath = outputFullPath(output);
 
 	if (!fs.existsSync(inputPath)) {
 		// Download from s3 client
@@ -105,8 +103,6 @@ export const generate = async ({
 		throw new Error(`No form found by name ${form}.pdf`);
 	}
 
-	console.log("Writing", outputPath, "from template", inputPath);
-
 	const pdfDoc = await PDFDocument.load(fs.readFileSync(inputPath));
 
 	const f = pdfDoc.getForm();
@@ -114,7 +110,7 @@ export const generate = async ({
 
 	if (dev && !fs.existsSync(mappedPath)) {
 		const mapped = fields.reduce(
-			(acc, f, i) => {
+			(acc, f) => {
 				const name = f.getName();
 				acc[name] = "";
 				return acc;
