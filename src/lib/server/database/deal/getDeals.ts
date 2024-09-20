@@ -141,6 +141,9 @@ export const getBilling = async () => {
 	return prisma.deal.findMany({
 		where: {
 			state: 1,
+			pmt: {
+				not: null,
+			},
 			AND: [
 				{
 					lien: {
