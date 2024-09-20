@@ -1,6 +1,15 @@
 import { dealAmortization } from "$lib/finance/amortization";
 import type { AsyncReturnType } from "$lib/types";
+import { writeFileSync } from "node:fs";
 import { getBilling, type BillingAccounts } from "../database/deal";
+import type { GenerateFormParams } from "../form";
+import { fillBilling, type Schedules } from "../form/builder/BILLING";
+import { mergePdfs } from "../form/merge";
+import { join } from "node:path";
+import { AUTOFLP_DATA_DIR } from "..";
+import { cleanup } from "../form/cleanupBillingDir";
+import { dev } from "$app/environment";
+import { generate } from "../form/generate";
 
 type SortOrder = "asc" | "desc";
 
@@ -66,4 +75,80 @@ export const getBillingParams = (s: GroupedShedules[number][number]) => {
 		schedule: s,
 		deal: s.account,
 	};
+};
+
+const devCutoff = dev ? 4 : -1;
+
+export const generateMergedBilling = async (
+	sort: SortOrder = "desc",
+	cutoff = devCutoff,
+) => {
+	cleanup();
+	const billing = await getBilling();
+	const all = await getGroupedBillableAccounts(sort, billing);
+	const groups = cutoff !== -1 ? all.slice(0, cutoff) : all;
+	const data = groups.map((group) => {
+		const schedules = group.map(getBillingParams);
+		if (schedules.length > 3 || schedules.length < 1) {
+			throw new Error("Invalid group");
+		}
+		const formData = fillBilling(schedules as Schedules);
+		const p = {
+			form: "billing",
+			data: formData,
+			output: formData["3"],
+			attachments: [],
+			returnType: "bytes",
+		} satisfies GenerateFormParams;
+
+		return p;
+	});
+
+	const doc = await mergePdfs(
+		data.map((d) => {
+			return [d.data, "billing"];
+		}),
+	);
+
+	const fromRoot = join("documents", "billing-merged.pdf");
+	const outputPath = join(AUTOFLP_DATA_DIR, fromRoot);
+
+	return doc.save().then((bytes) => {
+		writeFileSync(outputPath, bytes);
+		return fromRoot;
+	});
+};
+
+export const generateBilling = async (
+	sort: SortOrder = "desc",
+	cutoff = devCutoff,
+) => {
+	cleanup();
+	const billing = await getBilling();
+	const all = await getGroupedBillableAccounts(sort, billing);
+	const groups = cutoff !== -1 ? all.slice(0, cutoff) : all;
+	const generated: string[] = [];
+	for (const group of groups.slice(0, 4)) {
+		const schedules = group.map(getBillingParams);
+		if (schedules.length > 3 || schedules.length < 1) {
+			throw new Error("Invalid group");
+		}
+		const formData = fillBilling(schedules as Schedules);
+		const filename = [formData["3"], formData["20"], formData["37"]]
+			.filter(Boolean)
+			.join("-");
+		const output = `billing/${filename}`;
+		const p: GenerateFormParams = {
+			form: "billing",
+			data: formData,
+			output,
+			attachments: [],
+		};
+		await generate(p).then((res) => {
+			if (!res || !("output" in res)) throw new Error("Invalid result");
+			generated.push(res.output);
+		});
+	}
+
+	return generated;
 };
