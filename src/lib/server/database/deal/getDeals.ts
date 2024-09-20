@@ -163,10 +163,17 @@ export const getBilling = async () => {
 					contact: true,
 				},
 			},
+			inventory: {
+				select: {
+					make: true,
+					year: true,
+				},
+			},
 			payments: {
 				select: {
 					amount: true,
 					date: true,
+					id: true,
 				},
 			},
 		},
