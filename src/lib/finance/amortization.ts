@@ -134,6 +134,7 @@ export const amoritization = ({
 		totalDelinquent: Math.min(owed, actualDelinquent),
 		owed: currLastBal,
 		payoff: currLastBal + interest,
+		nextDueDate: addMonths(startDate, 1),
 	};
 };
 
