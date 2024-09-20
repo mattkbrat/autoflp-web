@@ -7,6 +7,21 @@ import { checkDocsDir } from "./checkDocsDir";
 import { randomUUID } from "node:crypto";
 import { dev } from "$app/environment";
 
+const getOutputName = ({
+	output,
+	form,
+}: Pick<GenerateFormParams, "output" | "form">) => {
+	const withoutFilename = form.split(".pdf")[0];
+	if (form !== "billing") {
+		return join(
+			output || ".",
+			`${withoutFilename}_${randomUUID().split("-").slice(-1)}.pdf`,
+		);
+	}
+
+	return `${output?.replaceAll(" ", "").replaceAll(",", "")}.pdf`;
+};
+
 export const generate = async ({
 	form,
 	output,
@@ -20,11 +35,8 @@ export const generate = async ({
 
 	const withoutFilename = form.split(".pdf")[0];
 	const pdfFormName = `${withoutFilename}.pdf`;
-	const outputName = join(
-		output || ".",
-		`${withoutFilename}_${randomUUID().split("-").slice(-1)}.pdf`,
-	);
 
+	const outputName = getOutputName({ output, form });
 	if (Array.isArray(data)) {
 		data.map((item, index) => {
 			dataObj[`${index}`] = `${item}`;
