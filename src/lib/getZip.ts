@@ -11,6 +11,9 @@ type ZipFilenameParams =
 	| {
 			type: "inventory";
 			inventory: Partial<Inventory>;
+	  }
+	| {
+			type: "billing";
 	  };
 
 const getName = (p: ZipFilenameParams) => {
@@ -25,6 +28,10 @@ const getName = (p: ZipFilenameParams) => {
 			inventory: { make, model, year, vin },
 		} = p;
 		return [make, model, year, vin].filter(Boolean).join("_") || "inventory";
+	}
+
+	if (p.type === "billing") {
+		return "billing";
 	}
 
 	return now;
