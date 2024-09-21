@@ -2,7 +2,7 @@
 import { groupedDeals, deals } from "$lib/stores";
 import { onMount } from "svelte";
 import type { PageData } from "./$types";
-import AccountCombobox from "$lib/components/AccountCombobox.svelte";
+import PaymentCombobox from "$lib/components/PaymentCombobox.svelte";
 
 export let data: PageData;
 
@@ -12,5 +12,5 @@ onMount(() => {
 });
 </script>
 
-<AccountCombobox />
+<PaymentCombobox />
 <slot />

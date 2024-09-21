@@ -1,7 +1,6 @@
 <script lang="ts">
-import { goto } from "$app/navigation";
 import { fullNameFromPerson } from "$lib/format";
-import { deals } from "$lib/stores";
+import { accountID, deals, handleSelect } from "$lib/stores";
 import ComboBox from "./ComboBox.svelte";
 
 let filterActive = true;
@@ -20,13 +19,20 @@ $: options = $deals.map((d) => {
 });
 
 $: filtered = options.filter((o) => o.state === 1);
-const handleNavigation = (route: string) => {
-	if (!route.startsWith("/payments")) {
+const handlePaymentNavigation = (route: string) => {
+	if (typeof route !== "string") {
+		console.error("Invalid route", route);
+		return;
+	}
+	console.log("nav", route);
+	if (!route || !route.startsWith("/payments")) {
 		console.log("Invalid selection", route);
 		return;
 	}
 
-	goto(route);
+	const [account, deal] = route.split("/").slice(-2);
+	handleSelect("account", account);
+	handleSelect("deal", deal);
 };
 </script>
 
@@ -35,8 +41,9 @@ const handleNavigation = (route: string) => {
     label="Accounts"
     name="account"
     placeholder="Select an account"
-    onSelect={handleNavigation}
+    onSelect={handlePaymentNavigation}
     options={filterActive ? filtered : options}
+    value={$accountID.value}
   />
 
   <label class="label flex flex-row-reverse gap-x-1 self-center">
