@@ -15,11 +15,16 @@ export let navType: NavType = "folder";
     class="flex-1 uppercase bg-surface-800"
     id="inventory-select"
     name="vin"
-    value={$inventoryID.value}
+    value={$inventoryID}
     required
     on:blur={(e) => {
-    if (!e.target || !('value' in e.target) || typeof e.target.value !== 'string') return;
-    handleSelect('inventory', e.target.value, navType)
+      if (
+        !e.target ||
+        !("value" in e.target) ||
+        typeof e.target.value !== "string"
+      )
+        return;
+      handleSelect("inventory", e.target.value, navType);
     }}
   >
     <option value="new">Select Inventory</option>

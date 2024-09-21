@@ -1,11 +1,10 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import CreditorSelect from "$lib/components/CreditorSelect.svelte";
-import InventorySelect from "$lib/components/InventorySelect.svelte";
 import SalesmenSelect from "$lib/components/SalesmenSelect.svelte";
 import { defaultDeal } from "$lib/finance";
 import { calcFinance } from "$lib/finance/calc";
-import { formatCurrency, formatDate, fullNameFromPerson } from "$lib/format";
+import { formatCurrency, formatDate } from "$lib/format";
 import type { NavType } from "$lib/navState";
 import type { ParsedNHTA } from "$lib/server/inventory";
 import { allAccounts, allCreditors, allInventory } from "$lib/stores";
@@ -27,6 +26,7 @@ let currTrade = "";
 $: if ($dealID) {
 	handleSelect("deal", "");
 }
+
 let trades: {
 	make: string;
 	year: number;
@@ -40,7 +40,7 @@ $: deal.priceTrade = trades.reduce((acc, t) => {
 	return acc + t.value;
 }, 0);
 
-$: creditor = $allCreditors.find((c) => c.id === $creditorID.value);
+$: creditor = $allCreditors.find((c) => c.id === $creditorID);
 let lastCreditor = "";
 
 // biome-ignore lint/style/useConst: Is later assigned
@@ -52,7 +52,7 @@ $: if (creditor && lastCreditor !== creditor.id) {
 	lastCreditor = creditor.id;
 }
 
-$: inventory = $allInventory.find((i) => i.vin === $inventoryID.value);
+$: inventory = $allInventory.find((i) => i.vin === $inventoryID);
 let lastInventory = "";
 
 const handleGetZip = async (forms: string[]) => {
@@ -148,8 +148,8 @@ const navType: NavType = "query";
     };
   }}
 >
-  <InventorySelect {navType} />
   <AccCombobox selectType="deal" />
+  <InventoryCombobox selectType="deal" />
   <SalesmenSelect />
   <input
     type={"hidden"}
