@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { RequestHandler } from "@sveltejs/kit";
 
@@ -33,12 +33,17 @@ export const GET: RequestHandler = ({ url }) => {
 		);
 	}
 
-	const zip = new AdmZip();
+	if (files.length > 1) {
+		const zip = new AdmZip();
 
-	for (const { fullPath } of files) {
-		zip.addLocalFile(fullPath);
+		for (const { fullPath } of files) {
+			zip.addLocalFile(fullPath);
+		}
+
+		const zipped = zip.toBuffer();
+		return new Response(zipped, { status: 200, headers: {} });
 	}
 
-	const zipped = zip.toBuffer();
-	return new Response(zipped, { status: 200, headers: {} });
+	const file = readFileSync(files[0].fullPath);
+	return new Response(file, { status: 200, headers: {} });
 };
