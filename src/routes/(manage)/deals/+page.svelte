@@ -1,6 +1,5 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
-import AccountSelect from "$lib/components/AccountSelect.svelte";
 import CreditorSelect from "$lib/components/CreditorSelect.svelte";
 import InventorySelect from "$lib/components/InventorySelect.svelte";
 import SalesmenSelect from "$lib/components/SalesmenSelect.svelte";
@@ -10,13 +9,24 @@ import { formatCurrency, formatDate, fullNameFromPerson } from "$lib/format";
 import type { NavType } from "$lib/navState";
 import type { ParsedNHTA } from "$lib/server/inventory";
 import { allAccounts, allCreditors, allInventory } from "$lib/stores";
-import { accountID, creditorID, inventoryID } from "$lib/stores/selected";
+import {
+	accountID,
+	creditorID,
+	inventoryID,
+	dealID,
+	handleSelect,
+} from "$lib/stores/selected";
 import { getZip } from "$lib/index";
+import InventoryCombobox from "$lib/components/InventoryCombobox.svelte";
+import AccCombobox from "$lib/components/AccountCombobox.svelte";
 
 const deal = defaultDeal;
 
 let currTrade = "";
 
+$: if ($dealID) {
+	handleSelect("deal", "");
+}
 let trades: {
 	make: string;
 	year: number;
@@ -62,8 +72,8 @@ $: if (inventory && inventory.id !== lastInventory) {
 	lastInventory = inventory.id;
 }
 
-$: if ($accountID.value) {
-	deal.account = $accountID.value || "";
+$: if ($accountID) {
+	deal.account = $accountID || "";
 } else {
 	console.log("No account id");
 }
@@ -138,8 +148,8 @@ const navType: NavType = "query";
     };
   }}
 >
-  <AccountSelect {navType} baseRoute={"account"} />
   <InventorySelect {navType} />
+  <AccCombobox selectType="deal" />
   <SalesmenSelect />
   <input
     type={"hidden"}
