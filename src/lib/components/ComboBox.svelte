@@ -280,6 +280,7 @@ $: cols = options[0]?.text?.split("|").length;
   >
     <slot name="icon-start" />
 
+    <input {id} {name} value={selectedOption.value} type="hidden" />
     <input
       bind:this={inputElement}
       on:focus
@@ -289,8 +290,6 @@ $: cols = options[0]?.text?.split("|").length;
       on:keydown={onInputKeydown}
       on:mousedown={onInputClick}
       class="combobox__input m-0 w-full py-2 px-4 border-2 border-gray-50 rounded-sm focus:outline-none input"
-      {id}
-      {name}
       type="text"
       {disabled}
       autocapitalize="none"
