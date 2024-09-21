@@ -1,5 +1,5 @@
 import { browser } from "$app/environment";
-import { handleAccNav, handleInvNav, type NavType } from "$lib/navState";
+import { goto } from "$app/navigation";
 import { derived, writable } from "svelte/store";
 
 const getStoredValue = (key: string) => {
@@ -12,29 +12,14 @@ export type BaseId = (typeof ids)[number];
 
 type Id = `${BaseId}ID`;
 
-type StateValue = { value: string; state: NavType };
+type StateValue = string;
 type State = { [key in Id]: StateValue };
 const defaultState: State = {
-	dealID: {
-		value: getStoredValue("dealId"),
-		state: "folder",
-	},
-	inventoryID: {
-		value: getStoredValue("inventoryId"),
-		state: "folder",
-	},
-	accountID: {
-		value: getStoredValue("accountId"),
-		state: "folder",
-	},
-	paymentID: {
-		value: getStoredValue("paymentId"),
-		state: "folder",
-	},
-	creditorID: {
-		value: getStoredValue("creditorID"),
-		state: "folder",
-	},
+	dealID: getStoredValue("dealId"),
+	inventoryID: getStoredValue("inventoryId"),
+	accountID: getStoredValue("accountId"),
+	paymentID: getStoredValue("paymentId"),
+	creditorID: getStoredValue("creditorID"),
 };
 
 export const selectedStates = writable(defaultState);
@@ -45,60 +30,30 @@ export const accountID = derived(selectedStates, (s) => s.accountID);
 export const creditorID = derived(selectedStates, (s) => s.creditorID);
 export const paymentID = derived(selectedStates, (s) => s.paymentID);
 
-export const handleSelect = (k: BaseId, value: string, state: NavType) => {
-	console.log("Selecting", k, value, state);
+export const handleSelect = (k: BaseId, value: string) => {
 	selectedStates.update((s) => {
 		const key = `${k}ID`;
 		return {
 			...s,
-			[key]: {
-				value,
-				state: state || s[key].state,
-			},
+			[key]: value,
 		};
 	});
 };
 
-export const handleNav = (k: Id, v: StateValue) => {
-	if (!browser || !v.value) return;
-	const hasChanged = localStorage.getItem(k) !== v.value;
-	if (!hasChanged) {
+const accountDealLink = derived([accountID, dealID], ([$acc, $deal]) => {
+	if (!$acc || !$deal) return null;
+	return `${$acc}/${$deal}`;
+});
+
+accountDealLink.subscribe((link) => {
+	if (!browser) {
+		console.warn("No browser");
 		return;
 	}
-
-	console.log("Updating", { v, k });
-	const url = window.location.toString();
-	localStorage.setItem(k, v.value);
-	const kFormatted = k.replaceAll("ID", "");
-
-	if (kFormatted === "inventory") {
-		handleInvNav({ url, vin: v.value, navType: v.state });
-	} else {
-		handleAccNav({
-			url,
-			account: v.value,
-			navType: v.state,
-			accType: kFormatted,
-		});
+	if (!link) {
+		console.warn("invalid link", link);
+		return;
 	}
-};
-
-accountID.subscribe((v) => {
-	handleNav("accountID", v);
-});
-
-creditorID.subscribe((v) => {
-	handleNav("creditorID", v);
-});
-
-inventoryID.subscribe((v) => {
-	handleNav("inventoryID", v);
-});
-
-paymentID.subscribe((v) => {
-	handleNav("paymentID", v);
-});
-
-dealID.subscribe((v) => {
-	handleNav("dealID", v);
+	console.log("naving", { link });
+	goto(`/payments/${link}`);
 });
