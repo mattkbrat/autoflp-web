@@ -47,7 +47,7 @@ const fillBill = (
 					monthsDelinquent === 1
 						? "You are 1 month delinquent"
 						: `You are ${monthsDelinquent} months delinquent`
-				} ( ${formatCurrency(totalDelinquent)} )`;
+				}\n( ${formatCurrency(totalDelinquent)} )`;
 
 	const accountStatus = getCustomerStatus(monthsDelinquent);
 	const { contact } = deal.account;
