@@ -181,12 +181,11 @@ const toggleState = (oldState: number) => {
 };
 
 onMount(() => {
-	console.log("inv", data.inventory, $selectedStates.inventoryID.value);
 	if (!data.inventory?.vin) {
-		if ($selectedStates.inventoryID.value) {
+		if ($selectedStates.inventoryID) {
 			handleInvNav({
 				url: $page.url,
-				vin: $selectedStates.inventoryID.value,
+				vin: $selectedStates.inventoryID,
 			});
 		} else {
 			selected = {};

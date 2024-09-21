@@ -43,7 +43,7 @@ const handlePaymentNavigation = (route: string) => {
     placeholder="Select an account"
     onSelect={handlePaymentNavigation}
     options={filterActive ? filtered : options}
-    value={$accountID.value}
+    value={$accountID}
   />
 
   <label class="label flex flex-row-reverse gap-x-1 self-center">

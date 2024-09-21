@@ -2,8 +2,8 @@ import type { Inventory } from "@prisma/client";
 
 export const formatInventory = (
 	inventory: Partial<Inventory>,
-
 	titleCase = true,
+	joinCharacter = " ",
 ) => {
 	if (typeof inventory === "undefined") {
 		return "";
@@ -27,9 +27,9 @@ export const formatInventory = (
 
 	vin = vin?.slice(-4) || "";
 
-	const inv = [color, year, make, model, vin?.slice(-4)]
+	const inv = [`'${year} ${make}`.trim(), model, vin?.slice(-4), color]
 		.filter(Boolean)
-		.join(" ");
+		.join(joinCharacter);
 
 	if (titleCase) {
 		return inv

@@ -7,5 +7,9 @@ export function decrypt(text: string, key: keyof typeof keys = "default") {
 
 	if (!crypt) throw new Error("Invalid key provided");
 
-	return crypt.decrypt(text);
+	try {
+		return crypt.decrypt(text);
+	} catch {
+		return "";
+	}
 }

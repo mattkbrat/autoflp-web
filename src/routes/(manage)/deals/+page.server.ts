@@ -3,14 +3,14 @@ import { type Trades, upsertDeal } from "$lib/server/deal";
 import { getDetailedDeal } from "$lib/server/database/deal";
 import { builder } from "$lib/server/form/builder";
 import type { FinanceCalcResult } from "$lib/finance/calc";
-import { dealForms, forms } from "$lib/types/forms";
+import { dealForms } from "$lib/types/forms";
 
 import {
 	upsertInventory,
 	type Inventory,
 } from "$lib/server/database/inventory";
 import type { DealFieldsWithFinance } from "$lib/finance/fields";
-import { fail } from "@sveltejs/kit";
+import { fail, type Actions } from "@sveltejs/kit";
 
 export const actions = {
 	submit: async ({ request }) => {
@@ -93,4 +93,4 @@ export const actions = {
 			method: id ? "update" : "insert",
 		};
 	},
-};
+} satisfies Actions;

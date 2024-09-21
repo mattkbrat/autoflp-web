@@ -31,7 +31,7 @@ export const actions = {
 
 		const personObject: Person = {
 			firstName: data.get("firstName") as string,
-			nameSuffix: "",
+			nameSuffix: data.get("nameSuffix") as string,
 			id: personId,
 			namePrefix: data.get("namePrefix") as string,
 			middleInitial: data.get("middleInitial") as string,

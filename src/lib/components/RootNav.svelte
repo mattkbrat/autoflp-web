@@ -6,10 +6,10 @@ $: routes = [
 		route: "/home",
 	},
 	{
-		route: !$accountID.value ? "/payments" : `/payments/${$accountID.value}`,
+		route: !$accountID ? "/payments" : `/payments/${$accountID}`,
 	},
 	{
-		route: !$accountID.value ? "/accounts" : `/accounts/${$accountID.value}`,
+		route: !$accountID ? "/accounts" : `/accounts/${$accountID}`,
 	},
 	{
 		route: "/inventory",
