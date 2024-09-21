@@ -19,6 +19,9 @@ $: routes = [
 		route: "/deals",
 	},
 	{
+		route: "/admin",
+	},
+	{
 		route: "/credit",
 	},
 ] as {

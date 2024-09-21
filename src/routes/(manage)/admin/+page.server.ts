@@ -1,7 +1,10 @@
 import { BUSINESS_NAME } from "$env/static/private";
 import { createKey, getKeys } from "$lib/server/database/keys";
+import type { Actions } from "@sveltejs/kit";
+import type { PageServerLoad } from "./$types";
+import { generateMergedBilling } from "$lib/server/deal";
 
-export const load = async ({ params }) => {
+export const load: PageServerLoad = async ({ params }) => {
 	const keys = await getKeys(BUSINESS_NAME);
 	return { keys };
 };
@@ -23,4 +26,9 @@ export const actions = {
 			method: id ? "update" : "insert",
 		};
 	},
-};
+	printBilling: async ({ request }) => {
+		const data = await generateMergedBilling("desc");
+
+		return { built: data };
+	},
+} satisfies Actions;
