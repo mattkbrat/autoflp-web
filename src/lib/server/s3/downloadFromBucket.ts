@@ -1,5 +1,4 @@
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { createBucketIfNotExists } from "./bucket";
 import { s3Client } from "./s3Client";
 import fs from "node:fs";
 import path from "node:path";
@@ -44,9 +43,14 @@ export const downloadFromBucket = async ({
 	const outputFile = path.join(directory, filename);
 	console.debug(`Download ${filename} from s3 store to ${outputFile}`);
 	const byteArr = await getFromBucket({ bucket, key });
-
-	if (!byteArr) return null;
+	if (!byteArr) {
+		throw new Error("Donwload failed, could not get from s3 store.");
+	}
 	fs.writeFileSync(outputFile, byteArr);
+
+	if (!fs.existsSync(outputFile)) {
+		throw new Error("Donwload failed, file does not exist");
+	}
 
 	return outputFile;
 };
