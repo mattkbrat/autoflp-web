@@ -3,6 +3,9 @@ import type { PageData } from "./$types";
 export let data: PageData;
 </script>
 
+<svelte:head>
+  <title>Credit - AutoFLP</title>
+</svelte:head>
 <a class="text-lg underline text-blue-200 col-span-full" href={`/credit/blank`}
   >Blank</a
 >

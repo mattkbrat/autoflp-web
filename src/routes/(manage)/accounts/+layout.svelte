@@ -14,5 +14,8 @@ onMount(() => {
 });
 </script>
 
+<svelte:head>
+  <title>Accounts - AutoFLP</title>
+</svelte:head>
 <AccountCombobox />
 <slot />

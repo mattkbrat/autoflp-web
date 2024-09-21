@@ -1,6 +1,10 @@
 <script lang="ts">
 </script>
 
+<svelte:head>
+  <title>Inventory - AutoFLP</title>
+</svelte:head>
+
 <div class="flex gap-2 print:hidden">
   <a
     class="underline font-bold text-secondary-300 hover:text-secondary-200"

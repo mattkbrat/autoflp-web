@@ -9,4 +9,9 @@ allCreditors.set(data.creditors);
 allSalesmen.set(data.salesmen);
 allInventory.set(data.inventory);
 </script>
-<slot/>
+
+<svelte:head>
+  <title>Deals - AutoFLP</title>
+</svelte:head>
+
+<slot />

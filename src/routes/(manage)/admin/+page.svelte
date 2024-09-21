@@ -7,6 +7,10 @@ export let data;
 $: keys = [...data.keys, { value: "", key: "", id: "" }];
 </script>
 
+<svelte:head>
+  <title>Admin - AutoFLP</title>
+</svelte:head>
+
 <h2>Admin</h2>
 
 <div class="flex flex-col flex-wrap space-y-4"></div>
