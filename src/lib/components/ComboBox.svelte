@@ -236,7 +236,7 @@ function hideList() {
 	if (!isListOpen) return;
 
 	if (selectedOption) {
-		inputElement.value = selectedOption.text;
+		inputElement.value = selectedOption.text.replaceAll("|", " ").trim();
 	}
 
 	isListOpen = false;
@@ -279,7 +279,6 @@ $: cols = options[0]?.text?.split("|").length;
     use:onClickOutside={hideList}
   >
     <slot name="icon-start" />
-
     <input {id} {name} value={selectedOption.value} type="hidden" />
     <input
       bind:this={inputElement}
@@ -305,7 +304,7 @@ $: cols = options[0]?.text?.split("|").length;
     />
 
     <ul
-      class={`bg-slate-800 max-h-[25dvh] overflow-y-auto absolute top-12 grid gap-x-4`}
+      class={`bg-slate-800 max-h-[25dvh] overflow-y-auto absolute top-12 grid gap-x-4 z-10`}
       style={`grid-template-columns: repeat(${cols}, minmax(auto,1fr));`}
       class:hidden={!isListOpen}
       role="listbox"
