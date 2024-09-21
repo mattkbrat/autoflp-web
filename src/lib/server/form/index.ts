@@ -23,6 +23,7 @@ export type GenerateFormParams = {
 		final: boolean;
 	};
 	attachments: Attachments;
+	returnType?: "bytes" | "pdf";
 };
 
 export const bucketPaths = {

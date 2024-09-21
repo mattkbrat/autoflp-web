@@ -1,4 +1,4 @@
 // place files you want to import through the `$lib` alias in this folder.
 
 export { notEmpty } from "./notEmpty";
-export { getZip } from "./getZip";
+export { getZip, download } from "./getZip";

@@ -7,12 +7,28 @@ import { checkDocsDir } from "./checkDocsDir";
 import { randomUUID } from "node:crypto";
 import { dev } from "$app/environment";
 
+const getOutputName = ({
+	output,
+	form,
+}: Pick<GenerateFormParams, "output" | "form">) => {
+	const withoutFilename = form.split(".pdf")[0];
+	if (form !== "billing") {
+		return join(
+			output || ".",
+			`${withoutFilename}_${randomUUID().split("-").slice(-1)}.pdf`,
+		);
+	}
+
+	return `${output?.replaceAll(" ", "").replaceAll(",", "")}.pdf`;
+};
+
 export const generate = async ({
 	form,
 	output,
 	data,
 	concat,
 	attachments,
+	returnType = "pdf",
 }: GenerateFormParams) => {
 	const dataObj: {
 		[key: string]: string;
@@ -20,11 +36,8 @@ export const generate = async ({
 
 	const withoutFilename = form.split(".pdf")[0];
 	const pdfFormName = `${withoutFilename}.pdf`;
-	const outputName = join(
-		output || ".",
-		`${withoutFilename}_${randomUUID().split("-").slice(-1)}.pdf`,
-	);
 
+	const outputName = getOutputName({ output, form });
 	if (Array.isArray(data)) {
 		data.map((item, index) => {
 			dataObj[`${index}`] = `${item}`;
@@ -74,8 +87,6 @@ export const generate = async ({
 	const inputPath = path.join(formsDirectory, pdfFormName);
 	const outputPath = path.join(docsDirectory, outputName);
 	const mappedPath = path.join(mappedDir, `${withoutFilename}.json`);
-	console.log({ inputPath });
-	// const outputPath = outputFullPath(output);
 
 	if (!fs.existsSync(inputPath)) {
 		// Download from s3 client
@@ -92,8 +103,6 @@ export const generate = async ({
 		throw new Error(`No form found by name ${form}.pdf`);
 	}
 
-	console.log("Writing", outputPath, "from template", inputPath);
-
 	const pdfDoc = await PDFDocument.load(fs.readFileSync(inputPath));
 
 	const f = pdfDoc.getForm();
@@ -101,7 +110,7 @@ export const generate = async ({
 
 	if (dev && !fs.existsSync(mappedPath)) {
 		const mapped = fields.reduce(
-			(acc, f, i) => {
+			(acc, f) => {
 				const name = f.getName();
 				acc[name] = "";
 				return acc;
@@ -161,6 +170,9 @@ export const generate = async ({
 	}
 
 	const bytes = await pdfDoc.save();
+	if (returnType === "bytes") {
+		return bytes;
+	}
 
 	// Write to file
 	//

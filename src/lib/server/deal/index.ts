@@ -20,6 +20,7 @@ import type { DealFieldsWithFinance } from "$lib/finance/fields";
 import type { Deal } from "@prisma/client";
 
 export type Trades = { vin: string; value: number }[];
+export * from "./billing";
 
 export const upsertDeal = async (
 	deal: DealFieldsWithFinance,

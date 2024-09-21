@@ -1,8 +1,13 @@
 import {
+	addBusinessDays,
+	addDays,
 	addMonths,
+	differenceInMonths,
 	isAfter,
 	isBefore,
 	isSameMonth,
+	isSunday,
+	setDay,
 	startOfMonth,
 } from "date-fns";
 import { roundToPenny } from "./roundToPenny";
@@ -125,6 +130,9 @@ export const amoritization = ({
 	const { lastBalance: currLastBal, interest } = schedule?.find((i) =>
 		isSameMonth(i.date, today),
 	) || { lastBalance: owed, interest: 0 };
+
+	const nextDueDate = addMonths(setDay(today, startDate.getDay()), 1);
+
 	return {
 		schedule,
 		monthlyRate,
@@ -134,6 +142,9 @@ export const amoritization = ({
 		totalDelinquent: Math.min(owed, actualDelinquent),
 		owed: currLastBal,
 		payoff: currLastBal + interest,
+		nextDueDate: isSunday(nextDueDate)
+			? addBusinessDays(nextDueDate, 1)
+			: nextDueDate,
 	};
 };
 

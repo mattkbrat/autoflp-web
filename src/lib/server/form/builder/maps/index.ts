@@ -1,66 +1,45 @@
-import {
+export {
 	getDR2395_2022Data,
 	type Template as DR2395_2022Template,
 } from "./getDR2395_2022Template";
-import {
+export {
 	getBuyersGuideData,
 	type Template as BuyersGuideTemplate,
 } from "./getBuyersGuideTemplate";
-import {
+export {
 	get as getBuyersOrderData,
 	type Template as BuyersOrderTemplate,
 } from "./getBuyersOrderTemplate";
-import {
+export {
 	get as getCoverData,
 	type Template as CoverTemplate,
 } from "./getCoverTemplate";
-import {
+export {
 	get as getDisclosuresData,
 	type Template as DisclosuresTemplate,
 } from "./getDisclosuresTemplate";
-import {
+export {
 	get as getInventoryData,
 	type Template as InventoryTemplate,
 } from "./getInventoryTemplate";
-import {
+export {
 	get as getOneAndTheSameData,
 	type Template as OneAndTheSameTemplate,
 } from "./getOneAndTheSameTemplate";
-import {
+export {
 	get as getSalesTaxReceiptData,
 	type Template as SalesTaxReceiptTemplate,
 } from "./getSalesTaxReceiptTemplate";
-import {
+export {
 	get as getSecurityData,
 	type Template as SecurityTemplate,
 } from "./getSecurityTemplate";
-import {
+export {
 	get as getDownPaymentData,
 	type Template as DownPaymentTemplate,
 } from "./getDownPaymentTemplate";
 
 export {
-	getDR2395_2022Data,
-	getBuyersGuideData,
-	getBuyersOrderData,
-	getCoverData,
-	getDisclosuresData,
-	getInventoryData,
-	getOneAndTheSameData,
-	getSalesTaxReceiptData,
-	getSecurityData,
-	getDownPaymentData,
-};
-
-export type {
-	DR2395_2022Template,
-	BuyersGuideTemplate,
-	BuyersOrderTemplate,
-	CoverTemplate,
-	DisclosuresTemplate,
-	InventoryTemplate,
-	OneAndTheSameTemplate,
-	SalesTaxReceiptTemplate,
-	SecurityTemplate,
-	DownPaymentTemplate,
-};
+	get as getBillingData,
+	type Template as BillingTemplate,
+} from "./getBillingTemplate";

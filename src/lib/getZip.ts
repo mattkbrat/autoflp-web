@@ -11,6 +11,9 @@ type ZipFilenameParams =
 	| {
 			type: "inventory";
 			inventory: Partial<Inventory>;
+	  }
+	| {
+			type: "billing";
 	  };
 
 const getName = (p: ZipFilenameParams) => {
@@ -24,7 +27,11 @@ const getName = (p: ZipFilenameParams) => {
 		const {
 			inventory: { make, model, year, vin },
 		} = p;
-		return [make, model, year, vin].filter(Boolean).join("_");
+		return [make, model, year, vin].filter(Boolean).join("_") || "inventory";
+	}
+
+	if (p.type === "billing") {
+		return "billing";
 	}
 
 	return now;
@@ -35,12 +42,8 @@ export const getZipFilename = (p: ZipFilenameParams) => {
 	return name.replace(/[^a-zA-Z0-9]/g, "_");
 };
 
-export const getZip = async (forms: string[], p: ZipFilenameParams) => {
-	const formsSearch = forms.map((form) => {
-		return ["file", form];
-	});
-	const search = new URLSearchParams(formsSearch);
-	return fetch(`/api/get-file?${search.toString()}`)
+export const download = async (search: string, filename: string) => {
+	return fetch(`/api/get-file?${search}`)
 		.then((resp) =>
 			resp.status === 200
 				? resp.blob()
@@ -51,14 +54,21 @@ export const getZip = async (forms: string[], p: ZipFilenameParams) => {
 			const a = document.createElement("a");
 			a.style.display = "none";
 			a.href = url;
-			const nameBase = getZipFilename(p);
 			// the filename you want
 			// const urlEncoded = encodeURIComponent(name);
-			a.download = `${nameBase}.zip`;
+			a.download = filename;
 			document.body.appendChild(a);
 			a.click();
 			window.URL.revokeObjectURL(url);
-			// or you know, something with better UX...
-			alert("your file has downloaded!");
 		});
+};
+
+export const getZip = async (forms: string[], p: ZipFilenameParams) => {
+	const formsSearch = forms.map((form) => {
+		return ["file", form];
+	});
+	const search = new URLSearchParams(formsSearch);
+	const nameBase = getZipFilename(p);
+	const extension = forms.length > 1 ? "zip" : "pdf";
+	return download(search.toString(), `${nameBase}.${extension}`);
 };
