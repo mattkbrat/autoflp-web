@@ -1,7 +1,7 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import { page } from "$app/stores";
-import { el, getElement, waitForElm } from "$lib/element";
+import { el, waitForElm } from "$lib/element";
 import { formatCurrency, formatDate, fullNameFromPerson } from "$lib/format";
 import type { Deals } from "$lib/server/database/deal";
 import { accountDeals } from "$lib/stores";
@@ -17,9 +17,7 @@ const now = new Date();
 let today = "";
 
 $: if (!today && browser) {
-	console.log("no today");
 	waitForElm<HTMLInputElement>("#pmt-date-input").then((el) => {
-		console.log(el);
 		if (!el) return;
 		today = now.toISOString().split("T")[0];
 		el.value = today;
@@ -68,14 +66,11 @@ $: if (
 		),
 	};
 	waitForElm<HTMLInputElement>("#pmt-date-input").then((el) => {
-		console.log(el);
 		if (!el) return;
 		today = now.toISOString().split("T")[0];
 		el.value = today;
 	});
 }
-
-$: console.log(schedule.payoff);
 </script>
 
 <svelte:head>
@@ -91,7 +86,7 @@ $: console.log(schedule.payoff);
   </span>
 </h2>
 <hr />
-<div class="flex flex-row uppercase justify-around text-center">
+<div class="flex flex-row uppercase justify-around text-center flex-wrap">
   <span>
     <span class="text-lg">
       {selected && formatCurrency(selectedFinance)}
@@ -133,13 +128,13 @@ $: console.log(schedule.payoff);
   >
     <section class="bg-black/20 py-6 px-2 print:hidden">
       <h2>Admin Panel</h2>
-      <section class="flex flex-row">
+      <section class="flex flex-row flex-wrap">
         <form
           method="post"
           action="?/toggleState"
           class="contents"
           use:enhance={() => {
-            return async ({ result, update, ...rest }) => {
+            return async ({ update }) => {
               await update();
             };
           }}
@@ -159,17 +154,25 @@ $: console.log(schedule.payoff);
         </form>
         <button
           type="button"
-          class="btn variant-outline-tertiary"
+          class="btn variant-outline-tertiary flex flex-col"
           class:bg-tertiary-700={showMissingPayments}
           on:click={() => (showMissingPayments = !showMissingPayments)}
-          >Show Missing Payments</button
         >
+          <span> Missing Payments </span>
+          <span class="text-sm">
+            {showMissingPayments ? "show" : "hide"}
+          </span>
+        </button>
         <button
           type="button"
-          class="btn variant-outline-tertiary"
+          class="btn variant-outline-tertiary flex flex-col"
           on:click={() => (showFuturePayments = !showFuturePayments)}
           class:bg-tertiary-700={showFuturePayments}
-          >Show future payments
+        >
+          <span> Future Payments </span>
+          <span class="text-sm">
+            {showFuturePayments ? "show" : "hide"}
+          </span>
         </button>
       </section>
       <div class="grid grid-cols-[1fr_1fr_auto] max-w-fit self-start gap-2">

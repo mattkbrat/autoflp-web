@@ -304,8 +304,8 @@ $: cols = options[0]?.text?.split("|").length;
     />
 
     <ul
-      class={`bg-slate-800 max-h-[25dvh] overflow-y-auto absolute top-12 grid gap-x-4 z-10`}
-      style={`grid-template-columns: repeat(${cols}, minmax(auto,1fr));`}
+      class={`bg-slate-800 max-h-[25dvh] overflow-y-auto absolute top-12 grid gap-x-4`}
+      style={`grid-template-columns: repeat(${cols}, minmax(auto,1fr)); z-index: 10`}
       class:hidden={!isListOpen}
       role="listbox"
       id="combobox-options"
