@@ -228,6 +228,7 @@ async function showList(inputValue: string) {
 	);
 
 	list = inputValue === "" || isExactMatch ? options : filter(inputValue);
+	if (list.length === 0) list = options;
 	isListOpen = true;
 }
 
