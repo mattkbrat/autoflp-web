@@ -24,7 +24,7 @@ const getName = (p: ZipFilenameParams) => {
 		const {
 			inventory: { make, model, year, vin },
 		} = p;
-		return [make, model, year, vin].filter(Boolean).join("_");
+		return [make, model, year, vin].filter(Boolean).join("_") || "inventory";
 	}
 
 	return now;
