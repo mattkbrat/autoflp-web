@@ -1,6 +1,5 @@
 import {
 	addBusinessDays,
-	addDays,
 	addMonths,
 	differenceInMonths,
 	isAfter,
@@ -38,10 +37,13 @@ export const amoritization = ({
 	const monthlyRate = apr / term;
 	let lastBalance = balance;
 	let totalPaid = 0;
-	let totalDelinquent = 0;
-	let actualDelinquent = 0;
+	// let totalDelinquent = 0;
 	let n = -1;
 	const today = new Date();
+
+	const monthSinceDeal = differenceInMonths(today, startDate);
+
+	const totalExpected = monthSinceDeal * pmt;
 
 	const schedule = [];
 
@@ -74,11 +76,6 @@ export const amoritization = ({
 		}
 
 		const pmtDiff = dateAfterToday ? 0 : pmt - totalPaidInMonth;
-		if ((pmtDiff > 0 && totalDelinquent < balance - totalPaid) || pmtDiff < 0) {
-			totalDelinquent += pmtDiff;
-		} else if (dateAfterToday && totalDelinquent > 0) {
-			totalDelinquent -= Math.min(pmt, totalDelinquent);
-		}
 
 		const schedulePmt = pmt + pmtDiff;
 
@@ -91,19 +88,6 @@ export const amoritization = ({
 			lastBalance = 0;
 		}
 
-		// if (totalDelinquent < 1) {
-		// 	totalDelinquent = 0;
-		// }
-
-		if (totalDelinquent > lastBalance) {
-			totalDelinquent = lastBalance;
-		}
-
-		if (!dateAfterToday) {
-			actualDelinquent = totalDelinquent;
-		}
-
-		// totalDelinquent
 		const percentPrincipal = roundToPenny(principal / (interest + principal));
 		const percentInterest = roundToPenny(1 - percentPrincipal);
 
@@ -119,7 +103,7 @@ export const amoritization = ({
 				percentPrincipal < 1 && percentPrincipal > 0 ? percentPrincipal : 0,
 			percentInterest:
 				percentInterest < 1 && percentInterest > 0 ? percentInterest : 0,
-			delinquentBalance: totalDelinquent,
+			delinquentBalance: pmtDiff,
 		};
 
 		schedule.push(scheduleRow);
@@ -139,7 +123,8 @@ export const amoritization = ({
 		lastBalance,
 		pmt,
 		totalPaid,
-		totalDelinquent: Math.min(owed, actualDelinquent),
+		totalDelinquent: totalExpected - totalPaid,
+		totalExpected: roundToPenny(totalExpected),
 		owed: currLastBal,
 		payoff: currLastBal + interest,
 		nextDueDate: isSunday(nextDueDate)
@@ -179,4 +164,6 @@ export const defaultSchedule: AmortizedDeal = {
 	totalPaid: 0,
 	owed: 0,
 	payoff: 0,
+	totalExpected: 0,
+	nextDueDate: new Date(),
 };
