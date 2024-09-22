@@ -95,22 +95,30 @@ $: if (
   </span>
   <span>
     <span class="text-lg">
+      {selected && formatCurrency(schedule.pmt)}
+    </span>
+    <br />Monthly
+  </span>
+  <span>
+    <span class="text-lg">
       {formatCurrency(schedule.totalPaid)}
     </span>
-    <br /> total paid
+    <br /> paid
   </span>
+  {#if schedule.totalDelinquent > 0}
+    <span>
+      <span class="text-lg">
+        {schedule.totalExpected}
+      </span>
+      <br />Expected
+    </span>
+  {/if}
   <span class:hidden={!totalDelinquent}>
     <span class="text-lg">
       {formatCurrency(Math.abs(totalDelinquent))}
     </span>
-    <br /> total {totalDelinquent > 0 ? "delinquent" : "advanced"}
-  </span>
-  <span>
-    <span class="text-lg">
-      {selected && Number(selected.term)} Month
-    </span>
     <br />
-    Term
+    {totalDelinquent > 0 ? "delinquent" : "advanced"}
   </span>
   <span>
     <span class="text-lg">
@@ -120,6 +128,12 @@ $: if (
   </span>
 </div>
 <hr />
+<span>
+  <span class="text-lg">
+    {selected && Number(selected.term)} Month
+  </span>
+  Term
+</span>
 
 {#if selected}
   <div
@@ -293,7 +307,7 @@ $: if (
         <thead>
           <tr>
             <th>Date</th>
-            <th>Monthly</th>
+            <!-- <th>Monthly</th> -->
             <th>Paid</th>
             <th>Interest</th>
             <th>Principal</th>
@@ -319,9 +333,9 @@ $: if (
               <td>
                 {formatDate(row.date, "MMM `yy")}
               </td>
-              <td>
-                {formatCurrency(row.expected)}
-              </td>
+              <!-- <td> -->
+              <!--   {formatCurrency(row.expected)} -->
+              <!-- </td> -->
               <td
                 class:text-center={!row.paid}
                 class:text-red-600={!row.paid && !dateAfter}
