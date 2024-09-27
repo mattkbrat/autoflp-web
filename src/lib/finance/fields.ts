@@ -12,8 +12,8 @@ export type DealFields = {
 	priceSelling: number;
 	creditor: "";
 	trades: string[];
-	salesmen: string[];
 	priceDown: number;
+	downOwed: number;
 	priceTrade: number;
 	filingFees: number;
 	apr: number;
@@ -35,10 +35,10 @@ export const defaultDeal: DealFields = {
 	priceDown: 3_000,
 	priceTrade: 2_000,
 	filingFees: 220.75,
+	downOwed: 0,
 	apr: 8.5,
 	term: 12,
 	creditor: "",
-	salesmen: [],
 	trades: [],
 	date: new Date(),
 	finance: null,

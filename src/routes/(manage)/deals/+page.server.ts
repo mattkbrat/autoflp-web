@@ -22,8 +22,8 @@ export const actions = {
 		const tradeKeys = Object.keys(deal).filter(
 			(k) => k.startsWith("trade-") && typeof deal[k] === "string",
 		);
-		deal.salesmen = data.getAll("salesmen");
 		deal.id = deal.id || randomUUID();
+		deal.downOwed = Number(data.get("downOwed"));
 		deal.date = new Date(deal.date);
 		deal.trades = (deal.trades as unknown as string).split(",");
 

@@ -28,6 +28,9 @@ export const getSingleInventory = async ({
 					vin,
 				}
 			: { id },
+		include: {
+			inventory_salesman: true,
+		},
 	});
 };
 

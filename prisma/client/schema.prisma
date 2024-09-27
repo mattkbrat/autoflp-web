@@ -55,30 +55,30 @@ model Creditor {
 }
 
 model Deal {
-  id           String         @id @default("lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))")
-  state        Int            @default(1)
-  date         String
-  accountId    String         @map("account")
-  inventoryId  String         @map("inventory")
-  creditorId   String?        @map("creditor")
-  cash         String
-  down         String?        @default("0")
-  apr          String
-  finance      String?
-  lien         String?
-  pmt          String?
-  term         String
-  taxCity      String?        @map("tax_city")
-  taxState     String?        @map("tax_state")
-  taxCounty    String?        @map("tax_county")
-  taxRtd       String?        @map("tax_rtd")
-  creditor     Creditor?      @relation("deal_creditorTocreditor", fields: [creditorId], references: [id], onDelete: Cascade, onUpdate: SetNull)
-  inventory    Inventory      @relation("deal_inventoryToinventory", fields: [inventoryId], references: [vin], onDelete: Cascade)
-  account      Account        @relation("deal_accountToaccount", fields: [accountId], references: [id], onDelete: Cascade)
-  dealCharges  DealCharge[]   @relation("deal_charge_dealTodeal")
-  dealSalsemen DealSalesman[] @relation("deal_salesman_dealTodeal")
-  dealTrades   DealTrade[]    @relation("deal_trade_dealTodeal")
-  payments     Payment[]      @relation("payment_dealTodeal")
+  id          String       @id @default("lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))")
+  state       Int          @default(1)
+  date        String
+  accountId   String       @map("account")
+  inventoryId String       @map("inventory")
+  creditorId  String?      @map("creditor")
+  cash        String
+  down        String?      @default("0")
+  down_owed   String       @default("0")
+  apr         String
+  finance     String?
+  lien        String?
+  pmt         String?
+  term        String
+  taxCity     String?      @map("tax_city")
+  taxState    String?      @map("tax_state")
+  taxCounty   String?      @map("tax_county")
+  taxRtd      String?      @map("tax_rtd")
+  creditor    Creditor?    @relation("deal_creditorTocreditor", fields: [creditorId], references: [id], onDelete: Cascade, onUpdate: SetNull)
+  inventory   Inventory    @relation("deal_inventoryToinventory", fields: [inventoryId], references: [vin], onDelete: Cascade)
+  account     Account      @relation("deal_accountToaccount", fields: [accountId], references: [id], onDelete: Cascade)
+  dealCharges DealCharge[] @relation("deal_charge_dealTodeal")
+  dealTrades  DealTrade[]  @relation("deal_trade_dealTodeal")
+  payments    Payment[]    @relation("payment_dealTodeal")
 
   @@unique([date, accountId, inventoryId], map: "sqlite_autoindex_deal_2")
   @@map("deal")
@@ -94,17 +94,6 @@ model DealCharge {
   deal     Deal?   @relation("deal_charge_dealTodeal", fields: [dealId], references: [id], onDelete: Cascade)
 
   @@map("deal_charge")
-}
-
-model DealSalesman {
-  id         String   @id @default("lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))")
-  dealId     String   @map("deal")
-  salesmanId String   @map("salesman")
-  salesman   Salesman @relation("deal_salesman_salesmanTosalesman", fields: [salesmanId], references: [contactId], onDelete: Cascade)
-  deal       Deal     @relation("deal_salesman_dealTodeal", fields: [dealId], references: [id], onDelete: Cascade)
-
-  @@unique([dealId, salesmanId], map: "sqlite_autoindex_deal_salesman_2")
-  @@map("deal_salesman")
 }
 
 model DealTrade {
@@ -131,25 +120,28 @@ model DefaultCharge {
 }
 
 model Inventory {
-  id           String      @id @default("lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))")
-  vin          String      @unique(map: "sqlite_autoindex_inventory_2")
-  year         String
-  make         String
-  model        String?
-  body         String?
-  color        String?
-  fuel         String?
-  cwt          String?
-  mileage      String?
-  dateAdded    String?     @default("CURRENT_TIMESTAMP") @map("date_added")
-  dateModified String?     @default("CURRENT_TIMESTAMP") @map("date_modified")
-  picture      String?
-  cash         String?
-  credit       String?
-  down         String?
-  state        Int         @default(1)
-  deals        Deal[]      @relation("deal_inventoryToinventory")
-  dealTrades   DealTrade[]
+  id                 String              @id @default("lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))")
+  vin                String              @unique(map: "sqlite_autoindex_inventory_2")
+  year               String
+  make               String
+  model              String?
+  body               String?
+  color              String?
+  fuel               String?
+  cwt                String?
+  mileage            String?
+  dateAdded          String?             @default("CURRENT_TIMESTAMP") @map("date_added")
+  dateModified       String?             @default("CURRENT_TIMESTAMP") @map("date_modified")
+  datePurchased      String?             @default("CURRENT_TIMESTAMP") @map("date_purchased")
+  picture            String?
+  cash               String?
+  credit             String?
+  down               String?
+  purchasePrice      String?             @map("purchase_price")
+  state              Int                 @default(1)
+  deals              Deal[]              @relation("deal_inventoryToinventory")
+  dealTrades         DealTrade[]
+  inventory_salesman InventorySalesman[]
 
   @@map("inventory")
 }
@@ -194,19 +186,31 @@ model Person {
 }
 
 model Salesman {
-  id           String         @id @default("lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))")
-  contactId    String         @unique(map: "sqlite_autoindex_salesman_2") @map("person")
-  dealSalesmen DealSalesman[] @relation("deal_salesman_salesmanTosalesman")
-  contact      Person         @relation("salesman_personToperson", fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                String              @id @default("lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))")
+  contactId         String              @unique(map: "sqlite_autoindex_salesman_2") @map("person")
+  state             Int                 @default(1)
+  inventorySalesmen InventorySalesman[] @relation("inventory_salesman_salesmanTosalesman")
+  contact           Person              @relation("salesman_personToperson", fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("salesman")
 }
 
 model key {
   id       String @id @default("lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))")
-  key      String
-  value    String
+  k        String
+  v        String
   business String
 
-  @@unique([key, business], map: "sqlite_autoindex_key_2")
+  @@unique([k, business], map: "sqlite_autoindex_key_2")
+}
+
+model InventorySalesman {
+  id         String    @id @default("lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))")
+  vin        String
+  salesmanId String    @map("salesman")
+  salesman   Salesman  @relation("inventory_salesman_salesmanTosalesman", fields: [salesmanId], references: [contactId], onDelete: Cascade)
+  inventory  Inventory @relation(fields: [vin], references: [vin], onDelete: Cascade)
+
+  @@unique([vin, salesmanId], map: "sqlite_autoindex_inventory_salesman_2")
+  @@map("inventory_salesman")
 }

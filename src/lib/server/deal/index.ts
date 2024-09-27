@@ -1,19 +1,16 @@
 import { randomUUID } from "node:crypto";
 import type { AsyncReturnType } from "$lib/types";
-import { getCreditor, getAccount } from "../database/account";
+import { getAccount } from "../database/account";
 import { getSingleInventory, upsertInventory } from "../database/inventory";
 import {
 	closeDeals,
 	deleteDealCharges,
-	deleteDealSalesmen,
 	deleteDealTrades,
 	getDeal,
-	getDealTrades,
 	getOpenInventoryDeals,
 	updateDeal,
 	applyDefaultCharges,
 	createTrades,
-	createDealSalemen,
 	createDeal,
 } from "../database/deal";
 import type { DealFieldsWithFinance } from "$lib/finance/fields";
@@ -45,8 +42,8 @@ export const upsertDeal = async (
 	);
 	const account = await getAccount({ id: deal.account });
 
-	const creditor =
-		deal.term > 0 ? await getCreditor({ id: deal.creditor }) : null;
+	// const creditor =
+	// 	deal.term > 0 ? await getCreditor({ id: deal.creditor }) : null;
 
 	let updatedDeal: Deal | null = null;
 
@@ -67,7 +64,6 @@ export const upsertDeal = async (
 	if (dealDoesExist) {
 		await deleteDealTrades(deal.id);
 		await deleteDealCharges(deal.id);
-		await deleteDealSalesmen(deal.id);
 
 		// Close the inventory
 		if (inv) {
@@ -91,7 +87,6 @@ export const upsertDeal = async (
 	}
 
 	await createTrades(updatedDeal.id, trades || []);
-	await createDealSalemen(updatedDeal.id, deal.salesmen || []);
 
 	// TODO: notify Deal
 	//

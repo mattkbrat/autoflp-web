@@ -1,7 +1,6 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import CreditorSelect from "$lib/components/CreditorSelect.svelte";
-import SalesmenSelect from "$lib/components/SalesmenSelect.svelte";
 import { defaultDeal } from "$lib/finance";
 import { calcFinance } from "$lib/finance/calc";
 import { formatCurrency, formatDate } from "$lib/format";
@@ -54,6 +53,7 @@ $: if (creditor && lastCreditor !== creditor.id) {
 
 $: inventory = $allInventory.find((i) => i.vin === $inventoryID);
 let lastInventory = "";
+let lastFilled = "credit";
 
 const handleGetZip = async (forms: string[]) => {
 	const account = $allAccounts.find((a) => a.id === deal.account);
@@ -66,10 +66,14 @@ const handleGetZip = async (forms: string[]) => {
 
 $: if (inventory && inventory.id !== lastInventory) {
 	deal.vin = inventory.vin;
+	lastInventory = inventory.id;
+}
+
+$: if (inventory && deal.dealType !== lastFilled) {
 	deal.priceDown = Number(inventory.down || 0);
 	const sellingPrice = deal.term > 0 ? inventory.credit : inventory.cash;
 	deal.priceSelling = Number(sellingPrice || 0);
-	lastInventory = inventory.id;
+	lastFilled = deal.dealType;
 }
 
 $: if ($accountID) {
@@ -150,7 +154,6 @@ const navType: NavType = "query";
 >
   <AccCombobox selectType="deal" />
   <InventoryCombobox selectType="deal" />
-  <SalesmenSelect />
   <input
     type={"hidden"}
     value={JSON.stringify(finance || {})}
@@ -262,6 +265,17 @@ const navType: NavType = "query";
       <input
         bind:value={deal.priceDown}
         name={"priceDown"}
+        type="number"
+        step={10}
+        min={0}
+        class="input"
+      />
+    </label>
+    <label class="flex-1 min-w-max uppercase">
+      Down Owed
+      <input
+        bind:value={deal.downOwed}
+        name={"downOwed"}
         type="number"
         step={10}
         min={0}

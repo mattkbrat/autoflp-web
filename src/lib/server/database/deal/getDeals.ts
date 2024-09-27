@@ -83,15 +83,6 @@ export const getDetailedDeal = async (query: DealQuery) => {
 					charge: true,
 				},
 			},
-			dealSalsemen: {
-				select: {
-					salesman: {
-						include: {
-							contact: true,
-						},
-					},
-				},
-			},
 			dealTrades: {
 				select: {
 					value: true,

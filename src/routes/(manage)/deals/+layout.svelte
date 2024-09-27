@@ -1,12 +1,11 @@
 <script lang="ts">
-import { allCreditors, allSalesmen } from "$lib/stores/accounts";
+import { allCreditors } from "$lib/stores/accounts";
 import { allInventory } from "$lib/stores/inventory.js";
+import type { LayoutData } from "./$types";
 
-export let data;
+export let data: LayoutData;
 
-console.log({ data });
 allCreditors.set(data.creditors);
-allSalesmen.set(data.salesmen);
 allInventory.set(data.inventory);
 </script>
 

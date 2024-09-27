@@ -1,5 +1,5 @@
 import type { Deal } from "@prisma/client";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { DealFieldsWithFinance } from "$lib/finance/fields";
 
 export const dealFieldsToDeal = (
@@ -28,6 +28,7 @@ export const dealFieldsToDeal = (
 		id: id || randomUUID(),
 		date: date.toISOString(),
 		accountId: account,
+		down_owed: dealFields.downOwed.toFixed(2),
 		creditorId: creditor,
 		cash,
 		down,

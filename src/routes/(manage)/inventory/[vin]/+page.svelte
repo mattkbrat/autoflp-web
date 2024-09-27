@@ -2,19 +2,18 @@
 import { enhance } from "$app/forms";
 import { page } from "$app/stores";
 import { getZip } from "$lib";
+import SalesmenSelect from "$lib/components/SalesmenSelect.svelte";
 import { el } from "$lib/element";
 import { handleInvNav } from "$lib/navState";
-import type { InventoryField } from "$lib/server/database/inventory";
+import type { Inventory, InventoryField } from "$lib/server/database/inventory";
 import type { ParsedNHTA } from "$lib/server/inventory";
 import { allInventory, selectedStates } from "$lib/stores";
-import type { Inventory } from "@prisma/client";
 import { onMount } from "svelte";
 
 const thisYear = new Date().getFullYear();
 
 let shouldFocus = false;
 let hasLoaded = false;
-let forms: string[] = [];
 
 export let data: { inventory: Inventory };
 
@@ -207,7 +206,10 @@ onMount(() => {
       if (!("data" in result) || !result.data) return;
       if (result.data && "data" in result.data && result.data.data) {
         //await update();
-        const vin = result.data.data.vin;
+        const { vin, id } = result.data.data;
+        if (id) {
+          selected.id = id;
+        }
         if (vin) {
           updateAllInventory(vin, result.data.data);
         }
@@ -240,6 +242,32 @@ onMount(() => {
     type="hidden"
     class="input"
   />
+  <SalesmenSelect
+    selected={selected["inventory_salesman"]?.map((is) => is.salesmanId)}
+  />
+
+  <div class="flex flex-row gap-4">
+    <label class="flex-1 min-w-max uppercase">
+      Purchase Price
+      <input
+        bind:value={selected.purchasePrice}
+        name={"purchasePrice"}
+        type="number"
+        step={50}
+        class="uppercase input"
+      />
+    </label>
+    <label class="flex-1 min-w-max uppercase">
+      Date Purchased
+      <input
+        bind:value={selected.datePurchased}
+        name={"datePurchased"}
+        type="date"
+        class="input"
+      />
+    </label>
+  </div>
+
   <!-- {@debug selected} -->
   {#each fieldMap as fieldRow}
     <div class={`flex flex-row flex-wrap gap-4`}>
@@ -248,7 +276,7 @@ onMount(() => {
 
         <label class="flex-1 min-w-max uppercase" id={`inventory-form-${key}`}>
           {key}
-          {#if Number.isFinite(value)}
+          {#if value && Number.isFinite(Number(value))}
             <input
               bind:value={selected[key]}
               name={key}
@@ -326,6 +354,15 @@ onMount(() => {
     }}
   >
     Delete
+  </button>
+  <button
+    type="button"
+    on:click={() => {
+      data.inventory = { inventory_salesman: [{}] };
+      selected = {};
+    }}
+  >
+    Clear
   </button>
   <button
     formaction="?/delete"

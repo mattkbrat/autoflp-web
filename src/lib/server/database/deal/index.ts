@@ -1,6 +1,6 @@
 import { prisma } from "$lib/server/database";
-import type { Deal, DealSalesman, DealTrade, Prisma } from "@prisma/client";
-import { randomUUID } from "crypto";
+import type { Deal, DealTrade, Prisma } from "@prisma/client";
+import { randomUUID } from "node:crypto";
 import type { DealFields } from "$lib/finance";
 import type { FinanceCalcResult } from "$lib/finance/calc";
 import type { Trades } from "$lib/server/deal";
@@ -31,17 +31,6 @@ export const deleteDealTrades = async (deal: string) => {
 		throw new Error("Must provide a deal ID");
 	}
 	return prisma.dealTrade.deleteMany({
-		where: {
-			dealId: deal,
-		},
-	});
-};
-
-export const deleteDealSalesmen = async (deal: string) => {
-	if (!deal) {
-		throw new Error("Must provide a deal ID");
-	}
-	return prisma.dealSalesman.deleteMany({
 		where: {
 			dealId: deal,
 		},
@@ -85,23 +74,6 @@ export const createTrades = async (deal: string, trades: Trades) => {
 	return prisma.dealTrade.createMany({
 		data: dealTrades,
 	});
-};
-
-export const createDealSalemen = async (deal: string, salesmen: string[]) => {
-	const dealSalesmen: DealSalesman[] = salesmen.map((id) => {
-		return {
-			salesmanId: id,
-			dealId: deal,
-			id: randomUUID(),
-		};
-	});
-
-	console.log("deal salesmen", dealSalesmen);
-	return prisma.dealSalesman.createMany({ data: dealSalesmen });
-};
-
-export const getDealSalesmen = async (deal: string) => {
-	return prisma.dealSalesman.findMany({ where: { dealId: deal } });
 };
 
 export type Payments = Prisma.PromiseReturnType<typeof getPayments>;
