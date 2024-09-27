@@ -7,6 +7,25 @@ export const getInventory = async (state: 0 | 1 | null) => {
 		where: {
 			state: state || undefined,
 		},
+		include:
+			state === 1
+				? {
+						inventory_salesman: {
+							select: {
+								salesman: {
+									select: {
+										contact: {
+											select: {
+												lastName: true,
+												firstName: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					}
+				: undefined,
 		orderBy: [
 			{
 				make: "desc",

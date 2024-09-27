@@ -1,7 +1,6 @@
 <script lang="ts">
 import { formatCurrency } from "$lib/format";
 import { allInventory } from "$lib/stores";
-import { onMount } from "svelte";
 
 $: inventory = $allInventory
 	.sort(
@@ -11,22 +10,6 @@ $: inventory = $allInventory
 			+b.year - +a.year,
 	)
 	.filter((i) => i.state);
-
-// $: printInventory = inventory
-// 	.concat(inventory)
-// 	.concat(inventory)
-// 	.concat(inventory);
-
-// onMount(() => {
-// 	const root = document.getElementsByTagName("html")?.[0];
-// 	root?.classList.remove("dark");
-// 	root?.classList.add("light");
-//
-// 	return () => {
-// 		root?.classList.remove("light");
-// 		root?.classList.add("dark");
-// 	};
-// });
 </script>
 
 <table class="border-separate">
@@ -34,6 +17,7 @@ $: inventory = $allInventory
     class="table-header-group col-g uppercase dark:bg-gray-900 bg-gray-50 border-b-2 text-left"
   >
     <th />
+    <th scope="col" class="">Salesman</th>
     <th scope="col" class="ml-2 print:ml-0">Make</th>
     <th scope="col" class="">Model</th>
     <th scope="col" class="">Year</th>
@@ -50,6 +34,12 @@ $: inventory = $allInventory
             {n + 1})
           </span>
         </th>
+        <td>
+          {"inventory_salesman" in i &&
+            i.inventory_salesman
+              ?.flatMap((is) => is.salesman?.contact?.firstName.slice(0, 1))
+              .join("&")}
+        </td>
         <td class="break-all">
           {i.make}
         </td>
@@ -57,7 +47,7 @@ $: inventory = $allInventory
           {i.model}
         </td>
         <td>
-          {i.year}
+          {Math.floor(Number(i.year))}
         </td>
         <td>
           {i.color}
