@@ -45,7 +45,11 @@ export const updateDeal = async (
 		throw new Error("Must provide a deal ID");
 	}
 	const data = dealFieldsToDeal({ ...deal, finance }, 1);
-	return prisma.deal.update({ where: { id: deal.id }, data });
+	return prisma.$transaction(async (tx) => {
+		const updated = await tx.deal.update({ where: { id: deal.id }, data });
+		await tx.inventory.update({ where: { vin: deal.vin }, data: { state: 0 } });
+		return updated;
+	});
 };
 export const updatePartialDeal = async (id: string, data: Partial<Deal>) => {
 	if (!id) {
@@ -59,7 +63,14 @@ export const createDeal = async (
 	finance: FinanceCalcResult,
 ) => {
 	const data = dealFieldsToDeal({ ...deal, finance }, 1);
-	return prisma.deal.create({ data });
+	return prisma.$transaction(async (tx) => {
+		const created = await tx.deal.create({ data });
+		await tx.inventory.update({
+			where: { vin: created.inventoryId },
+			data: { state: 0 },
+		});
+		return created;
+	});
 };
 
 export const createTrades = async (deal: string, trades: Trades) => {
