@@ -1,5 +1,6 @@
 <script lang="ts">
 import { allSalesmen } from "$lib/stores";
+export let selected: string[] = [];
 </script>
 
 <select
@@ -8,6 +9,7 @@ import { allSalesmen } from "$lib/stores";
   multiple
   required
   class="bg-surface-800 text"
+  value={selected || []}
 >
   {#each $allSalesmen as { contact: account }}
     <option value={account.id}>{account.lastName}, {account.firstName}</option>
