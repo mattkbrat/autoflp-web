@@ -57,14 +57,30 @@ export type Inventory = NonNullable<
 	Prisma.PromiseReturnType<typeof getSingleInventory>
 >;
 
+export type AllInventory = Prisma.PromiseReturnType<typeof getInventory>;
+
 export type InventoryField = keyof Inventory;
 
-export const upsertInventory = async (i: Partial<Inventory>) => {
-	if (i.vin) {
-		const exists = await getSingleInventory({ vin: i.vin });
-		if (exists) {
-			return prisma.inventory.update({ where: { vin: exists.vin }, data: i });
-		}
+export const upsertInventory = async (
+	i: Exclude<Partial<Inventory>, "inventory_salesman">,
+) => {
+	const exists = i.vin && (await getSingleInventory({ vin: i.vin }));
+	if (exists) {
+		return prisma.$transaction(async (tx) => {
+			const updated = await tx.inventory.update({
+				where: { vin: exists.vin },
+				data: i,
+			});
+			if (updated.state === 1) {
+				return updated;
+			}
+			await tx.deal.updateMany({
+				where: { inventoryId: exists.vin },
+				data: { state: 0 },
+			});
+
+			return updated;
+		});
 	}
 
 	const id = i.id || randomUUID();
