@@ -73,7 +73,7 @@ export const fillSecurityData = ({ deal, finance }: DealFormParams) => {
 		)}`,
 		"21": firstEqualsLast
 			? undefined
-			: `${formatCurrency(finance.lastPayment)}: on ${formatDate(
+			: `${formatCurrency(finance.lastPayment)}: by ${formatDate(
 					finance.lastPaymentDueDate,
 					dateFormatStandard,
 				)}`,
