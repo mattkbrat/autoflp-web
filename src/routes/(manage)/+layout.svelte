@@ -10,22 +10,19 @@ onMount(() => {
 });
 </script>
 
-<slot />
+<div class="flex flex-col gap-4 flex-1">
+  <slot />
+</div>
 
-<section class="invisible print:visible">
-  <div
-    class="flex flex-col border-t-2 border-black w-full justify-between items-center"
-  >
-    <span class="flex flex-row py-2">
-      <span class="flex-1">
-        {data.businessData.name}
-      </span>
-      <span class="border-l-2 border-black mx-2 h-4 my-auto"> </span>
-      <span>
-        {data.businessData.phone}
-      </span>
+<section class="hidden print:block mt-auto">
+  <div class="grid grid-cols-3 border-t-2 border-black w-full mt-auto">
+    <span class="text-left font-extrabold">
+      {data.businessData.name}
     </span>
-    <span>
+    <span class="text-center">
+      {data.businessData.phone}
+    </span>
+    <span class="text-right">
       {data.businessData.address}
     </span>
   </div>

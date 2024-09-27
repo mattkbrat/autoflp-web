@@ -33,23 +33,23 @@ import RootNav from "$lib/components/RootNav.svelte";
 import TitleStrip from "$lib/components/TitleStrip.svelte";
 </script>
 
-<div class="flex flex-col gap-4 w-screen min-h-screen">
-  <div class="flex flex-col 2xl:flex-row print:hidden">
-    <nav class="2xl:fixed h-full">
+<div class="flex flex-col gap-4 print:gap-0 w-screen min-h-screen">
+  <div class="flex flex-col 2xl:flex-row">
+    <nav class="2xl:fixed h-full print:hidden">
       <RootNav />
     </nav>
     <section
       id="title"
-      class="flex flex-col gap-y-2 content-end border-b-2 border-b-primary-100 flex-1 2xl:ml-12"
+      class="flex flex-row gap-y-2 content-end border-b-2 border-b-primary-100 flex-1 2xl:ml-12"
     >
       <TitleStrip />
     </section>
   </div>
   <main
-    class="flex flex-col flex-1 gap-y-4 self-center px-4 py-8 min-h-screen lg:mx-16 print:contents w-full 2xl:ml-12"
+    class="flex flex-col flex-1 gap-y-4 self-center px-4 py-8 min-h-screen lg:mx-16 print:contents w-full 2xl:ml-12 print:p-0 print:m-0"
   >
     <div
-      class="flex flex-col flex-1 py-4 space-y-4 rounded-xl dark:bg-surface-900/75 bg-white print:text-black lg:px-4 2xl:ml-12"
+      class="flex flex-col flex-1 py-4 space-y-4 rounded-xl dark:bg-surface-900/75 bg-white print:text-black lg:px-4 2xl:ml-12 print:contents"
     >
       <slot />
     </div>

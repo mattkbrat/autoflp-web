@@ -30,12 +30,14 @@ onMount(() => {
 </script>
 
 <span
-  class="flex relative flex-col flex-1 self-end pl-8 text-right opacity-75 cursor-pointer group print:hidden"
+  class="flex relative flex-col flex-1 self-end pl-8 text-right opacity-75 cursor-pointer group print:contents"
   id="fuzzy-clock-string"
 >
-  {fuzzy}
+  <span class="print:hidden">
+    {fuzzy}
+  </span>
   <span
-    class="hidden absolute left-0 top-8 flex-col w-full text-sm transition-all group-hover:flex"
+    class="hidden print:flex absolute print:relative left-0 top-8 print:top-0 flex-col w-full print:w-fit text-sm transition-all group-hover:flex"
   >
     {now.toLocaleDateString()}
     {now.toLocaleTimeString()}
