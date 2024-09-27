@@ -1,5 +1,6 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
+import { goto } from "$app/navigation";
 import type { DetailedAccount } from "$lib/server/database/account";
 import type { PageData } from "./$types";
 
@@ -10,7 +11,8 @@ type Selected = Partial<
 let selected: Selected = {};
 
 const fieldMap: (keyof Selected)[][] = [
-	["namePrefix", "firstName", "middleInitial", "lastName", "nameSuffix"],
+	["firstName", "lastName"],
+	["namePrefix", "middleInitial", "nameSuffix"],
 	["address_1", "address_2", "address_3"],
 	["city", "stateProvince", "zipPostal", "zip_4"],
 	["phonePrimary", "phoneSecondary", "phoneTertiary"],
@@ -103,5 +105,18 @@ $: if (data.account && selected.id !== data.account?.id) {
       {/each}
     </div>
   {/each}
-  <button type="submit" class="btn variant-soft-success"> Save </button>
+  <div class="btn-group gap-2">
+    <button type="submit" class="btn variant-soft-success flex-1">
+      Save
+    </button>
+    <button
+      type="button"
+      class="btn variant-outline-warning min-w-48"
+      on:click={() => {
+        goto("/accounts/new");
+      }}
+    >
+      Clear
+    </button>
+  </div>
 </form>
