@@ -2,12 +2,19 @@
 import { enhance } from "$app/forms";
 import { page } from "$app/stores";
 import { el, waitForElm } from "$lib/element";
-import { formatCurrency, formatDate, fullNameFromPerson } from "$lib/format";
+import {
+	dateFormatStandard,
+	formatCurrency,
+	formatDate,
+	fullNameFromPerson,
+} from "$lib/format";
 import type { Deals } from "$lib/server/database/deal";
 import { accountDeals } from "$lib/stores";
 import { differenceInMonths, isAfter, isSameMonth } from "date-fns";
 import type { PageData } from "./$types";
 import { browser } from "$app/environment";
+import { addMonths } from "date-fns/addMonths";
+import { addDays } from "date-fns/addDays";
 export let data: PageData;
 
 let selected: Deals[number] | null = null;
@@ -108,18 +115,20 @@ $: if (
   {#if schedule.totalDelinquent > 0}
     <span>
       <span class="text-lg">
-        {schedule.totalExpected}
+        {formatCurrency(schedule.totalExpected)}
       </span>
       <br />Expected
     </span>
   {/if}
-  <span class:hidden={!totalDelinquent}>
-    <span class="text-lg">
-      {formatCurrency(Math.abs(totalDelinquent))}
+  {#if selected?.state}
+    <span class:hidden={!totalDelinquent}>
+      <span class="text-lg">
+        {formatCurrency(Math.abs(totalDelinquent))}
+      </span>
+      <br />
+      {totalDelinquent > 0 ? "delinquent" : "advanced"}
     </span>
-    <br />
-    {totalDelinquent > 0 ? "delinquent" : "advanced"}
-  </span>
+  {/if}
   <span>
     <span class="text-lg">
       {formatCurrency(totalOwed)}
@@ -128,11 +137,24 @@ $: if (
   </span>
 </div>
 <hr />
-<span>
-  <span class="text-lg">
-    {selected && Number(selected.term)} Month
+<span class="grid grid-cols-3 border-b-2">
+  <span>
+    {selected && Number(selected.term)} month term
   </span>
-  Term
+  {#if selected?.date}
+    <span class="text-center">
+      Starting
+      {formatDate(addMonths(selected.date, 1), "MMM yyyy")}
+    </span>
+  {/if}
+  <span class="text-right">
+    {#if selected?.state}
+      Next payment due by
+      {formatDate(schedule.nextDueDate)}
+    {:else}
+      Thank you!
+    {/if}
+  </span>
 </span>
 
 {#if selected}
@@ -312,7 +334,7 @@ $: if (
             <th>Interest</th>
             <th>Principal</th>
             <th>Balance</th>
-            <th>Delinquent</th>
+            <th>Advanced</th>
             <th>Int (%)</th>
             <th>Princ (%)</th>
           </tr>
@@ -331,7 +353,10 @@ $: if (
               class:border-2={isCurrentMonth}
             >
               <td>
-                {formatDate(row.date, "MMM `yy")}
+                {formatDate(addDays(row.date, 1), "MMM `yy")}
+                <!-- <span> -->
+                <!--   {row.date} -->
+                <!-- </span> -->
               </td>
               <!-- <td> -->
               <!--   {formatCurrency(row.expected)} -->
@@ -358,7 +383,7 @@ $: if (
                 {formatCurrency(row.lastBalance)}
               </td>
               <td>
-                {formatCurrency(row.delinquentBalance)}
+                {formatCurrency(row.delinquentBalance * -1)}
               </td>
               <td>
                 {formatCurrency(row.percentInterest * 100)}{" "}<span
