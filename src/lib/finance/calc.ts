@@ -113,7 +113,5 @@ export const calcFinance = (
 		deferred: roundToPenny(deferred),
 	};
 
-	console.table(financeCalcCredit);
-
 	return financeCalcCredit;
 };
