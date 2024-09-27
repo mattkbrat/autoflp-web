@@ -43,7 +43,7 @@ export const amoritization = ({
 
 	const monthSinceDeal = differenceInMonths(today, startDate);
 
-	const totalExpected = monthSinceDeal * pmt;
+	const totalExpected = Math.min(monthSinceDeal, term) * pmt;
 
 	const schedule = [];
 
@@ -82,7 +82,11 @@ export const amoritization = ({
 		const interest = lastBalance * monthlyRate;
 
 		let principal = dateAfterToday ? schedulePmt : totalPaidInMonth - interest;
-		lastBalance -= principal;
+
+		if (totalPaidInMonth > 0 || dateAfterToday) {
+			// Principal cannot be applied without a payment
+			lastBalance -= principal;
+		}
 		if (lastBalance < 1) {
 			principal += lastBalance;
 			lastBalance = 0;
