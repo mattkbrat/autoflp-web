@@ -3,6 +3,10 @@
 @tailwind utilities;
 @tailwind variants;
 
+html {
+  font-size: 16px;
+}
+
 /* vintage theme */
 @font-face {
 	font-family: 'Abril Fatface';
@@ -12,6 +16,11 @@
 
 @media print {
   /* All your print styles go here */
+
+  html {
+    font-size: 12px;
+  }
+
   #header,
   #footer,
   select,
