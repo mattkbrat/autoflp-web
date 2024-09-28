@@ -1,9 +1,5 @@
-import type { FinanceCalcCredit, FinanceCalcResult } from "$lib/finance/calc";
-import {
-	dateFormatStandard,
-	formatDate,
-	fullNameFromPerson,
-} from "$lib/format";
+import type { FinanceCalcResult } from "$lib/finance/calc";
+import { formatDate, fullNameFromPerson } from "$lib/format";
 import type { DetailedDeal } from "$lib/server/database/deal";
 import type { Form } from "$lib/types/forms";
 import type { Inventory } from "@prisma/client";
@@ -18,6 +14,8 @@ import { fillOneAndTheSameData } from "./ONE_AND_THE_SAME";
 import { fillSalesTax0024Data } from "./SALES_TAX_RECEIPT";
 import { fillSecurityData } from "./SECURITY";
 import { fillStatementOfFact } from "./STATEMENT_OF_FACT";
+import { dev } from "$app/environment";
+import { fillSalesTaxStatement } from "./SALES_TAX_STATEMENT";
 
 type FormBuilderBaseParams = {
 	form: Form;
@@ -36,7 +34,6 @@ export type InventoryFormParams = FormBuilderBaseParams & {
 type FormBuilderParams = DealFormParams | InventoryFormParams;
 
 const getOutput = (p: FormBuilderParams) => {
-	console.log({ p });
 	const isDeal = "deal" in p;
 	const isInventory = !isDeal && "vin" in p;
 	const now = formatDate(isDeal ? p.deal.date : new Date(), "yy-MM-dd");
@@ -84,17 +81,14 @@ export const builder = async (p: DealFormParams | InventoryFormParams) => {
 				obj = fillOneAndTheSameData(p.deal);
 				break;
 			case "DR0024_2021":
-				obj = fillSalesTax0024Data(p as DealFormParams);
+				obj = fillSalesTax0024Data(p);
 				break;
 			case "Sales Tax Statement":
 				obj = fillSalesTaxStatement(p);
 				break;
 			case "Security":
-				obj = fillSecurityData(p as DealFormParams) || [];
+				obj = fillSecurityData(p) || [];
 				break;
-			case "Application":
-			case "billing":
-			case "Receipt":
 			default:
 				obj = [];
 				break;
@@ -112,7 +106,7 @@ export const builder = async (p: DealFormParams | InventoryFormParams) => {
 		return;
 	}
 
-	console.log(p.form, obj);
+	dev && console.log(p.form, obj);
 
 	return generate({
 		form: p.form,

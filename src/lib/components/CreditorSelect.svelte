@@ -1,30 +1,27 @@
 <script lang="ts">
 import { type NavType, handleAccNav } from "$lib/navState";
 import { allCreditors } from "$lib/stores";
-import { handleSelect } from "$lib/stores/selected";
-
-// biome-ignore lint/style/useConst: changes between routes
-export let navType: NavType = "folder";
+import { creditorID, handleSelect } from "$lib/stores/selected";
 </script>
 
 <select
   id="creditor-select"
   name="creditor"
+  value={$creditorID}
   on:blur={(e) => {
-    if (!e.target || !('value' in e.target) || typeof e.target.value !== 'string') return;
-    setTimeout(() => {
-      document.getElementById('filingFees')?.scrollIntoView()
-      document.getElementById('filingFees')?.focus()
-    }, 50)
-    handleSelect('creditor', e.target.value, navType)
+    if (
+      !e.target ||
+      !("value" in e.target) ||
+      typeof e.target.value !== "string"
+    )
+      return;
+    handleSelect("creditor", e.target.value);
   }}
   required
   class="bg-surface-800 text"
 >
-  <option value={navType === "query" ? "" : "new"}>Select a creditor</option>
+  <option value={""}>Select a creditor</option>
   {#each $allCreditors as account}
-    <option value={account.id}
-      >{account.businessName}</option
-    >
+    <option value={account.id}>{account.businessName}</option>
   {/each}
 </select>

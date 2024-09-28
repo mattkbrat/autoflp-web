@@ -52,6 +52,7 @@ $: if (creditor && lastCreditor !== creditor.id) {
 }
 
 $: inventory = $allInventory.find((i) => i.vin === $inventoryID);
+
 let lastInventory = "";
 let lastFilled = "credit";
 
@@ -64,16 +65,16 @@ const handleGetZip = async (forms: string[]) => {
 	await getZip(forms, { deal, person: account.contact, type: "deal" });
 };
 
-$: if (inventory && inventory.id !== lastInventory) {
-	deal.vin = inventory.vin;
-	lastInventory = inventory.id;
-}
-
-$: if (inventory && deal.dealType !== lastFilled) {
+$: if (
+	inventory &&
+	(deal.dealType !== lastFilled || lastInventory !== inventory.id)
+) {
 	deal.priceDown = Number(inventory.down || 0);
+	deal.vin = inventory.vin;
 	const sellingPrice = deal.term > 0 ? inventory.credit : inventory.cash;
 	deal.priceSelling = Number(sellingPrice || 0);
 	lastFilled = deal.dealType;
+	lastInventory = inventory.id;
 }
 
 $: if ($accountID) {
@@ -89,8 +90,6 @@ $: if (deal.dealType === "cash" && deal.term !== 0) {
 } else if (deal.dealType === "credit" && deal.term === 0) {
 	deal.term = 12;
 }
-
-// $: console.log("deal update", deal);
 
 const handleSearched = async (result: unknown) => {
 	if (typeof result !== "object" || !result || !("data" in result)) return;
@@ -111,7 +110,6 @@ const handleSearched = async (result: unknown) => {
 	});
 
 	trades = newTrades;
-	console.log(trades);
 	currTrade = "";
 };
 
@@ -275,6 +273,7 @@ const navType: NavType = "query";
       Down Owed
       <input
         bind:value={deal.downOwed}
+        max={deal.priceDown}
         name={"downOwed"}
         type="number"
         step={10}
@@ -358,7 +357,7 @@ const navType: NavType = "query";
         class="flex-1 min-w-max uppercase flex flex-col"
       >
         Creditor
-        <CreditorSelect {navType} />
+        <CreditorSelect />
       </label>
       <label class="flex-1 min-w-max uppercase">
         Filing Fees ($)

@@ -1,7 +1,8 @@
 import { handleFetch, parseNHTSA } from "$lib/server/inventory";
-import { redirect } from "@sveltejs/kit";
+import { redirect, type Actions } from "@sveltejs/kit";
+import type { PageServerLoad } from "./$types";
 
-export const load = ({ locals }) => {
+export const load: PageServerLoad = () => {
 	return redirect(307, "/inventory/new");
 };
 
@@ -28,4 +29,4 @@ export const actions = {
 				return { vin };
 			});
 	},
-};
+} satisfies Actions;

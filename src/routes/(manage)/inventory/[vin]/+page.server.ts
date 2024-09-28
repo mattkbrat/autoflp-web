@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { fail } from "@sveltejs/kit";
 import {
-	getInventory,
 	deleteInventory,
 	getSingleInventory,
 	upsertInventory,

@@ -23,7 +23,7 @@ export const fillSecurityData = ({ deal, finance }: DealFormParams) => {
 			creditor,
 			type: finance?.type,
 		});
-		return;
+		return [];
 	}
 
 	const firstEqualsLast = finance.monthlyPayment === finance.lastPayment;
