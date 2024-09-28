@@ -1,1 +1,5 @@
-export const AUTOFLP_DATA_DIR = "/home/matt/Documents/autoflp";
+import { dev } from "$app/environment";
+
+export const AUTOFLP_DATA_DIR = dev
+	? "/home/matt/Documents/autoflp"
+	: "/tmp/autoflp";
