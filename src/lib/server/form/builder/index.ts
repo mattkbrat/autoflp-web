@@ -87,7 +87,7 @@ export const builder = async (p: DealFormParams | InventoryFormParams) => {
 				obj = fillSalesTax0024Data(p as DealFormParams);
 				break;
 			case "Sales Tax Statement":
-				obj = [];
+				obj = fillSalesTaxStatement(p);
 				break;
 			case "Security":
 				obj = fillSecurityData(p as DealFormParams) || [];

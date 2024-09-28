@@ -38,6 +38,10 @@ export {
 	get as getDownPaymentData,
 	type Template as DownPaymentTemplate,
 } from "./getDownPaymentTemplate";
+export {
+	get as getSalesTaxStatement,
+	type Template as SalesTaxStatement,
+} from "./getSalesTaxStatementTemplate";
 
 export {
 	get as getBillingData,
