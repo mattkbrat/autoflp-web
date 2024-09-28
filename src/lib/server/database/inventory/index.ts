@@ -2,30 +2,46 @@ import type { Prisma } from "@prisma/client/edge";
 import { prisma } from "..";
 import { randomUUID } from "node:crypto";
 
+const includeInvSalesman = (alwaysIncludeSalesmen = false) => {
+	return {
+		select: {
+			salesman: {
+				select: {
+					contact: {
+						select: {
+							id: true,
+							lastName: true,
+							firstName: true,
+						},
+					},
+				},
+			},
+		},
+		where: alwaysIncludeSalesmen
+			? undefined
+			: {
+					inventory: {
+						state: 1,
+					},
+				},
+		orderBy: {
+			salesman: {
+				contact: {
+					lastName: "asc" as const,
+				},
+			},
+		},
+	};
+};
+
 export const getInventory = async (state: 0 | 1 | null) => {
 	return prisma.inventory.findMany({
 		where: {
 			state: state || undefined,
 		},
-		include:
-			state === 1
-				? {
-						inventory_salesman: {
-							select: {
-								salesman: {
-									select: {
-										contact: {
-											select: {
-												lastName: true,
-												firstName: true,
-											},
-										},
-									},
-								},
-							},
-						},
-					}
-				: undefined,
+		include: {
+			inventory_salesman: includeInvSalesman(),
+		},
 		orderBy: [
 			{
 				make: "desc",
@@ -48,7 +64,7 @@ export const getSingleInventory = async ({
 				}
 			: { id },
 		include: {
-			inventory_salesman: true,
+			inventory_salesman: includeInvSalesman(true),
 		},
 	});
 };

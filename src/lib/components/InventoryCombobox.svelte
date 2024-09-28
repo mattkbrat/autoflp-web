@@ -10,7 +10,7 @@ export let selectType: "inventory" | "deal" = "inventory";
 
 $: options = $allInventory.map((d) => {
 	return {
-		text: formatInventory(d, true, "|"),
+		text: formatInventory(d, true, "|", true),
 		value: d.vin,
 		state: d.state,
 	};

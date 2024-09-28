@@ -72,7 +72,24 @@ export const getDetailedDeal = async (query: DealQuery) => {
 					contact: true,
 				},
 			},
-			inventory: true,
+			inventory: {
+				include: {
+					inventory_salesman: {
+						select: {
+							salesman: {
+								select: {
+									contact: {
+										select: {
+											firstName: true,
+											lastName: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			creditor: {
 				include: {
 					contact: true,

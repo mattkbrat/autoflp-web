@@ -49,3 +49,4 @@ export const formatDate = (date: string | Date, formatStr = "E, LLL d, y") => {
 };
 
 export * from "./inventory";
+export * from "./salesmen";

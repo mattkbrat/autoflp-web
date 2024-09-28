@@ -4,6 +4,7 @@ import { page } from "$app/stores";
 import { getZip } from "$lib";
 import SalesmenSelect from "$lib/components/SalesmenSelect.svelte";
 import { el } from "$lib/element";
+import { formatDate, formatSalesmen } from "$lib/format";
 import { handleInvNav } from "$lib/navState";
 import type { Inventory, InventoryField } from "$lib/server/database/inventory";
 import type { ParsedNHTA } from "$lib/server/inventory";
@@ -23,6 +24,7 @@ let searched = "";
 let searchedInfo: { [key: string]: string } | null = null;
 
 $: if (data.inventory.vin && selected.vin !== data.inventory.vin && hasLoaded) {
+	console.log({ data });
 	selected = data.inventory;
 	searchedInfo = null;
 	hasCleared = false;
@@ -243,9 +245,15 @@ onMount(() => {
     class="input"
   />
   <SalesmenSelect
-    selected={selected["inventory_salesman"]?.map((is) => is.salesmanId)}
+    selected={selected["inventory_salesman"]?.map(
+      (is) => is.salesman.contact.id,
+    )}
   />
-
+  {#if selected.inventory_salesman}
+    <span>
+      Salesmen: {formatSalesmen(selected.inventory_salesman, "contact")}
+    </span>
+  {/if}
   <div class="flex flex-row gap-4">
     <label class="flex-1 min-w-max uppercase">
       Purchase Price
@@ -371,6 +379,17 @@ onMount(() => {
     id="inv-delete-submit">Delete</button
   >
 </form>
+
+{#if selected}
+  <div class="flex flex-row gap-4">
+    <span>
+      Added {formatDate(selected?.dateAdded || "")}
+    </span>
+    <span>
+      Modified {formatDate(selected?.dateModified || "")}
+    </span>
+  </div>
+{/if}
 
 {#if import.meta.env.DEV}
   <form

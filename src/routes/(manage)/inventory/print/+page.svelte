@@ -1,5 +1,5 @@
 <script lang="ts">
-import { formatCurrency } from "$lib/format";
+import { formatCurrency, formatSalesmen } from "$lib/format";
 import { allInventory } from "$lib/stores";
 
 $: inventory = $allInventory
@@ -28,6 +28,10 @@ $: inventory = $allInventory
   </thead>
   <tbody>
     {#each inventory as i, n}
+      {@const salesman = formatSalesmen(
+        i.inventory_salesman,
+        i.inventory_salesman.length === 1 ? "firstName" : "firstInitial",
+      )}
       <tr id={i.vin} class="uppercase print:even:bg-gray-50 print:odd:bg-white">
         <th scope="row" class="print:bg-gray-50">
           <span class="text-gray-400/75">
@@ -35,10 +39,7 @@ $: inventory = $allInventory
           </span>
         </th>
         <td>
-          {"inventory_salesman" in i &&
-            i.inventory_salesman
-              ?.flatMap((is) => is.salesman?.contact?.firstName.slice(0, 1))
-              .join("&")}
+          {salesman}
         </td>
         <td class="break-all">
           {i.make}
