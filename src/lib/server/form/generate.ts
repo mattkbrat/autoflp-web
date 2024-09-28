@@ -10,12 +10,13 @@ import { dev } from "$app/environment";
 const getOutputName = ({
 	output,
 	form,
-}: Pick<GenerateFormParams, "output" | "form">) => {
+	id,
+}: Pick<GenerateFormParams, "output" | "form" | "id">) => {
 	const withoutFilename = form.split(".pdf")[0];
 	if (form !== "billing") {
 		return join(
 			output || ".",
-			`${withoutFilename}_${randomUUID().split("-").slice(-1)}.pdf`,
+			`${withoutFilename}_${(id || randomUUID()).split("-").slice(-1)}.pdf`,
 		);
 	}
 
@@ -29,6 +30,7 @@ export const generate = async ({
 	concat,
 	attachments,
 	returnType = "pdf",
+	id,
 }: GenerateFormParams) => {
 	const dataObj: {
 		[key: string]: string;
@@ -37,7 +39,7 @@ export const generate = async ({
 	const withoutFilename = form.split(".pdf")[0];
 	const pdfFormName = `${withoutFilename}.pdf`;
 
-	const outputName = getOutputName({ output, form });
+	const outputName = getOutputName({ output, form, id });
 	if (Array.isArray(data)) {
 		data.map((item, index) => {
 			dataObj[`${index}`] = `${item}`;

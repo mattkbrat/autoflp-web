@@ -17,6 +17,7 @@ export type GenerateFormParams = {
 	form: string;
 	output?: string;
 	data: string[] | Partial<StringObj>;
+	id?: string;
 	concat?: {
 		concat: true;
 		lookup: string;

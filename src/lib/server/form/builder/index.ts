@@ -119,5 +119,6 @@ export const builder = async (p: DealFormParams | InventoryFormParams) => {
 		data: obj,
 		attachments: [],
 		output,
+		id: "deal" in p ? p.deal.id : undefined,
 	});
 };
