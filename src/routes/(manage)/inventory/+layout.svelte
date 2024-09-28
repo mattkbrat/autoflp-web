@@ -1,33 +1,34 @@
 <script lang="ts">
+import { page } from "$app/stores";
+import { TabGroup, TabAnchor } from "@skeletonlabs/skeleton";
+
+$: pathName = $page.url.pathname;
+$: selected = pathName.endsWith("cars-for-sale")
+	? "sale"
+	: pathName.endsWith("print")
+		? "print"
+		: "inventory";
 </script>
 
 <svelte:head>
   <title>Inventory - AutoFLP</title>
 </svelte:head>
 
-<div class="flex gap-2 print:hidden">
-  <a
-    class="underline font-bold text-secondary-300 hover:text-secondary-200"
-    href="/inventory"
+<TabGroup class="flex gap-2 print:hidden">
+  <TabAnchor selected={selected === "inventory"} href="/inventory"
+    >Manage Inventory</TabAnchor
   >
-    Manage Inventory
-  </a>
-  <div class="h-4 w-px border-r border self-center" />
-  <a
-    class="underline font-bold text-secondary-300 hover:text-secondary-200"
-    href={"/inventory/cars-for-sale"}
+  <TabAnchor href={"/inventory/cars-for-sale"} selected={selected === "sale"}
+    >Manage Cars for Sale</TabAnchor
   >
-    Manage Cars for Sale
-  </a>
 
-  <div class="h-4 w-px border-r border self-center" />
-  <a
-    class="underline font-bold text-secondary-300 hover:text-secondary-200"
+  <TabAnchor
     href="/inventory/print?state=1"
+    selected={selected === "print"}
     data-sveltekit-reload
   >
     Print inventory
-  </a>
-</div>
+  </TabAnchor>
+</TabGroup>
 
 <slot />
