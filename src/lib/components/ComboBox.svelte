@@ -1,7 +1,7 @@
 <!-- Adapted from https://svelte.dev/repl/144f22d18c6943abb1fdd00f13e23fde?version=3.49.0 -->
 
 <script lang="ts">
-import { waitForElm } from "$lib/element";
+import { el, getElement, waitForElm } from "$lib/element";
 import { uid, onClickOutside, filterCache, type Option } from "./comboBox";
 
 export let disabled = undefined;
@@ -60,6 +60,8 @@ let selectedOption: Pick<Option, "value" | "text"> = {
 	text: "",
 };
 
+$: inputValue = selectedOption.value;
+$: displayInputValue = selectedOption.text.replaceAll("|", " ").trim();
 async function onInputKeyup(event: KeyboardEvent) {
 	if (
 		!event?.target ||
@@ -235,20 +237,19 @@ async function showList(inputValue: string) {
 function hideList() {
 	if (!isListOpen) return;
 
-	if (selectedOption) {
-		inputElement.value = selectedOption.text.replaceAll("|", " ").trim();
-	}
-
 	isListOpen = false;
 	inputElement.focus();
 }
 
-$: if (value && !!onSelect) {
-	onSelect(value);
+$: if (value && !selectedOption?.value && options.length) {
+	setTimeout(() => {
+		waitForElm(`#${CSS.escape(value)}`).then((el) => el && selectOption(el));
+	}, 200);
+	// console.log(element, value);
 }
 
 function selectOption(optionElement: HTMLElement) {
-	value = optionElement.dataset.value || "";
+	console.log("selecting", optionElement);
 
 	if (!optionElement.dataset.text || !optionElement.dataset.value) return;
 
@@ -256,6 +257,10 @@ function selectOption(optionElement: HTMLElement) {
 		text: optionElement.dataset.text,
 		value: optionElement.dataset.value,
 	};
+	value = selectedOption.value;
+	if (onSelect) {
+		onSelect(value);
+	}
 }
 
 $: cols = options[0]?.text?.split("|").length;
@@ -279,7 +284,7 @@ $: cols = options[0]?.text?.split("|").length;
     use:onClickOutside={hideList}
   >
     <slot name="icon-start" />
-    <input {id} {name} value={selectedOption.value} type="hidden" />
+    <input {id} {name} value={inputValue} type="hidden" />
     <input
       bind:this={inputElement}
       on:focus
@@ -288,6 +293,7 @@ $: cols = options[0]?.text?.split("|").length;
       on:keyup={onInputKeyup}
       on:keydown={onInputKeydown}
       on:mousedown={onInputClick}
+      value={displayInputValue}
       class="combobox__input m-0 w-full py-2 px-4 border-2 border-gray-50 rounded-sm focus:outline-none input"
       type="text"
       {disabled}
@@ -324,6 +330,7 @@ $: cols = options[0]?.text?.split("|").length;
           {#each option.options as o (o)}
             <li
               class="list__option"
+              id={o.value}
               class:--disabled={o.disabled}
               role="option"
               tabindex={o.disabled ? undefined : -1}
@@ -345,6 +352,7 @@ $: cols = options[0]?.text?.split("|").length;
         {:else}
           <li
             class="list__option grid grid-cols-subgrid col-span-full"
+            id={option.value}
             class:bg-secondary-700={option.text === selectedOption.text}
             class:--disabled={option.disabled}
             role="option"
