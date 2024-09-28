@@ -1,5 +1,5 @@
 import {
-	BUSINESS_ADDRESS,
+	BUSINESS_ADDRESS_NO_ZIP,
 	BUSINESS_MOTTO,
 	BUSINESS_NAME,
 	PHONE_NUMBER,
@@ -18,7 +18,7 @@ export const load: LayoutServerLoad = async ({ url }) => {
 		name: BUSINESS_NAME,
 		motto: BUSINESS_MOTTO,
 		phone: PHONE_NUMBER,
-		address: BUSINESS_ADDRESS,
+		address: BUSINESS_ADDRESS_NO_ZIP,
 	};
 
 	return {
