@@ -2,7 +2,7 @@
 import { enhance } from "$app/forms";
 import { goto, invalidate } from "$app/navigation";
 import type { DetailedAccount } from "$lib/server/database/account";
-import { allAccounts } from "$lib/stores";
+import { allAccounts, handleSelect } from "$lib/stores";
 import type { FormFields } from "$lib/types/forms";
 import type { ActionData, PageData } from "./$types";
 
@@ -73,13 +73,6 @@ $: if (data.account && selected.id !== data.account?.id) {
 }
 </script>
 
-<div>Accounts</div>
-{#if selected}
-  <h2>{selected.lastName} {selected.firstName}</h2>
-{:else}
-  <h2>New</h2>
-{/if}
-
 <form
   action="?/update"
   method="post"
@@ -142,7 +135,8 @@ $: if (data.account && selected.id !== data.account?.id) {
       type="button"
       class="btn variant-outline-warning min-w-48"
       on:click={() => {
-        goto("/accounts/new");
+        handleSelect("account", "new");
+        goto('/accounts/new')
       }}
     >
       Clear
