@@ -82,8 +82,8 @@ export const actions = {
 
 		return {
 			data: {
-				...upsertedAccount,
-				...upsertedPerson,
+				account: upsertedAccount,
+				contact: upsertedPerson,
 			},
 			method: "insert",
 		};

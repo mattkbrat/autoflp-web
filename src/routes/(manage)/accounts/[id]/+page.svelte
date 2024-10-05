@@ -1,15 +1,32 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
-import { goto } from "$app/navigation";
+import { goto, invalidate } from "$app/navigation";
 import type { DetailedAccount } from "$lib/server/database/account";
+import { allAccounts } from "$lib/stores";
 import type { FormFields } from "$lib/types/forms";
-import type { PageData } from "./$types";
+import type { ActionData, PageData } from "./$types";
 
 export let data: PageData;
 type Selected = Partial<
 	Omit<DetailedAccount, "contact"> & DetailedAccount["contact"]
 >;
 let selected: Selected = {};
+
+export let form: ActionData;
+
+$: if (form?.data) {
+	allAccounts.update((curr) => {
+		const index = curr.findIndex((a) => a.id === form.data.account.id);
+		if (index === -1) {
+			console.error("Failed to find account in list by id", curr);
+		}
+		curr[index].id = form.data.account.id;
+		curr[index].licenseNumber = form.data.account.licenseNumber;
+		curr[index].contact = form.data.contact;
+
+		return curr;
+	});
+}
 
 const fieldMap: FormFields<keyof Selected> = [
 	[
@@ -51,6 +68,8 @@ const fieldMap: FormFields<keyof Selected> = [
 $: if (data.account && selected.id !== data.account?.id) {
 	const { contact, ...rest } = data.account;
 	selected = { ...contact, ...rest };
+} else {
+	console.log(data.account);
 }
 </script>
 
@@ -67,10 +86,7 @@ $: if (data.account && selected.id !== data.account?.id) {
   class="flex flex-col flex-wrap space-y-4"
   id="inventory-form"
   use:enhance={() => {
-    return async ({ result, update }) => {
-      if ("data" in result && result.data && "data" in result.data) {
-      }
-    };
+    return ({ update }) => update({ reset: false });
   }}
 >
   <input
