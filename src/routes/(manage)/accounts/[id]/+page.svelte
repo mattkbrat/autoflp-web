@@ -2,6 +2,7 @@
 import { enhance } from "$app/forms";
 import { goto } from "$app/navigation";
 import type { DetailedAccount } from "$lib/server/database/account";
+import type { FormFields } from "$lib/types/forms";
 import type { PageData } from "./$types";
 
 export let data: PageData;
@@ -10,14 +11,41 @@ type Selected = Partial<
 >;
 let selected: Selected = {};
 
-const fieldMap: (keyof Selected)[][] = [
-	["firstName", "lastName"],
-	["namePrefix", "middleInitial", "nameSuffix"],
-	["address_1", "address_2", "address_3"],
-	["city", "stateProvince", "zipPostal", "zip_4"],
-	["phonePrimary", "phoneSecondary", "phoneTertiary"],
-	["emailPrimary", "emailSecondary"],
-	["licenseNumber", "licenseExpiration", "dateOfBirth"],
+const fieldMap: FormFields<keyof Selected> = [
+	[
+		{ key: "firstName", label: "First Name" },
+		{ key: "lastName", label: "Last Name" },
+	],
+	[
+		{ key: "namePrefix", label: "Prefix" },
+		{ key: "middleInitial", label: "MI" },
+		{ key: "nameSuffix", label: "Suffix" },
+	],
+	[
+		{ key: "address_1", label: "Addr. Line 1" },
+		{ key: "address_2", label: "Line 2" },
+		{ key: "address_3", label: "Line 3" },
+	],
+	[
+		"city",
+		{ key: "stateProvince", label: "State" },
+		{ key: "zipPostal", label: "ZIP" },
+		{ key: "zip_4", label: "+4" },
+	],
+	[
+		{ key: "phonePrimary", label: "Primary Phone", type: "tel" },
+		{ key: "phoneSecondary", label: "Secondary", type: "tel" },
+		{ key: "phoneTertiary", label: "Tertiary", type: "tel" },
+	],
+	[
+		{ key: "emailPrimary", label: "Primary Email", type: "email" },
+		{ key: "emailSecondary", label: "Secondary", type: "email" },
+	],
+	[
+		{ key: "licenseNumber", label: "License" },
+		{ key: "licenseExpiration", label: "Exp.", type: "date" },
+		{ key: "dateOfBirth", label: "DOB", type: "date" },
+	],
 ];
 
 $: if (data.account && selected.id !== data.account?.id) {
@@ -60,50 +88,34 @@ $: if (data.account && selected.id !== data.account?.id) {
   <!-- {@debug selected} -->
   {#each fieldMap as fieldRow}
     <div class={`flex flex-row flex-wrap gap-4`}>
-      {#each fieldRow as key}
-        {@const value = selected[key]}
-        {@const name = key.split("").reduce((acc, char, n) => {
-          const isUpper = char.toUpperCase() === char;
-          if (isUpper && n > 0) {
-            return `${acc} ${char}`;
-          }
-          return acc + char;
-        }, "")}
-
-        <label class="flex-1 min-w-max uppercase" id={`inventory-form-${key}`}>
-          {name}
-          {#if Number.isFinite(value)}
-            <input
-              bind:value={selected[key]}
-              name={key}
-              type="number"
-              step={1}
-              class="uppercase input"
-            />
-          {:else if value instanceof Date}
-            <input
-              value={value.toISOString().split("T")[0]}
-              name={key}
-              type="date"
-              class="uppercase input"
-            />
-          {:else if key === "notes"}
-            <textarea
-              bind:value={selected[key]}
-              name={key}
-              class="uppercase input"
-              rows={4}
-            />
-          {:else}
-            <input
-              bind:value={selected[key]}
-              name={key}
-              type="text"
-              class="uppercase input"
-            />
-          {/if}
-        </label>
-      {/each}
+      <div class={`flex flex-row flex-wrap gap-4 flex-1`}>
+        {#each fieldRow as key}
+          <label class="flex-1 min-w-max uppercase">
+            {#if typeof key !== "string"}
+              {key.label || key.key}
+              <input
+                value={selected[key.key] || ""}
+                on:change={(e) => {
+                  // @ts-ignore
+                  selected[key.key] = e.target.value;
+                }}
+                name={key.key}
+                type={key.type}
+                step={key.type === "number" ? 10 : undefined}
+                class="uppercase input"
+              />
+            {:else}
+              {key}
+              <input
+                bind:value={selected[key]}
+                name={key}
+                type="text"
+                class="uppercase input"
+              />
+            {/if}
+          </label>
+        {/each}
+      </div>
     </div>
   {/each}
   <div class="btn-group gap-2">

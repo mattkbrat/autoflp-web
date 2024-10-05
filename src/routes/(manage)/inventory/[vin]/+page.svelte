@@ -9,6 +9,7 @@ import { handleInvNav } from "$lib/navState";
 import type { Inventory, InventoryField } from "$lib/server/database/inventory";
 import type { ParsedNHTA } from "$lib/server/inventory";
 import { allInventory, selectedStates } from "$lib/stores";
+import type { FormFields } from "$lib/types/forms";
 import { onMount } from "svelte";
 
 const thisYear = new Date().getFullYear();
@@ -24,7 +25,6 @@ let searched = "";
 let searchedInfo: { [key: string]: string } | null = null;
 
 $: if (data.inventory.vin && selected.vin !== data.inventory.vin && hasLoaded) {
-	console.log({ data });
 	selected = data.inventory;
 	searchedInfo = null;
 	hasCleared = false;
@@ -45,10 +45,26 @@ $: if (!data.inventory.vin && !hasCleared) {
 	hasCleared = true;
 }
 
-const fieldMap: InventoryField[][] = [
+const fieldMap: FormFields<InventoryField> = [
+	[
+		{ key: "purchasePrice", type: "number", label: "Purchase Price" },
+		{ key: "datePurchased", type: "date", label: "Date Purchased" },
+	],
 	["vin", "year", "fuel"],
-	["make", "model", "body", "mileage", "cwt", "color"],
-	["cash", "credit", "down"],
+	[
+		"make",
+		"model",
+		"body",
+		"mileage",
+
+		{ key: "cwt", type: "number" },
+		"color",
+	],
+	[
+		{ key: "cash", type: "number" },
+		{ key: "credit", type: "number" },
+		{ key: "down", type: "number" },
+	],
 ];
 
 $: if (selected?.year && hasLoaded) {
@@ -103,7 +119,6 @@ const syncSelect = (vin: string) => {
 	const items = Array.from(selectEl.children) as HTMLOptionElement[];
 	const indexOf = items.findIndex((el) => el.value === vin);
 	if (indexOf === -1 || indexOf === currentIndex) {
-		//console.log("already selected or invalid", indexOf, vin, selected);
 		return;
 	}
 	selectEl.selectedIndex = indexOf;
@@ -194,7 +209,6 @@ onMount(() => {
 		}
 	}
 	hasLoaded = true;
-	//syncSelect($page.params.vin);
 });
 </script>
 
@@ -205,9 +219,10 @@ onMount(() => {
   id="inventory-form"
   use:enhance={() => {
     return async ({ result, update }) => {
+      console.log(result);
       if (!("data" in result) || !result.data) return;
+      await update();
       if (result.data && "data" in result.data && result.data.data) {
-        //await update();
         const { vin, id } = result.data.data;
         if (id) {
           selected.id = id;
@@ -254,45 +269,27 @@ onMount(() => {
       Salesmen: {formatSalesmen(selected.inventory_salesman, "contact")}
     </span>
   {/if}
-  <div class="flex flex-row gap-4">
-    <label class="flex-1 min-w-max uppercase">
-      Purchase Price
-      <input
-        bind:value={selected.purchasePrice}
-        name={"purchasePrice"}
-        type="number"
-        step={50}
-        class="uppercase input"
-      />
-    </label>
-    <label class="flex-1 min-w-max uppercase">
-      Date Purchased
-      <input
-        bind:value={selected.datePurchased}
-        name={"datePurchased"}
-        type="date"
-        class="input"
-      />
-    </label>
-  </div>
 
   <!-- {@debug selected} -->
   {#each fieldMap as fieldRow}
     <div class={`flex flex-row flex-wrap gap-4`}>
       {#each fieldRow as key}
-        {@const value = selected[key]}
-
         <label class="flex-1 min-w-max uppercase" id={`inventory-form-${key}`}>
-          {key}
-          {#if value && Number.isFinite(Number(value))}
+          {#if typeof key !== "string"}
+            {key.label || key.key}
             <input
-              bind:value={selected[key]}
-              name={key}
-              type="number"
-              step={key === "year" ? 1 : 10}
+              value={selected[key.key]}
+              on:change={(e) => {
+                // @ts-ignore
+                selected[key.key] = e.target.value;
+              }}
+              name={key.key}
+              type={key.type}
+              step={key.key === "year" ? 1 : 10}
               class="uppercase input"
             />
           {:else}
+            {key}
             <input
               bind:value={selected[key]}
               name={key}

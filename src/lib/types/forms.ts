@@ -93,3 +93,10 @@ export const dealForms = forms.filter((f) => f.type?.includes("deal"));
 export const inventoryForms = forms.filter((f) =>
 	f.type?.includes("inventory"),
 );
+
+export type FormField<Fields extends ReadonlyArray<string>[number]> =
+	| Fields
+	| { key: Fields; type?: HTMLInputElement["type"]; label?: string };
+
+export type FormFields<Fields extends ReadonlyArray<string>[number]> =
+	FormField<Fields>[][];
