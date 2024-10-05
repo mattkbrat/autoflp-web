@@ -1,3 +1,4 @@
+import { dev } from "$app/environment";
 import type { FinanceCalcResult } from "$lib/finance/calc";
 import { formatDate, fullNameFromPerson } from "$lib/format";
 import type { DetailedDeal } from "$lib/server/database/deal";
@@ -12,10 +13,9 @@ import { fillDisclosuresData } from "./DISCLOSURES";
 import { DR2395_2022 } from "./DR2395_2022";
 import { fillOneAndTheSameData } from "./ONE_AND_THE_SAME";
 import { fillSalesTax0024Data } from "./SALES_TAX_RECEIPT";
+import { fillSalesTaxStatement } from "./SALES_TAX_STATEMENT";
 import { fillSecurityData } from "./SECURITY";
 import { fillStatementOfFact } from "./STATEMENT_OF_FACT";
-import { dev } from "$app/environment";
-import { fillSalesTaxStatement } from "./SALES_TAX_STATEMENT";
 
 type FormBuilderBaseParams = {
 	form: Form;

@@ -42,6 +42,7 @@ export const dealFieldsToDeal = (
 		taxCounty,
 		taxRtd,
 		inventoryId: vin,
+		cosigner: dealFields.cosigner || null,
 	};
 
 	console.log("new deal params", deal);

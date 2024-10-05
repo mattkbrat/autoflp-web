@@ -150,7 +150,20 @@ const navType: NavType = "query";
     };
   }}
 >
-  <AccCombobox selectType="deal" />
+  <div class="flex flex-row gap-2">
+    <div class="flex-1">
+      <AccCombobox selectType="deal" />
+    </div>
+    <label class="flex-1 min-w-max uppercase">
+      Cosigner
+      <input
+        type="text"
+        name="cosigner"
+        bind:value={deal.cosigner}
+        class="input"
+      />
+    </label>
+  </div>
   <InventoryCombobox selectType="deal" />
   <input
     type={"hidden"}

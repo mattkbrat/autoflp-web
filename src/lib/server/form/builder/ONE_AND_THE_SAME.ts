@@ -1,6 +1,6 @@
 import { fullNameFromPerson } from "$lib/format";
 import type { DetailedDeal } from "$lib/server/database/deal";
-import type { BuyersGuideTemplate, OneAndTheSameTemplate } from "./maps";
+import type { OneAndTheSameTemplate } from "./maps";
 
 export const fillOneAndTheSameData = (deal: NonNullable<DetailedDeal>) => {
 	return {

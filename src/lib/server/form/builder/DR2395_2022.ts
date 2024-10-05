@@ -28,7 +28,7 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 		}
 	}
 
-	const legalNames = [personFullName, deal.account.cosigner, personAddress.full]
+	const legalNames = [personFullName, deal.cosigner, personAddress.full]
 		.filter(Boolean)
 		.join("\n");
 
@@ -69,7 +69,7 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 			creditorAddress?.full || ""
 		}`.trim(),
 		"Lien Amount": deal.lien ? formatCurrency(+deal.lien) : undefined,
-		"Second Lienholder Name and Address": deal.account.cosigner || "",
+		"Second Lienholder Name and Address": deal.cosigner || "",
 		//"Lien Amount_2": "",
 		//"Indicate Alternate Address Here if The Title Should be Sent to a Different Lienholder Address": "",
 		//"Indicate Alternate Address Here if The Title Should be Sent to a Different Lienholder Address_2": "",
@@ -81,14 +81,8 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 		//Other: "",
 		//Other_1: "",
 		"ID #": deal.account.licenseNumber,
-		Expires:
-			(deal.account.licenseExpiration &&
-				formatDate(deal.account.licenseExpiration, dateFormatStandard)) ||
-			"",
-		DOB:
-			(deal.account.dateOfBirth &&
-				formatDate(deal.account.dateOfBirth, dateFormatStandard)) ||
-			"",
+		Expires: deal.account.licenseExpiration || "",
+		DOB: deal.account.dateOfBirth || "",
 		Date_2: date,
 		//"Previous Title Number": "",
 		//"Title Number": "",

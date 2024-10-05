@@ -3,10 +3,7 @@ import {
 	BUSINESS_NAME,
 	CITY,
 	DEALER_NUMBER,
-	EMAIL,
 	INVOICE_NUMBER,
-	PHONE_NUMBER,
-	PRIMARY_DEALER_NAME,
 	SALES_TAX_NUMBER,
 	STATE,
 } from "$env/static/private";
@@ -16,10 +13,9 @@ import {
 	formatCurrency,
 	fullNameFromPerson,
 } from "$lib/format";
-import type { DetailedDeal } from "$lib/server/database/deal";
 import { formatDate } from "date-fns";
 import type { DealFormParams } from ".";
-import type { BuyersGuideTemplate, SalesTaxReceiptTemplate } from "./maps";
+import type { SalesTaxReceiptTemplate } from "./maps";
 
 export const fillSalesTax0024Data = ({ deal, finance }: DealFormParams) => {
 	const { dealTrades: trades } = deal;
@@ -40,14 +36,9 @@ export const fillSalesTax0024Data = ({ deal, finance }: DealFormParams) => {
 	const { inventory } = deal;
 	const { make, model, year, vin } = inventory;
 	const personFullName = fullNameFromPerson({ person: deal.account.contact });
-	const creditorName = deal.creditor?.businessName;
 	const personAddress = addressFromPerson(deal.account.contact);
-	const creditorAddress =
-		deal.creditor && addressFromPerson(deal.creditor.contact);
 
-	const legalNames = [personFullName, deal.account.cosigner]
-		.filter(Boolean)
-		.join("\n");
+	const legalNames = [personFullName, deal.cosigner].filter(Boolean).join("\n");
 	return {
 		"Dealer Number": DEALER_NUMBER,
 		"Dealer Invoice Number": INVOICE_NUMBER,

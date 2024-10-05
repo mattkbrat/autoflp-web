@@ -12,23 +12,23 @@ import {
 	addressFromPerson,
 	dateFormatStandard,
 	formatCurrency,
+	formatSalesmen,
 	fullNameFromPerson,
 } from "$lib/format";
 import type { DealFormParams } from ".";
-import type { Nullable } from "vitest";
 
 export const fillBuyersOrderData = ({ deal, finance }: DealFormParams) => {
 	const {
 		creditor,
 		inventory,
 		account,
-		dealSalsemen: salesmen,
 		dealTrades: trades,
 		dealCharges: charges,
+		cosigner,
 	} = deal;
 	if (!deal.lien || !deal.term || !creditor || finance?.type !== "credit")
 		return {};
-	const { contact, cosigner } = account;
+	const { contact } = account;
 	if (!contact) {
 		console.error("No cotact provider for account", account.id, account);
 		return {};
@@ -36,25 +36,27 @@ export const fillBuyersOrderData = ({ deal, finance }: DealFormParams) => {
 	const address = addressFromPerson(contact);
 	const dealDate = formatDate(deal.date, dateFormatStandard);
 
-	console.log("salesmen", JSON.stringify(salesmen, null, 2));
-	const salesmenText = salesmen
-		?.map((s) =>
-			fullNameFromPerson({ person: s.salesman?.contact && s.salesman.contact }),
-		)
-		.join(", ");
-
 	const names = [fullNameFromPerson({ person: contact }), cosigner || null]
 		.filter(Boolean)
 		.join(", ");
-	const { id: iId, color, make, model, year, vin, mileage } = inventory;
+	const {
+		id: iId,
+		color,
+		make,
+		model,
+		year,
+		vin,
+		mileage,
+		inventory_salesman: salesmen,
+	} = inventory;
 
+	const salesmenText = formatSalesmen(salesmen, "contact");
 	const trade = trades?.[0];
 
 	const totalCharges = charges
 		?.map((c) => c.charge?.amount)
 		.reduce((a, b) => {
-			let c = a + Number(b || 0);
-			return c;
+			return a + Number(b || 0);
 		}, 0);
 	return {
 		"0": BUSINESS_NAME,

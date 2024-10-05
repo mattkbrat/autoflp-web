@@ -64,7 +64,6 @@ export const actions = {
 			licenseNumber: data.get("licenseNumber") as string,
 			licenseExpiration: data.get("licenseExpiration") as string,
 			notes: data.get("notes") as string,
-			cosigner: null,
 			dateOfBirth: null,
 			dateAdded: null,
 			dateModified: null,

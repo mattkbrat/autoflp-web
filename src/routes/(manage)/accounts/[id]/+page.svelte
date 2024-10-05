@@ -16,7 +16,8 @@ const fieldMap: (keyof Selected)[][] = [
 	["address_1", "address_2", "address_3"],
 	["city", "stateProvince", "zipPostal", "zip_4"],
 	["phonePrimary", "phoneSecondary", "phoneTertiary"],
-	["emailPrimary", "emailSecondary", "licenseNumber", "licenseExpiration"],
+	["emailPrimary", "emailSecondary"],
+	["licenseNumber", "licenseExpiration", "dateOfBirth"],
 ];
 
 $: if (data.account && selected.id !== data.account?.id) {

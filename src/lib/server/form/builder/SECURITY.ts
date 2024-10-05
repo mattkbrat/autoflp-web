@@ -4,19 +4,18 @@ import {
 	PRIMARY_DEALER_NAME,
 	STREET,
 } from "$env/static/private";
-import type { SecurityTemplate } from "./maps";
-import { add, formatDate } from "date-fns";
 import {
 	addressFromPerson,
 	dateFormatStandard,
 	formatCurrency,
 	fullNameFromPerson,
 } from "$lib/format";
-import { getPercent } from "$lib/finance";
+import { formatDate } from "date-fns";
 import type { DealFormParams } from ".";
+import type { SecurityTemplate } from "./maps";
 
 export const fillSecurityData = ({ deal, finance }: DealFormParams) => {
-	const { creditor, inventory } = deal;
+	const { cosigner, creditor, inventory } = deal;
 	if (!deal.lien || !creditor || finance?.type !== "credit") {
 		console.log("Missing data for security", {
 			lien: deal.lien,
@@ -39,7 +38,7 @@ export const fillSecurityData = ({ deal, finance }: DealFormParams) => {
 		? deal.term
 		: `${Number(deal.term) - 1} & 1`;
 
-	const { contact, cosigner } = deal.account;
+	const { contact } = deal.account;
 	const contactName = fullNameFromPerson({ person: contact });
 	const contactAddress = addressFromPerson(contact);
 	const creditorAddress = addressFromPerson(creditor.contact);

@@ -19,6 +19,7 @@ export type DealFields = {
 	apr: number;
 	term: number;
 	date: Date;
+	cosigner: string;
 	finance: FinanceCalcResult | null;
 };
 
@@ -42,6 +43,7 @@ export const defaultDeal: DealFields = {
 	trades: [],
 	date: new Date(),
 	finance: null,
+	cosigner: "",
 };
 
 export type DealFieldsWithFinance = DealFields & { finance: FinanceCalcResult };
