@@ -285,7 +285,11 @@ onMount(() => {
               }}
               name={key.key}
               type={key.type}
-              step={key.key === "year" ? 1 : 10}
+              step={key.type === "number"
+                ? key.key === "year"
+                  ? 1
+                  : 10
+                : undefined}
               class="uppercase input"
             />
           {:else}
