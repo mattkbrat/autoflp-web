@@ -17,9 +17,9 @@ export let placeholder: string | undefined = undefined;
 export let readonly = false;
 export let required = false;
 export let value = "";
+
 export let onSelect: (selected: string) => void;
 
-$: console.log("combo", options.slice(0, 10));
 let hasExited = false;
 export const filter = (text: string) => {
 	const sanitized = text.trim().toLowerCase();
@@ -244,13 +244,12 @@ function hideList() {
 	inputElement.focus();
 }
 
-$: if (value && !selectedOption?.value && options.length) {
+$: if (value && selectedOption?.value !== value && options.length) {
 	setTimeout(() => {
 		waitForElm(`#${CSS.escape(value)}`).then(
 			(el) => el && !hasExited && selectOption(el),
 		);
 	}, 200);
-	// console.log(element, value);
 }
 
 function selectOption(optionElement: HTMLElement) {
