@@ -2,18 +2,22 @@
 import { goto } from "$app/navigation";
 import { fullNameFromPerson } from "$lib/format";
 import { accountID, allAccounts, handleSelect } from "$lib/stores";
+import { derived } from "svelte/store";
 import ComboBox from "./ComboBox.svelte";
 
 export let selectType: "account" | "deal" = "account";
 
-$: options = $allAccounts.map((d) => {
-	const fullName = fullNameFromPerson({ person: d.contact });
-	return {
-		text: `${fullName} | ${d.licenseNumber}`,
-		value: d.id,
-		state: 1,
-	};
-});
+$: console.log("combobox", $allAccounts);
+const options = derived(allAccounts, ($acc) =>
+	$acc.map((d) => {
+		const fullName = fullNameFromPerson({ person: d.contact });
+		return {
+			text: `${fullName} | ${d.licenseNumber}`,
+			value: d.id,
+			state: 1,
+		};
+	}),
+);
 
 const handleNavigation = (route: string) => {
 	handleSelect("account", route);
@@ -30,7 +34,7 @@ const handleNavigation = (route: string) => {
     name="account"
     placeholder="Select an account"
     onSelect={handleNavigation}
-    {options}
+    options={$options}
     value={$accountID}
   />
 </div>

@@ -19,6 +19,7 @@ export let required = false;
 export let value = "";
 export let onSelect: (selected: string) => void;
 
+$: console.log("combo", options.slice(0, 10));
 let hasExited = false;
 export const filter = (text: string) => {
 	const sanitized = text.trim().toLowerCase();
@@ -253,8 +254,6 @@ $: if (value && !selectedOption?.value && options.length) {
 }
 
 function selectOption(optionElement: HTMLElement) {
-	console.log("selecting", optionElement);
-
 	if (!optionElement.dataset.text || !optionElement.dataset.value) return;
 
 	selectedOption = {
@@ -361,7 +360,7 @@ onMount(() => {
           <li
             class="list__option grid grid-cols-subgrid col-span-full"
             id={option.value}
-            class:bg-secondary-700={option.text === selectedOption.text}
+            class:bg-secondary-700={option.value === selectedOption.value}
             class:--disabled={option.disabled}
             role="option"
             tabindex={option.disabled === true ? undefined : -1}
