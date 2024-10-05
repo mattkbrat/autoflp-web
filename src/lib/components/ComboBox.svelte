@@ -2,6 +2,7 @@
 
 <script lang="ts">
 import { el, getElement, waitForElm } from "$lib/element";
+import { onMount } from "svelte";
 import { uid, onClickOutside, filterCache, type Option } from "./comboBox";
 
 export let disabled = undefined;
@@ -18,6 +19,7 @@ export let required = false;
 export let value = "";
 export let onSelect: (selected: string) => void;
 
+let hasExited = false;
 export const filter = (text: string) => {
 	const sanitized = text.trim().toLowerCase();
 	if (sanitized in filterCache) return filterCache[sanitized];
@@ -243,7 +245,9 @@ function hideList() {
 
 $: if (value && !selectedOption?.value && options.length) {
 	setTimeout(() => {
-		waitForElm(`#${CSS.escape(value)}`).then((el) => el && selectOption(el));
+		waitForElm(`#${CSS.escape(value)}`).then(
+			(el) => el && !hasExited && selectOption(el),
+		);
 	}, 200);
 	// console.log(element, value);
 }
@@ -264,6 +268,12 @@ function selectOption(optionElement: HTMLElement) {
 }
 
 $: cols = options[0]?.text?.split("|").length;
+
+onMount(() => {
+	return () => {
+		hasExited = true;
+	};
+});
 </script>
 
 <div class="flex flex-col focus-within:border-primary-200 print:hidden flex-1">
