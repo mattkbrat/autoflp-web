@@ -266,10 +266,8 @@ function selectOption(optionElement: HTMLElement) {
 $: cols = options[0]?.text?.split("|").length;
 </script>
 
-<div
-  class="flex flex-col gap-2 focus-within:border-primary-200 print:hidden flex-1"
->
-  <label class="label" for={id}>
+<div class="flex flex-col focus-within:border-primary-200 print:hidden flex-1">
+  <label class="min-w-max uppercase" for={id}>
     {label}
     {#if error}
       <span class="form-validation-error">

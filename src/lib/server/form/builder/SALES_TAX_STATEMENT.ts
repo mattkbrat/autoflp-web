@@ -39,7 +39,7 @@ export const fillSalesTaxStatement = ({ deal, finance }: DealFormParams) => {
 
 	return {
 		"0": formatCurrency(deal.cash),
-		"1": formatCurrency(Number(deal.cash) - totalTradeValue),
+		"1": formatCurrency(finance?.sellingTradeDifferential || 0),
 		"2": formatDate(date, dateFormatStandard),
 		"3": salesmen,
 		"4": year,

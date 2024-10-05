@@ -42,9 +42,6 @@ export const upsertDeal = async (
 	);
 	const account = await getAccount({ id: deal.account });
 
-	// const creditor =
-	// 	deal.term > 0 ? await getCreditor({ id: deal.creditor }) : null;
-
 	let updatedDeal: Deal | null = null;
 
 	if (!account) {

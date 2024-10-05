@@ -21,7 +21,7 @@ const currencyFormat = new Intl.NumberFormat("en-US", {
 });
 
 export const formatCurrency = (
-	amount: string | number | undefined,
+	amount: string | number | undefined | null,
 	blankZeroes = true,
 ) => {
 	if (!amount || Number.isNaN(Number(amount))) return "-";

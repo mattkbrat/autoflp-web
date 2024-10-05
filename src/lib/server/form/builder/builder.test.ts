@@ -1,39 +1,8 @@
 import { getDetailedDeal } from "$lib/server/database/deal";
 import { describe, it, assert, expect, vi } from "vitest";
 import { builder } from ".";
-import type { StringObj } from "$lib/types";
-import { getDR2395_2022Data } from "./maps/getDR2395_2022Template";
 import { forms } from "$lib/types/forms";
 import { env } from "$env/dynamic/private";
-
-const letters = [
-	"A",
-	"B",
-	"C",
-	"D",
-	"E",
-	"F",
-	"G",
-	"H",
-	"I",
-	"J",
-	"K",
-	"L",
-	"M",
-	"N",
-	"O",
-	"P",
-	"Q",
-	"R",
-	"S",
-	"T",
-	"U",
-	"V",
-	"W",
-	"X",
-	"Y",
-	"Z",
-];
 
 describe("Can generate forms from pre-created deal", async () => {
 	it("generates forms", async () => {

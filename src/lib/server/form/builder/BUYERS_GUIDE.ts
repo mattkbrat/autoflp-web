@@ -3,7 +3,6 @@ import {
 	BUSINESS_NAME,
 	EMAIL,
 	PHONE_NUMBER,
-	PRIMARY_DEALER_NAME,
 } from "$env/static/private";
 import type { DetailedDeal } from "$lib/server/database/deal";
 import type { Inventory } from "@prisma/client";
