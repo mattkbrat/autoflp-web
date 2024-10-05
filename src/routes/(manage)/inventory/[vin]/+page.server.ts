@@ -129,6 +129,7 @@ export const actions = {
 		console.log(builtForms);
 		return {
 			forms: builtForms || [],
+			formsName: new Date().getTime(),
 		};
 	},
 } satisfies Actions;

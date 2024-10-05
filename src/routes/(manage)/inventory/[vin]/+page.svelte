@@ -11,13 +11,16 @@ import type { ParsedNHTA } from "$lib/server/inventory";
 import { allInventory, selectedStates } from "$lib/stores";
 import type { FormFields } from "$lib/types/forms";
 import { onMount } from "svelte";
+import type { ActionData } from "./$types";
 
 const thisYear = new Date().getFullYear();
 
 let shouldFocus = false;
 let hasLoaded = false;
+let printedForms = 0;
 
 export let data: { inventory: Inventory };
+export let form: ActionData;
 
 let selected: Partial<Inventory> = {};
 let hasCleared = false;
@@ -196,6 +199,34 @@ const toggleState = (oldState: number) => {
 	}, 150);
 };
 
+$: if (form?.data) {
+	const { vin, id } = form.data;
+	if (id) {
+		selected.id = id;
+	}
+	if (vin) {
+		updateAllInventory(vin, data.inventory);
+	}
+
+	if (data && "data" in data && data.data) {
+	} else if (data && "forms" in data) {
+		//await update();
+		const { forms } = data || {
+			id: "",
+			forms: [],
+		};
+		if (!Array.isArray(forms)) {
+			console.log("Failed to get forms", data);
+		}
+	}
+}
+
+$: if (form?.forms?.length && form.formsName !== printedForms) {
+	getZip(form.forms, { type: "inventory", inventory: selected }).then(() => {
+		printedForms = form.formsName;
+	});
+}
+
 onMount(() => {
 	if (!data.inventory?.vin) {
 		if ($selectedStates.inventoryID) {
@@ -218,30 +249,8 @@ onMount(() => {
   class="flex flex-col flex-wrap space-y-4"
   id="inventory-form"
   use:enhance={() => {
-    return async ({ result, update }) => {
-      console.log(result);
-      if (!("data" in result) || !result.data) return;
-      await update();
-      if (result.data && "data" in result.data && result.data.data) {
-        const { vin, id } = result.data.data;
-        if (id) {
-          selected.id = id;
-        }
-        if (vin) {
-          updateAllInventory(vin, result.data.data);
-        }
-      } else if (result.data && "forms" in result.data) {
-        //await update();
-        const { forms } = result.data || {
-          id: "",
-          forms: [],
-        };
-        if (!Array.isArray(forms)) {
-          console.log("Failed to get forms", result.data);
-          return;
-        }
-        await getZip(forms, { type: "inventory", inventory: selected });
-      }
+    return async ({ update }) => {
+      await update({ reset: false });
     };
   }}
 >
