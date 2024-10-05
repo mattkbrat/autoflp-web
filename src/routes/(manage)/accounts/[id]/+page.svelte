@@ -17,12 +17,24 @@ export let form: ActionData;
 $: if (form?.data) {
 	allAccounts.update((curr) => {
 		const index = curr.findIndex((a) => a.id === form.data.account.id);
+		const {
+			data: {
+				account: { id: accountId, licenseNumber },
+				contact,
+			},
+		} = form;
 		if (index === -1) {
-			console.error("Failed to find account in list by id", curr);
+			curr.unshift({
+				id: accountId,
+				licenseNumber,
+				contact,
+			});
+			goto(`/accounts/${accountId}`);
+		} else {
+			curr[index].id = accountId;
+			curr[index].licenseNumber = licenseNumber;
+			curr[index].contact = contact;
 		}
-		curr[index].id = form.data.account.id;
-		curr[index].licenseNumber = form.data.account.licenseNumber;
-		curr[index].contact = form.data.contact;
 
 		return curr;
 	});
@@ -136,7 +148,7 @@ $: if (data.account && selected.id !== data.account?.id) {
       class="btn variant-outline-warning min-w-48"
       on:click={() => {
         handleSelect("account", "new");
-        goto('/accounts/new')
+        goto("/accounts/new");
       }}
     >
       Clear
