@@ -11,7 +11,6 @@ datasource db {
 model Account {
   id                String  @id @default("lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))")
   contact_id        String  @unique(map: "sqlite_autoindex_account_2") @map("contact")
-  cosigner          String?
   dateOfBirth       String? @map("date_of_birth")
   licenseNumber     String  @unique(map: "sqlite_autoindex_account_3") @map("license_number")
   licenseExpiration String? @map("license_expiration")
@@ -22,7 +21,6 @@ model Account {
   contact           Person  @relation(fields: [contact_id], references: [id], onDelete: Cascade)
   deals             Deal[]  @relation("deal_accountToaccount")
 
-  @@unique([contact_id, cosigner], map: "sqlite_autoindex_account_4")
   @@map("account")
 }
 
@@ -73,6 +71,7 @@ model Deal {
   taxState    String?      @map("tax_state")
   taxCounty   String?      @map("tax_county")
   taxRtd      String?      @map("tax_rtd")
+  cosigner    String?
   creditor    Creditor?    @relation("deal_creditorTocreditor", fields: [creditorId], references: [id], onDelete: Cascade, onUpdate: SetNull)
   inventory   Inventory    @relation("deal_inventoryToinventory", fields: [inventoryId], references: [vin], onDelete: Cascade)
   account     Account      @relation("deal_accountToaccount", fields: [accountId], references: [id], onDelete: Cascade)
@@ -137,11 +136,11 @@ model Inventory {
   cash               String?
   credit             String?
   down               String?
-  purchasePrice      String?             @map("purchase_price")
+  purchase_price     String?
   state              Int                 @default(1)
   deals              Deal[]              @relation("deal_inventoryToinventory")
   dealTrades         DealTrade[]
-  inventory_salesman InventorySalesman[]
+  inventory_salesman inventorySalesman[]
 
   @@map("inventory")
 }
@@ -186,11 +185,11 @@ model Person {
 }
 
 model Salesman {
-  id                String              @id @default("lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))")
-  contactId         String              @unique(map: "sqlite_autoindex_salesman_2") @map("person")
-  state             Int                 @default(1)
-  inventorySalesmen InventorySalesman[] @relation("inventory_salesman_salesmanTosalesman")
-  contact           Person              @relation("salesman_personToperson", fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                 String              @id @default("lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))")
+  contactId          String              @unique(map: "sqlite_autoindex_salesman_2") @map("person")
+  state              Int                 @default(1)
+  inventory_salesman inventorySalesman[] @relation("inventory_salesman_salesmanTosalesman")
+  contact            Person              @relation("salesman_personToperson", fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("salesman")
 }
@@ -204,7 +203,7 @@ model key {
   @@unique([k, business], map: "sqlite_autoindex_key_2")
 }
 
-model InventorySalesman {
+model inventorySalesman {
   id         String    @id @default("lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))")
   vin        String
   salesmanId String    @map("salesman")
