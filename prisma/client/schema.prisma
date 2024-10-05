@@ -136,7 +136,7 @@ model Inventory {
   cash               String?
   credit             String?
   down               String?
-  purchase_price     String?
+  purchasePrice      String?             @map("purchase_price")
   state              Int                 @default(1)
   deals              Deal[]              @relation("deal_inventoryToinventory")
   dealTrades         DealTrade[]
