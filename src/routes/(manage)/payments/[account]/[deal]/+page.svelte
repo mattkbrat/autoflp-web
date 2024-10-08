@@ -164,7 +164,7 @@ $: if (
   >
     <section class="bg-black/20 py-6 px-2 print:hidden">
       <h2>Admin Panel</h2>
-      <section class="flex flex-row flex-wrap">
+      <section class="flex flex-row flex-wrap text-surface-50">
         <form
           method="post"
           action="?/toggleState"
@@ -179,8 +179,8 @@ $: if (
           <input type="hidden" name="state" value={selected.state} />
           <button
             type="submit"
-            class="btn variant-outline-secondary flex flex-col"
-            class:bg-secondary-700={selected.state}
+            class="btn variant-outline-secondary flex flex-col flex-1"
+            class:bg-secondary-900={selected.state}
           >
             <span> Toggle State </span>
             <span class="text-sm">
@@ -191,7 +191,7 @@ $: if (
         <button
           type="button"
           class="btn variant-outline-tertiary flex flex-col"
-          class:bg-tertiary-700={showMissingPayments}
+          class:bg-tertiary-900={showMissingPayments}
           on:click={() => (showMissingPayments = !showMissingPayments)}
         >
           <span> Missing Payments </span>
@@ -203,7 +203,7 @@ $: if (
           type="button"
           class="btn variant-outline-tertiary flex flex-col"
           on:click={() => (showFuturePayments = !showFuturePayments)}
-          class:bg-tertiary-700={showFuturePayments}
+          class:bg-tertiary-900={showFuturePayments}
         >
           <span> Future Payments </span>
           <span class="text-sm">
@@ -323,7 +323,7 @@ $: if (
       </div>
     </section>
 
-    <section class="flex-1">
+    <section class="flex-1 hidden md:block">
       <h2>Amortization Schedule</h2>
       <table class="w-full">
         <thead>
@@ -345,7 +345,6 @@ $: if (
             {@const dateAfter = isAfter(row.date, today)}
             {@const isCurrentMonth = isSameMonth(row.date, today)}
             <tr
-              class:text--600={dateAfter && !isCurrentMonth}
               class:!bg-gray-400={isCurrentMonth}
               class:dark:text-gray-200={!dateAfter && !isCurrentMonth}
               class:dark:!bg-gray-800={isCurrentMonth}
