@@ -51,7 +51,7 @@ let showFuturePayments = false;
 $: filteredSchedule = scheduleRows.filter((r) => {
 	if (r.paid) return true;
 	const monthDiff = differenceInMonths(r.date, today);
-	if (isSameMonth(r.date, today)) return true;
+	if (isSameMonth(r.date, now)) return true;
 	if (monthDiff >= 0) return showFuturePayments;
 	return showMissingPayments;
 });
@@ -342,8 +342,8 @@ $: if (
         <tbody class="font-mono text-right">
           <!-- (r) => r.paid || Math.abs(differenceInMonths(r.date, today)) < 2 -->
           {#each filteredSchedule as row}
-            {@const dateAfter = isAfter(row.date, today)}
-            {@const isCurrentMonth = isSameMonth(row.date, today)}
+            {@const dateAfter = isAfter(row.date, now)}
+            {@const isCurrentMonth = isSameMonth(row.date, now)}
             <tr
               class:!bg-gray-400={isCurrentMonth}
               class:dark:text-gray-200={!dateAfter && !isCurrentMonth}
