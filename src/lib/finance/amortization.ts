@@ -1,5 +1,6 @@
 import {
 	addBusinessDays,
+	addMinutes,
 	addMonths,
 	differenceInMonths,
 	isAfter,
@@ -54,7 +55,7 @@ export const amoritization = ({
 
 		const sameMonth = isSameMonth(today, dueDate);
 		const dateAfterToday = withHistory && isAfter(dueDate, today) && !sameMonth;
-		const date = startOfMonth(dueDate);
+		const date = addMinutes(startOfMonth(dueDate), 10);
 
 		const matchingPayments =
 			history?.filter((p) => isSameMonth(date, p.date)) || [];
@@ -137,6 +138,8 @@ export const amoritization = ({
 	};
 };
 
+const newSystemStart = new Date(2024, 9, 1);
+
 export const dealAmortization = (
 	deal: Deal,
 	payments: AmortizationPayments,
@@ -144,13 +147,17 @@ export const dealAmortization = (
 	const balance = Number(deal?.finance);
 	const term = Number(deal.term);
 
+	const dealDate = new Date(deal.date);
+	const monthOffset = isBefore(dealDate, newSystemStart) ? 2 : 1;
+	const startDate = addMonths(dealDate, monthOffset);
+
 	const apr = getPercent(Number(deal.apr));
 	const params: AmortizationParams = {
 		term,
 		balance,
 		apr,
 		pmt: Number(deal.pmt),
-		startDate: addMonths(new Date(deal.date), 1),
+		startDate,
 		history: payments,
 	};
 
