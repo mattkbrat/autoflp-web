@@ -2,6 +2,7 @@ import { assert, describe, expect, it } from "vitest";
 import { amoritization, type AmortizationParams } from "./amortization";
 import { getDeal } from "$lib/server/database/deal";
 import { getPercent } from "./getPercent";
+import { addMonths } from "date-fns";
 
 describe("can create a schedule", async () => {
 	const deal = await getDeal({ id: "af3dc147-cea2-46cd-a25e-3e83c1236a68" });
@@ -21,7 +22,7 @@ describe("can create a schedule", async () => {
 			balance,
 			apr,
 			pmt: Number(deal.pmt),
-			startDate: new Date(deal.date),
+			startDate: addMonths(new Date(deal.date), 1),
 		};
 		const { schedule, lastBalance, monthlyRate } = amoritization(params);
 
