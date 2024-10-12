@@ -1,23 +1,13 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
-import { page } from "$app/stores";
 import { el, waitForElm } from "$lib/element";
-import {
-	dateFormatStandard,
-	formatCurrency,
-	formatDate,
-	fullNameFromPerson,
-} from "$lib/format";
-import type { Deals } from "$lib/server/database/deal";
-import { accountDeals } from "$lib/stores";
+import { formatCurrency, formatDate, fullNameFromPerson } from "$lib/format";
+import type { PageServerData } from "./$types";
 import { browser } from "$app/environment";
-import { addMonths } from "date-fns/addMonths";
 import { addDays } from "date-fns/addDays";
 export let data: PageServerData;
-  import type { PageServerData } from "./$types";
-  export let data: PageServerData;
 
-  $: selected = data.deal;
+$: selected = data.deal;
 
 const now = new Date();
 let today = "";
@@ -30,7 +20,7 @@ $: if (!today && browser) {
 	});
 }
 
-$: selectedFinance = +(selected?.finance || 0);
+$: selectedFinance = Number(selected?.finance || 0);
 $: schedule = data.schedule;
 $: scheduleRows = data.schedule.schedule.toReversed();
 $: totalOwed = schedule.owed;
@@ -45,7 +35,8 @@ let showMissingPayments = false;
 let showFuturePayments = false;
 
 $: filteredSchedule = scheduleRows.filter((r) => {
-	if (r.paid) return true;
+	// console.table(r);
+	if (Number.isFinite(Number(r.paid)) && r.dateType === "b") return true;
 	if (r.dateType === "m") return true;
 	if (r.dateType === "a") return showFuturePayments;
 	return showMissingPayments;
@@ -147,7 +138,7 @@ $: if (
   {#if selected?.date}
     <span class="text-center">
       Starting
-      {formatDate(addMonths(selected.date, 1), "MMM yyyy")}
+      {formatDate(schedule.startDate)}
     </span>
   {/if}
   <span class="text-right">
@@ -271,7 +262,7 @@ $: if (
             <input
               type="hidden"
               name="deal"
-              value={deal}
+              value={selected.id}
               required
               class="input"
             />
@@ -314,11 +305,11 @@ $: if (
               <input
                 type="hidden"
                 name="deal"
-                value={deal}
+                value={selected.id}
                 required
                 class="input"
               />
-              <div class="text-right">{formatCurrency(pmt.amount)}</div>
+              <div class="text-right">{pmt.amount}</div>
               <input type="hidden" name="id" value={pmt.id} />
               <button type="submit" class="btn variant-outline-error">
                 Remove
@@ -329,7 +320,7 @@ $: if (
       </div>
     </section>
 
-    <section class="flex-1 hidden md:block">
+    <section class="flex-1">
       <h2>Payment History</h2>
       <table class="w-full">
         <thead>
@@ -337,16 +328,15 @@ $: if (
             <th>Date</th>
             <!-- <th>Monthly</th> -->
             <th>Paid</th>
-            <th>Interest</th>
             <th>Principal</th>
-            <th>Balance</th>
-            <th>Advanced</th>
-            <th>Int (%)</th>
+            <th>Interest</th>
+            <!-- <th>Int (%)</th> -->
             <th>Princ (%)</th>
+            <th>Advanced</th>
+            <th>Balance</th>
           </tr>
         </thead>
         <tbody class="font-mono text-right">
-          <!-- (r) => r.paid || Math.abs(differenceInMonths(r.date, today)) < 2 -->
           {#each filteredSchedule as row}
             {@const dateAfter = row.dateType === "a"}
             {@const isCurrentMonth = row.dateType === "m"}
@@ -359,24 +349,12 @@ $: if (
             >
               <td>
                 {formatDate(addDays(row.date, 1), "MMM `yy")}
-                <!-- <span> -->
-                <!--   {row.date} -->
-                <!-- </span> -->
               </td>
-              <!-- <td> -->
-              <!--   {formatCurrency(row.expected)} -->
-              <!-- </td> -->
               <td
                 class:text-center={!row.paid}
                 class:text-red-600={!row.paid && !dateAfter}
               >
-                {formatCurrency(row.paid)}
-              </td>
-              <td
-                class:text-center={!row.interest}
-                class:text-red-600={!row.paid && !dateAfter}
-              >
-                {formatCurrency(row.interest)}
+                {row.paid}
               </td>
               <td
                 class:text-center={!row.principal}
@@ -384,27 +362,36 @@ $: if (
               >
                 {formatCurrency(row.principal)}
               </td>
-              <td>
-                {formatCurrency(row.lastBalance)}
+              <td
+                class:text-center={!row.interest}
+                class:text-red-600={!row.paid && !dateAfter}
+              >
+                {formatCurrency(row.interest)}
               </td>
-              <td>
-                {formatCurrency(row.delinquentBalance * -1)}
-              </td>
-              <td>
-                {formatCurrency(row.percentInterest * 100)}{" "}<span
-                  class="text-xs">%</span
-                >
-              </td>
+              <!-- <td> -->
+              <!--   {formatCurrency(row.percentInterest * 100)}{" "}<span -->
+              <!--     class="text-xs">%</span -->
+              <!--   > -->
+              <!-- </td> -->
               <td>
                 {formatCurrency(row.percentPrincipal * 100)}{" "}<span
                   class="text-xs">%</span
                 >
               </td>
+              <td>
+                {formatCurrency(row.delinquentBalance * -1)}
+              </td>
+              <td>
+                {formatCurrency(row.lastBalance)}
+              </td>
             </tr>
           {/each}
         </tbody>
-        <!-- <tfoot> -->
-        <!-- </tfoot> -->
+        <tfoot>
+          <tr>
+            <td class="row-span-full">* expected</td>
+          </tr>
+        </tfoot>
       </table>
     </section>
   </div>
