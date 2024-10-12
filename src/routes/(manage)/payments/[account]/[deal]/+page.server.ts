@@ -8,18 +8,18 @@ import {
 	defaultSchedule,
 	type AmortizedDeal,
 } from "$lib/finance/amortization";
-import { getDeal, updatePartialDeal } from "$lib/server/database/deal";
+import { getDetailedDeal, updatePartialDeal } from "$lib/server/database/deal";
 import type { PageServerLoad } from "./$types";
 export const load: PageServerLoad = async ({ params }) => {
 	const payments = await getPayments(params.deal);
-	const deal = await getDeal({ id: params.deal });
+	const deal = await getDetailedDeal({ id: params.deal });
 	const schedule: AmortizedDeal = deal?.finance
 		? dealAmortization(deal, payments)
 		: defaultSchedule;
-	// console.log({ deal }, schedule);
 	return {
 		payments,
 		schedule,
+		deal,
 	};
 };
 

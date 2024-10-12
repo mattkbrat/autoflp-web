@@ -10,15 +10,15 @@ import {
 } from "$lib/format";
 import type { Deals } from "$lib/server/database/deal";
 import { accountDeals } from "$lib/stores";
-import type { PageData } from "./$types";
 import { browser } from "$app/environment";
 import { addMonths } from "date-fns/addMonths";
 import { addDays } from "date-fns/addDays";
-export let data: PageData;
+export let data: PageServerData;
+  import type { PageServerData } from "./$types";
+  export let data: PageServerData;
 
-let selected: Deals[number] | null = null;
+  $: selected = data.deal;
 
-$: deal = $page.params.deal;
 const now = new Date();
 let today = "";
 
@@ -28,9 +28,6 @@ $: if (!today && browser) {
 		today = now.toISOString().split("T")[0];
 		el.value = today;
 	});
-}
-$: if (deal && $accountDeals) {
-	selected = $accountDeals.find((d) => d.id === deal) || null;
 }
 
 $: selectedFinance = +(selected?.finance || 0);
