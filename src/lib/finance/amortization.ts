@@ -55,7 +55,6 @@ export const amoritization = ({
 		const dueDate = addMonths(startDate, n);
 
 		const sameMonth = isSameMonth(today, dueDate);
-		const dateAfterToday = withHistory && isAfter(dueDate, today) && !sameMonth;
 		const date = addMinutes(startOfMonth(dueDate), 10);
 
 		const matchingPayments =
@@ -76,6 +75,8 @@ export const amoritization = ({
 		if (totalPaidInMonth) {
 			totalPaid += totalPaidInMonth;
 		}
+		const dateAfterToday =
+			withHistory && !totalPaidInMonth && isAfter(dueDate, today) && !sameMonth;
 
 		const pmtDiff = dateAfterToday ? 0 : pmt - totalPaidInMonth;
 
