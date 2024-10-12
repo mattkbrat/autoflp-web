@@ -10,7 +10,6 @@ import {
 } from "$lib/format";
 import type { Deals } from "$lib/server/database/deal";
 import { accountDeals } from "$lib/stores";
-import { differenceInMonths, isAfter, isSameMonth } from "date-fns";
 import type { PageData } from "./$types";
 import { browser } from "$app/environment";
 import { addMonths } from "date-fns/addMonths";
@@ -50,9 +49,8 @@ let showFuturePayments = false;
 
 $: filteredSchedule = scheduleRows.filter((r) => {
 	if (r.paid) return true;
-	const monthDiff = differenceInMonths(r.date, today);
-	if (isSameMonth(r.date, now)) return true;
-	if (monthDiff >= 0) return showFuturePayments;
+	if (r.dateType === "m") return true;
+	if (r.dateType === "a") return showFuturePayments;
 	return showMissingPayments;
 });
 
@@ -342,8 +340,8 @@ $: if (
         <tbody class="font-mono text-right">
           <!-- (r) => r.paid || Math.abs(differenceInMonths(r.date, today)) < 2 -->
           {#each filteredSchedule as row}
-            {@const dateAfter = isAfter(row.date, now)}
-            {@const isCurrentMonth = isSameMonth(row.date, now)}
+            {@const dateAfter = row.dateType === "a"}
+            {@const isCurrentMonth = row.dateType === "m"}
             <tr
               class:!bg-gray-400={isCurrentMonth}
               class:dark:text-gray-200={!dateAfter && !isCurrentMonth}

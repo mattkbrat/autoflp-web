@@ -109,6 +109,7 @@ export const amoritization = ({
 			percentInterest:
 				percentInterest < 1 && percentInterest > 0 ? percentInterest : 0,
 			delinquentBalance: pmtDiff,
+			dateType: sameMonth ? "m" : dateAfterToday ? "a" : "b",
 		};
 
 		schedule.push(scheduleRow);
