@@ -1,19 +1,21 @@
 import {
 	addBusinessDays,
-	addMinutes,
 	addMonths,
 	differenceInMonths,
+	endOfMonth,
+	formatDate,
 	isAfter,
 	isBefore,
 	isSameMonth,
 	isSunday,
-	setDay,
+	setDate,
 	startOfMonth,
 } from "date-fns";
 import { roundToPenny } from "./roundToPenny";
 import type { Deal } from "@prisma/client";
 import { getPercent } from "./getPercent";
 import type { AmortizationPayments } from "$lib/types";
+import { dateFormatStandard, formatCurrency } from "$lib/format";
 
 export type AmortizationParams = {
 	term: number;
@@ -38,35 +40,35 @@ export const amoritization = ({
 	const monthlyRate = apr / term;
 	let lastBalance = balance;
 	let totalPaid = 0;
-	// let totalDelinquent = 0;
 	let n = -1;
 	const today = new Date();
 
-	console.log({ today, startDate });
 	const monthSinceDeal = differenceInMonths(today, startDate);
-
 	const totalExpected = Math.min(monthSinceDeal + 1, term) * pmt;
 
 	const schedule = [];
+	const matchedIds: string[] = [];
 
 	while (lastBalance > 0 && n < 100) {
+		const pmtRef = lastBalance;
 		n++;
 
 		const dueDate = addMonths(startDate, n);
+		const dueDateEOM = endOfMonth(dueDate);
 
-		const sameMonth = isSameMonth(today, dueDate);
-		const date = addMinutes(startOfMonth(dueDate), 10);
+		const sameMonth = isSameMonth(today, dueDateEOM);
+		const date = startOfMonth(dueDateEOM);
 
-		const matchingPayments =
-			history?.filter((p) => isSameMonth(date, p.date)) || [];
+		const nextIndex = history
+			?.slice(matchedIds.length)
+			.filter((i) => isBefore(i.date, dueDateEOM));
+		const matchingPayments = history?.slice(
+			matchedIds.length,
+			(nextIndex ? nextIndex.length : 0) + matchedIds.length,
+		);
 
-		if (n === 0) {
-			const matchingIds = matchingPayments.map((p) => p.id);
-			for (const p of history || []) {
-				if (!isBefore(p.date, startDate)) break;
-				if (matchingIds.includes(p.id)) continue;
-				matchingPayments.push(p);
-			}
+		for (const p of matchingPayments || []) {
+			matchedIds.push(p.id);
 		}
 
 		const totalPaidInMonth =
@@ -76,7 +78,7 @@ export const amoritization = ({
 			totalPaid += totalPaidInMonth;
 		}
 		const dateAfterToday =
-			withHistory && !totalPaidInMonth && isAfter(dueDate, today) && !sameMonth;
+			withHistory && !totalPaidInMonth && isAfter(dueDate, today);
 
 		const pmtDiff = dateAfterToday ? 0 : pmt - totalPaidInMonth;
 
@@ -84,9 +86,10 @@ export const amoritization = ({
 
 		const interest = lastBalance * monthlyRate;
 
-		let principal = dateAfterToday ? schedulePmt : totalPaidInMonth - interest;
+		let principal =
+			(dateAfterToday ? schedulePmt : totalPaidInMonth) - interest;
 
-		if (totalPaidInMonth > 0 || dateAfterToday) {
+		if (totalPaidInMonth !== 0 || dateAfterToday) {
 			// Principal cannot be applied without a payment
 			lastBalance -= principal;
 		}
@@ -103,8 +106,10 @@ export const amoritization = ({
 			lastBalance,
 			principal: roundToPenny(principal),
 			interest: roundToPenny(interest),
-			date,
-			paid: totalPaidInMonth,
+			date: formatDate(date, dateFormatStandard),
+			paid: dateAfterToday
+				? `${formatCurrency(principal + interest)}*`
+				: formatCurrency(totalPaidInMonth),
 			expected: !dateAfterToday ? pmt : roundToPenny(principal + interest),
 			percentPrincipal:
 				percentPrincipal < 1 && percentPrincipal > 0 ? percentPrincipal : 0,
@@ -121,16 +126,23 @@ export const amoritization = ({
 
 	const futurePaymentSum = schedule.reduce((acc, curr) => {
 		if (curr.dateType !== "a") return acc;
-		console.log("add", curr.dateType, curr.expected, curr.date);
 		return acc + curr.expected;
 	}, 0);
 
-	const { lastBalance: currLastBal, interest } = schedule?.find(
-		(i) => i.dateType === "m",
-	) || { lastBalance: owed, interest: 0 };
+	const {
+		lastBalance: currLastBal,
+		interest,
+		paid,
+	} = schedule?.find((i) => isSameMonth(i.date, today)) || {
+		lastBalance: owed,
+		interest: 0,
+	};
 
-	const nextDueDate = addMonths(setDay(today, startDate.getDay()), 1);
-
+	console.log("payoff", currLastBal, interest);
+	const nextDueDate = setDate(
+		addMonths(today, paid && Number.isFinite(Number(paid)) ? 1 : 0),
+		startDate.getDate(),
+	);
 	return {
 		schedule,
 		monthlyRate,
@@ -142,13 +154,12 @@ export const amoritization = ({
 		totalExpected: roundToPenny(totalExpected),
 		owed: currLastBal,
 		payoff: currLastBal > 0 ? roundToPenny(currLastBal + interest) : 0,
+		startDate,
 		nextDueDate: isSunday(nextDueDate)
 			? addBusinessDays(nextDueDate, 1)
 			: nextDueDate,
 	};
 };
-
-const newSystemStart = new Date(2024, 9, 1);
 
 export const dealAmortization = (
 	deal: Deal,
@@ -158,8 +169,7 @@ export const dealAmortization = (
 	const term = Number(deal.term);
 
 	const dealDate = new Date(deal.date);
-	const monthOffset = isBefore(dealDate, newSystemStart) ? 2 : 1;
-	const startDate = addMonths(dealDate, monthOffset);
+	const startDate = addMonths(dealDate, 1);
 
 	const apr = getPercent(Number(deal.apr));
 	const params: AmortizationParams = {
