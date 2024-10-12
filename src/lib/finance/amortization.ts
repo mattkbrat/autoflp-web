@@ -42,9 +42,10 @@ export const amoritization = ({
 	let n = -1;
 	const today = new Date();
 
+	console.log({ today, startDate });
 	const monthSinceDeal = differenceInMonths(today, startDate);
 
-	const totalExpected = Math.min(monthSinceDeal, term) * pmt;
+	const totalExpected = Math.min(monthSinceDeal + 1, term) * pmt;
 
 	const schedule = [];
 
@@ -103,7 +104,7 @@ export const amoritization = ({
 			interest: roundToPenny(interest),
 			date,
 			paid: totalPaidInMonth,
-			expected: !dateAfterToday ? pmt : schedulePmt,
+			expected: !dateAfterToday ? pmt : roundToPenny(principal + interest),
 			percentPrincipal:
 				percentPrincipal < 1 && percentPrincipal > 0 ? percentPrincipal : 0,
 			percentInterest:
@@ -117,8 +118,14 @@ export const amoritization = ({
 
 	const owed = balance - totalPaid;
 
-	const { lastBalance: currLastBal, interest } = schedule?.find((i) =>
-		isSameMonth(i.date, today),
+	const futurePaymentSum = schedule.reduce((acc, curr) => {
+		if (curr.dateType !== "a") return acc;
+		console.log("add", curr.dateType, curr.expected, curr.date);
+		return acc + curr.expected;
+	}, 0);
+
+	const { lastBalance: currLastBal, interest } = schedule?.find(
+		(i) => i.dateType === "m",
 	) || { lastBalance: owed, interest: 0 };
 
 	const nextDueDate = addMonths(setDay(today, startDate.getDay()), 1);
@@ -129,10 +136,11 @@ export const amoritization = ({
 		lastBalance,
 		pmt,
 		totalPaid,
+		futurePaymentSum,
 		totalDelinquent: totalExpected - totalPaid,
 		totalExpected: roundToPenny(totalExpected),
 		owed: currLastBal,
-		payoff: currLastBal + interest,
+		payoff: currLastBal > 0 ? roundToPenny(currLastBal + interest) : 0,
 		nextDueDate: isSunday(nextDueDate)
 			? addBusinessDays(nextDueDate, 1)
 			: nextDueDate,

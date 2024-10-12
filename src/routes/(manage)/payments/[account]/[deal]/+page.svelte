@@ -100,12 +100,6 @@ $: if (
   </span>
   <span>
     <span class="text-lg">
-      {selected && formatCurrency(schedule.pmt)}
-    </span>
-    <br />Monthly
-  </span>
-  <span>
-    <span class="text-lg">
       {formatCurrency(schedule.totalPaid)}
     </span>
     <br /> paid
@@ -118,7 +112,7 @@ $: if (
       <br />Expected
     </span>
   {/if}
-  {#if selected?.state}
+  {#if selected?.state && Math.abs(totalDelinquent) > 5}
     <span class:hidden={!totalDelinquent}>
       <span class="text-lg">
         {formatCurrency(Math.abs(totalDelinquent))}
@@ -129,15 +123,29 @@ $: if (
   {/if}
   <span>
     <span class="text-lg">
-      {formatCurrency(totalOwed)}
+      {formatCurrency(schedule.payoff)}
     </span>
-    <br /> Remaining Owed
+    <br /> Payoff
+  </span>
+  <span>
+    <span class="text-lg">
+      {formatCurrency(schedule.futurePaymentSum)}
+    </span>
+    <br /> remaining
   </span>
 </div>
 <hr />
 <span class="grid grid-cols-3 border-b-2">
   <span>
-    {selected && Number(selected.term)} month term
+    {selected && Number(selected.term)} month term;
+    <span class="text-lg">
+      {selected && formatCurrency(schedule.pmt)}
+      Monthly;
+    </span>
+    <span>
+      {selected && formatCurrency(selected.lien)}
+      lien
+    </span>
   </span>
   {#if selected?.date}
     <span class="text-center">
@@ -148,7 +156,9 @@ $: if (
   <span class="text-right">
     {#if selected?.state}
       Next payment due by
-      {formatDate(schedule.nextDueDate)}
+      <span class="text-lg">
+        {formatDate(schedule.nextDueDate)}
+      </span>
     {:else}
       Thank you!
     {/if}
@@ -255,6 +265,7 @@ $: if (
               name="pmt"
               id={"pmt-amount"}
               min={0}
+              step={0.01}
               required
               class="input"
               bind:value={defaultPmt.amount}
@@ -285,7 +296,7 @@ $: if (
               class="btn variant-outline-secondary col-span-full"
               type="button"
               on:click={() => {
-                defaultPmt.amount = Math.ceil(schedule.payoff);
+                defaultPmt.amount = schedule.payoff;
               }}>Apply remaining owed</button
             >
           </form>
@@ -322,7 +333,7 @@ $: if (
     </section>
 
     <section class="flex-1 hidden md:block">
-      <h2>Amortization Schedule</h2>
+      <h2>Payment History</h2>
       <table class="w-full">
         <thead>
           <tr>
