@@ -2,19 +2,19 @@
 import InventoryCombobox from "$lib/components/InventoryCombobox.svelte";
 import { allInventory, allSalesmen } from "$lib/stores";
 import { onMount } from "svelte";
-import type { LayoutData } from "./$types";
 
-export let data: LayoutData;
+const { data, children } = $props();
 
-$: if (data.inventory.length !== $allInventory.length) {
+$effect(() => {
+	if (data.inventory.length === $allInventory.length) return;
 	allInventory.set(data.inventory);
 	allSalesmen.set(data.salesmen);
-}
+});
 onMount(() => {
 	allInventory.set(data.inventory);
 });
 </script>
 
-<InventoryCombobox />
+<InventoryCombobox selectType="inventory" />
 
-<slot />
+{@render children()}

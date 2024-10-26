@@ -58,15 +58,15 @@ export const actions = {
 			});
 		}
 
-		const accountObject: Account = {
+		const accountObject: Partial<Account> = {
 			id: accountId,
 			contact_id: upsertedPerson.id,
 			licenseNumber: data.get("licenseNumber") as string,
 			licenseExpiration: data.get("licenseExpiration") as string,
 			notes: data.get("notes") as string,
-			dateOfBirth: null,
-			dateAdded: null,
-			dateModified: null,
+			dateOfBirth: data.get("dateOfBirth") as string,
+			dateAdded: undefined,
+			dateModified: new Date().toISOString(),
 			currentStanding: null,
 		};
 

@@ -1,9 +1,8 @@
 <script lang="ts">
 import { allCreditors } from "$lib/stores/accounts";
 import { allInventory } from "$lib/stores/inventory.js";
-import type { LayoutData } from "./$types";
 
-export let data: LayoutData;
+const { data, children } = $props();
 
 allCreditors.set(data.creditors);
 allInventory.set(data.inventory);
@@ -13,4 +12,4 @@ allInventory.set(data.inventory);
   <title>Deals - AutoFLP</title>
 </svelte:head>
 
-<slot />
+{@render children()}

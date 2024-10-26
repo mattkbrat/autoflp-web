@@ -12,25 +12,6 @@ type Credit = NonNullable<Partial<CreditApplicationWithData>>;
 export let credit: Credit;
 export let images: CreditAppImages;
 
-// const handleImages = async () => {
-// 	for await (const image of images) {
-// 		const thisImage = document.getElementById(image.title) as HTMLImageElement;
-// 		if (!thisImage) return;
-// 		fetch(image.url).then(async (data) => {
-// 			console.log(data);
-// 			data.blob().then((blob) => {
-// 				const dataUrl = window.URL.createObjectURL(blob);
-// 				if (!thisImage) return;
-// 				thisImage.src = dataUrl;
-// 			});
-// 		});
-// 	}
-// };
-//
-// onMount(() => {
-// 	// handleImages();
-// });
-
 $: sigPrint = `${
 	(credit.lastName &&
 		`${credit.lastName}, ${credit.firstName} ${

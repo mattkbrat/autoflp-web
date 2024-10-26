@@ -1,5 +1,6 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
+import { goto } from "$app/navigation";
 import { page } from "$app/stores";
 import { getZip } from "$lib";
 import SalesmenSelect from "$lib/components/SalesmenSelect.svelte";
@@ -8,26 +9,28 @@ import { formatDate, formatSalesmen } from "$lib/format";
 import { handleInvNav } from "$lib/navState";
 import type { Inventory, InventoryField } from "$lib/server/database/inventory";
 import type { ParsedNHTA } from "$lib/server/inventory";
-import { allInventory, selectedStates } from "$lib/stores";
+import { allInventory, handleSelect, selectedStates } from "$lib/stores";
 import type { FormFields } from "$lib/types/forms";
 import { onMount } from "svelte";
-import type { ActionData } from "./$types";
 
 const thisYear = new Date().getFullYear();
 
-let shouldFocus = false;
-let hasLoaded = false;
-let printedForms = 0;
+let shouldFocus = $state(false);
+let hasLoaded = $state(false);
+let printedForms = $state(0);
 
-export let data: { inventory: Inventory };
-export let form: ActionData;
+let { data, form } = $props();
 
-let selected: Partial<Inventory> = {};
-let hasCleared = false;
-let searched = "";
-let searchedInfo: { [key: string]: string } | null = null;
+let selected = $state({} as Partial<Inventory>);
+let hasCleared = $state(false);
+let searched = $state("");
+let searchedInfo: { [key: string]: string } | null = $state(null);
 
-$: if (data.inventory.vin && selected.vin !== data.inventory.vin && hasLoaded) {
+$effect(() => {
+	if (!data.inventory?.vin || selected.id === data.inventory.id || !hasLoaded) {
+		return;
+	}
+
 	selected = data.inventory;
 	searchedInfo = null;
 	hasCleared = false;
@@ -39,14 +42,7 @@ $: if (data.inventory.vin && selected.vin !== data.inventory.vin && hasLoaded) {
 
 		shouldFocus = false;
 	}, 200);
-}
-
-$: if (!data.inventory.vin && !hasCleared) {
-	selected = {};
-	searchedInfo = {};
-	searched = "";
-	hasCleared = true;
-}
+});
 
 const fieldMap: FormFields<InventoryField> = [
 	[
@@ -70,19 +66,19 @@ const fieldMap: FormFields<InventoryField> = [
 	],
 ];
 
-$: if (selected?.year && hasLoaded) {
+$effect(() => {
+	if (!selected?.year || !hasLoaded || selected.mileage === "exempt") return;
 	const label = el<HTMLLabelElement>`inventory-form-mileage`;
 	if (label) {
 		const input = label.firstElementChild as HTMLInputElement;
 		if (input) {
-			// https://www.nhtsa.gov/press-releases/consumer-alert-changes-odometer-disclosure-requirements
 			const isExempt =
 				thisYear - Number(selected.year) >= 20 || Number(selected.year) < 2010;
 			const alreadyExempt = input.value.toLowerCase().startsWith("e");
 			selected.mileage = isExempt ? "EXEMPT" : alreadyExempt ? "" : input.value;
 		}
 	}
-}
+});
 
 const handleSearched = async (result: unknown) => {
 	if (typeof result !== "object" || !result || !("data" in result)) return;
@@ -92,7 +88,7 @@ const handleSearched = async (result: unknown) => {
 
 	selected = {
 		...selected,
-		year: +(wanted["Model Year"] || 0) || 0,
+		year: wanted["Model Year"] || 0 || "0",
 		make: wanted.Make,
 		model: wanted.Model,
 		cwt: wanted["Gross Vehicle Weight Rating To"],
@@ -127,7 +123,8 @@ const syncSelect = (vin: string) => {
 	selectEl.selectedIndex = indexOf;
 };
 
-$: if (selected.vin?.length === 17) {
+$effect(() => {
+	if (selected.vin?.length !== 17 || hasLoaded) return;
 	const vin = selected.vin.toLowerCase();
 	const exists =
 		$page.params.vin.toLowerCase() === vin
@@ -140,18 +137,17 @@ $: if (selected.vin?.length === 17) {
 			invalidate: true,
 		});
 	}
-	if (import.meta.env.PROD && vin !== searched) {
-		searched = vin;
-		setTimeout(() => {
-			el<HTMLButtonElement>`search-submit`?.click();
-		}, 1000);
-	}
-}
-
-page.subscribe((p) => {
-	if (!hasLoaded) return;
-	syncSelect(p.params.vin);
+	if (!import.meta.env.PROD || vin === searched) return;
+	searched = vin;
+	setTimeout(() => {
+		el<HTMLButtonElement>`search-submit`?.click();
+	}, 1000);
 });
+
+// page.subscribe((p) => {
+//   if (!hasLoaded) return;
+//   syncSelect(p.params.vin);
+// });
 
 const updateAllInventory = (
 	vin: string,
@@ -199,7 +195,8 @@ const toggleState = (oldState: number) => {
 	}, 150);
 };
 
-$: if (form?.data) {
+$effect(() => {
+	if (!form?.data) return;
 	const { vin, id } = form.data;
 	if (id) {
 		selected.id = id;
@@ -209,23 +206,25 @@ $: if (form?.data) {
 	}
 
 	if (data && "data" in data && data.data) {
-	} else if (data && "forms" in data) {
-		//await update();
-		const { forms } = data || {
-			id: "",
-			forms: [],
-		};
-		if (!Array.isArray(forms)) {
-			console.log("Failed to get forms", data);
-		}
 	}
-}
+});
 
-$: if (form?.forms?.length && form.formsName !== printedForms) {
+$effect(() => {
+	if (!form?.delete) return;
+	updateAllInventory(form?.delete, null, true);
+});
+
+$effect(() => {
+	if (!form?.data) return;
+	selected = form.data;
+});
+
+$effect(() => {
+	if (!form?.forms?.length || form.formsName === printedForms) return;
 	getZip(form.forms, { type: "inventory", inventory: selected }).then(() => {
 		printedForms = form.formsName;
 	});
-}
+});
 
 onMount(() => {
 	if (!data.inventory?.vin) {
@@ -271,7 +270,7 @@ onMount(() => {
   <SalesmenSelect
     selected={selected["inventory_salesman"]?.map(
       (is) => is.salesman.contact.id,
-    )}
+    ) || []}
   />
   {#if selected.inventory_salesman}
     <span>
@@ -288,7 +287,7 @@ onMount(() => {
             {key.label || key.key}
             <input
               value={selected[key.key]}
-              on:change={(e) => {
+              onchange={(e) => {
                 // @ts-ignore
                 selected[key.key] = e.target.value;
               }}
@@ -317,7 +316,7 @@ onMount(() => {
   <div class="btn-group gap-2">
     <button
       type="submit"
-      class="btn variant-soft-success flex-1"
+      class="btn preset-tonal-success flex-1"
       id="inv-submit-button"
     >
       Save
@@ -325,15 +324,19 @@ onMount(() => {
     {#if Number.isFinite(selected.state)}
       <button
         type="button"
-        on:click={() => {
+        onclick={() => {
           typeof selected.state !== "undefined" && toggleState(+selected.state);
         }}
-        class="btn variant-outline-tertiary"
+        class="btn preset-outlined-tertiary-200-800"
       >
         Make {selected.state === 0 ? "Active" : "Inactive"}
       </button>
     {/if}
-    <button formaction="?/printForms" type="submit">Print forms</button>
+    <button
+      formaction="?/printForms"
+      type="submit"
+      class="preset-outlined-tertiary-200-800 px-4">Print forms</button
+    >
   </div>
 </form>
 
@@ -343,51 +346,52 @@ onMount(() => {
   class="flex flex-row flex-wrap space-y-4"
   id="inventory-form"
   use:enhance={() => {
-    return async ({ result, update }) => {
-      const deleted = result.data?.delete;
-      if (!!deleted) {
-        updateAllInventory(deleted, null, true);
-      } else {
-        handleSearched(result);
-      }
+    return async ({ update, result }) => {
+      handleSearched(result);
+      return await update({ reset: false });
     };
   }}
 >
   <input type="hidden" name="vin" value={selected.vin} />
-  <button
-    class="btn variant-ringed-secondary flex-1"
-    type="submit"
-    id="search-submit">Search</button
-  >
-  <button
-    type="button"
-    class="btn variant-ringed-warning min-w-60"
-    on:click={() => {
-      if (
-        !confirm(`Delete ${selected.vin} ${selected.year} ${selected.make} `)
-      ) {
-        return;
-      }
-      document.getElementById("inv-delete-submit")?.click();
-    }}
-  >
-    Delete
-  </button>
-  <button
-    type="button"
-    on:click={() => {
-      data.inventory = { inventory_salesman: [{}] };
-      selected = {};
-    }}
-  >
-    Clear
-  </button>
-  <button
-    formaction="?/delete"
-    class=" hidden"
-    type="submit"
-    id="inv-delete-submit">Delete</button
-  >
+  <div class="btn-group flex-1">
+    <button
+      class="btn preset-outlined-secondary-500 flex-1"
+      type="submit"
+      id="search-submit">Search</button
+    >
+    <button
+      type="button"
+      class="btn variant-ringed-warning min-w-60 preset-outlined-warning-200-800"
+      onclick={() => {
+        if (
+          !confirm(`Delete ${selected.vin} ${selected.year} ${selected.make} `)
+        ) {
+          return;
+        }
+        document.getElementById("inv-delete-submit")?.click();
+      }}
+    >
+      Delete
+    </button>
+    <button
+      type="button"
+      class="btn preset-outlined-warning-200-800"
+      onclick={() => {
+        data.inventory = { inventory_salesman: [{}] };
+        selected = {};
+        handleSelect("inventory", "");
+        goto("/inventory/new");
+      }}
+    >
+      Clear
+    </button>
+    <button
+      formaction="?/delete"
+      class=" hidden"
+      type="submit"
+      id="inv-delete-submit">Delete</button
+    >
+  </div>
 </form>
 
 {#if selected}

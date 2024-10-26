@@ -4,11 +4,12 @@ import { allAccounts } from "$lib/stores/accounts";
 import { dealID, handleSelect } from "$lib/stores/selected.js";
 import { onMount } from "svelte";
 
-export let data;
+const { data, children } = $props();
 
-$: if ($dealID) {
+$effect(() => {
+	if (!$dealID) return;
 	handleSelect("deal", "");
-}
+});
 onMount(() => {
 	allAccounts.set(data.accounts);
 });
@@ -18,4 +19,5 @@ onMount(() => {
   <title>Accounts - AutoFLP</title>
 </svelte:head>
 <AccountCombobox />
-<slot />
+
+{@render children()}

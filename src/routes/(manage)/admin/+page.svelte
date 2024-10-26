@@ -20,13 +20,8 @@ $: keys = [...data.keys, { value: "", key: "", id: "" }];
     action="?/submit"
     method="post"
     use:enhance={() => {
-      return async ({ result, update }) => {
-        if ("data" in result && result.data)
-          if ("data" in result.data) {
-            //await update();
-            const resultId = result.data.id;
-            console.log(result.data);
-          }
+      return async ({ update }) => {
+        await update();
       };
     }}
   >
@@ -59,7 +54,7 @@ $: keys = [...data.keys, { value: "", key: "", id: "" }];
     };
   }}
 >
-  <button class="btn variant-filled-primary btn-xl" type="submit"
+  <button class=" btn-lg preset-filled-primary-200-800" type="submit"
     >Print Billing</button
   >
 </form>

@@ -4,7 +4,6 @@ import CreditorSelect from "$lib/components/CreditorSelect.svelte";
 import { defaultDeal } from "$lib/finance";
 import { calcFinance } from "$lib/finance/calc";
 import { formatCurrency, formatDate } from "$lib/format";
-import type { NavType } from "$lib/navState";
 import type { ParsedNHTA } from "$lib/server/inventory";
 import { allAccounts, allCreditors, allInventory } from "$lib/stores";
 import {
@@ -18,13 +17,16 @@ import { getZip } from "$lib/index";
 import InventoryCombobox from "$lib/components/InventoryCombobox.svelte";
 import AccCombobox from "$lib/components/AccountCombobox.svelte";
 
-const deal = defaultDeal;
+const deal = $state(defaultDeal);
+const { form } = $props();
 
-let currTrade = "";
+let currTrade = $state("");
 
-$: if ($dealID) {
+$effect(() => {
+	if (!$dealID) return;
+
 	handleSelect("deal", "");
-}
+});
 
 let trades: {
 	make: string;
@@ -32,31 +34,47 @@ let trades: {
 	model: string;
 	vin: string;
 	value: number;
-}[] = [];
+}[] = $state([]);
 
-$: deal.trades = trades.map((t) => t.vin);
-$: deal.priceTrade = trades.reduce((acc, t) => {
-	return acc + t.value;
-}, 0);
+$effect(() => {
+	if (trades.length === deal.trades.length) return;
+	deal.trades = trades.map((t) => t.vin);
+});
 
-$: creditor = $allCreditors.find((c) => c.id === $creditorID);
-let lastCreditor = "";
+$effect(() => {
+	const priceTrade = trades.reduce((acc, t) => {
+		return acc + t.value;
+	}, 0);
 
-// biome-ignore lint/style/useConst: Is later assigned
-let forms: string[] = [];
+	if (deal.priceTrade === priceTrade) return;
 
-$: if (creditor && lastCreditor !== creditor.id) {
+	deal.priceTrade = priceTrade;
+});
+
+const creditor = $derived($allCreditors.find((c) => c.id === $creditorID));
+
+let lastCreditor = $state("");
+let forms: string[] = $state([]);
+let lastInventory = $state("");
+let lastFilled = $state("credit");
+
+$effect(() => {
+	if (!creditor || lastCreditor === creditor.id) {
+		console.log(lastCreditor, "last");
+		return;
+	}
 	deal.apr = +creditor.apr;
 	deal.filingFees = +creditor.filingFees;
 	lastCreditor = creditor.id;
-}
+});
 
-$: inventory = $allInventory.find((i) => i.vin === $inventoryID);
-
-let lastInventory = "";
-let lastFilled = "credit";
+const inventory = $derived($allInventory.find((i) => i.vin === $inventoryID));
 
 const handleGetZip = async (forms: string[]) => {
+	if (!forms.length) {
+		console.log("Cannot get 0 forms");
+		return;
+	}
 	const account = $allAccounts.find((a) => a.id === deal.account);
 	if (!account?.contact) {
 		console.error("Could not submit deal", { account, deal });
@@ -65,31 +83,37 @@ const handleGetZip = async (forms: string[]) => {
 	await getZip(forms, { deal, person: account.contact, type: "deal" });
 };
 
-$: if (
-	inventory &&
-	(deal.dealType !== lastFilled || lastInventory !== inventory.id)
-) {
+$effect(() => {
+	if (
+		!inventory ||
+		(deal.dealType === lastFilled && lastInventory === inventory.id)
+	) {
+		return;
+	}
+
 	deal.priceDown = Number(inventory.down || 0);
 	deal.vin = inventory.vin;
 	const sellingPrice = deal.term > 0 ? inventory.credit : inventory.cash;
 	deal.priceSelling = Number(sellingPrice || 0);
 	lastFilled = deal.dealType;
 	lastInventory = inventory.id;
-}
+});
 
-$: if ($accountID) {
+$effect(() => {
+	if (!$accountID || deal.account === $accountID) return;
+
 	deal.account = $accountID || "";
-} else {
-	console.log("No account id");
-}
+});
 
-$: finance = calcFinance(deal);
+const finance = $derived(calcFinance(deal));
 
-$: if (deal.dealType === "cash" && deal.term !== 0) {
-	deal.term = 0;
-} else if (deal.dealType === "credit" && deal.term === 0) {
-	deal.term = 12;
-}
+$effect(() => {
+	if (deal.dealType === "cash" && deal.term !== 0) {
+		deal.term = 0;
+	} else if (deal.dealType === "credit" && deal.term === 0) {
+		deal.term = 12;
+	}
+});
 
 const handleSearched = async (result: unknown) => {
 	if (typeof result !== "object" || !result || !("data" in result)) return;
@@ -98,7 +122,7 @@ const handleSearched = async (result: unknown) => {
 		console.log("Could not parse", result);
 		return;
 	}
-	const { wanted, info } = parsed;
+	const { wanted } = parsed;
 
 	const newTrades = trades;
 	newTrades.push({
@@ -113,18 +137,34 @@ const handleSearched = async (result: unknown) => {
 	currTrade = "";
 };
 
-const navType: NavType = "query";
+$effect(() => {
+	if (!form?.data) return;
+	const { id: resultId, forms: dealForms } = form.data;
+	deal.id = typeof resultId === "string" ? resultId : "";
+	handleGetZip(dealForms).then(() => {
+		forms = dealForms;
+		form.data.forms = [];
+	});
+});
 </script>
 
 {#if forms.length > 0}
-  <button
-    type="button"
-    on:click={async () => {
-      await handleGetZip(forms);
-    }}
-  >
-    Download Forms
-  </button>
+  <div>
+    <button
+      class="btn-lg preset-outlined-secondary-200-800"
+      type="button"
+      onclick={async () => {
+        await handleGetZip(forms);
+      }}
+    >
+      Download Forms
+    </button>
+    <a target="_blank" href={`/payments/${deal.account}/${deal.id}`}>
+      Goto Payments Page
+    </a>
+  </div>
+{:else}
+  <span> No forms </span>
 {/if}
 <form
   action="?/submit"
@@ -132,21 +172,8 @@ const navType: NavType = "query";
   class="flex flex-col flex-wrap space-y-4"
   id="inventory-form"
   use:enhance={() => {
-    return async ({ result, update }) => {
-      if ("data" in result && result.data && "data" in result.data) {
-        //await update();
-        const { id: resultId, forms: dealForms } = result.data.data || {
-          id: "",
-          forms: [],
-        };
-        deal.id = typeof resultId === "string" ? resultId : "";
-        forms = dealForms;
-        if (!Array.isArray(forms)) {
-          console.log("Failed to get forms", result.data);
-          return;
-        }
-        await handleGetZip(forms);
-      }
+    return async ({ update }) => {
+      await update({ reset: false });
     };
   }}
 >
@@ -171,13 +198,13 @@ const navType: NavType = "query";
     name={"finance"}
   />
   <input name="id" type="hidden" class="input" />
-  <fieldset id="taxes" class="flex flex-row flex-wrap gap-4">
+  <fieldset id="taxes" class="flex flex-row flex-wrap gap-4 items-end">
     <legend>Deal</legend>
     <label>
       DATE
       <input
         value={deal.date.toISOString().split("T")[0]}
-        on:change={(e) => {
+        onchange={(e) => {
           const newDate = e.target?.value || new Date();
           deal.date = new Date(newDate);
         }}
@@ -201,8 +228,8 @@ const navType: NavType = "query";
     <button
       name={"term"}
       type="button"
-      class="btn variant-outline-secondary"
-      on:click={() => {
+      class="btn-md preset-outlined-secondary-200-800 h-full"
+      onclick={() => {
         const newType = deal.dealType === "credit" ? "cash" : "credit";
 
         deal.dealType = newType;
@@ -306,16 +333,16 @@ const navType: NavType = "query";
       />
     </label>
   </fieldset>
-  <fieldset id="trades" class="flex flex-row flex-wrap gap-4">
+  <fieldset id="trades" class="flex flex-row flex-wrap gap-4 items-end">
     <legend>Trades</legend>
     <label class="col-span-2 flex-1">
       VIN
       <input class="input" bind:value={currTrade} />
     </label>
     <button
-      class="btn variant-ringed-tertiary w-24"
+      class="btn-md preset-outlined-tertiary-200-800 w-24 h-full"
       type="button"
-      on:click={() => {
+      onclick={() => {
         document.getElementById("deal-trade-search-button")?.click();
       }}
       disabled={!currTrade ||
@@ -325,7 +352,7 @@ const navType: NavType = "query";
     </button>
   </fieldset>
   {#each trades as trade, n}
-    <section class="flex flex-row flex-wrap gap-4">
+    <section class="flex flex-row flex-wrap gap-4 items-end">
       <span class="self-center uppercase">
         {trade.year}
         {trade.make}
@@ -349,8 +376,8 @@ const navType: NavType = "query";
       </label>
       <button
         type="button"
-        class="btn variant-ringed-warning w-24"
-        on:click={() => {
+        class="btn preset-outlined-warning-200-800 w-24"
+        onclick={() => {
           const newTrades = trades;
           newTrades.splice(n, 1);
           trades = newTrades;
@@ -397,7 +424,9 @@ const navType: NavType = "query";
       </label>
     </fieldset>
   {/if}
-  <button type="submit" class="btn variant-ringed-primary"> Submit </button>
+  <button type="submit" class="btn-lg preset-outlined-primary-200-800">
+    Submit
+  </button>
 </form>
 
 <form

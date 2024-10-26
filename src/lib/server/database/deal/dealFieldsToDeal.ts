@@ -45,6 +45,5 @@ export const dealFieldsToDeal = (
 		cosigner: dealFields.cosigner || null,
 	};
 
-	console.log("new deal params", deal);
 	return deal;
 };

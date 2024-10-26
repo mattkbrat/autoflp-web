@@ -1,8 +1,4 @@
-import {
-	BUSINESS_NAME,
-	DEALER_NUMBER,
-	PRIMARY_DEALER_NAME,
-} from "$env/static/private";
+import { BUSINESS_NAME, DEALER_NUMBER } from "$env/static/private";
 import {
 	addressFromPerson,
 	dateFormatStandard,
@@ -19,6 +15,10 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 	const personAddress = addressFromPerson(deal.account.contact);
 	const creditorAddress =
 		deal.creditor && addressFromPerson(deal.creditor.contact);
+
+	const witnessName = fullNameFromPerson({
+		person: deal.inventory.inventory_salesman[0].salesman.contact,
+	});
 
 	const vinSplit = deal.inventory.vin.split("");
 	if (vinSplit.length !== 17) {
@@ -129,7 +129,7 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 		// Signature3: "",
 		//"Flex Fuel": "",
 		"Fuel Type": deal.inventory.fuel || "",
-		"Witness Printed Name": PRIMARY_DEALER_NAME,
+		"Witness Printed Name": witnessName,
 		"Commercial Use": "",
 		"Keep Colorado Wild": "No",
 		Snowmobile: "No_3",

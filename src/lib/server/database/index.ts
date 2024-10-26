@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-
+//
 const require = createRequire(import.meta.url);
 import { PrismaClient } from "@prisma/client";
 import { PrismaClient as ComClient } from "@prisma/autosales";
@@ -22,3 +22,9 @@ export const prisma: ReturnType<typeof getClient> = new (
 export const comClient: ReturnType<typeof getComClient> = new (
 	dev ? RequireComClient : ComClient
 )();
+
+// const { PrismaClient: RequireClient } = require("@prisma/client");
+// const { PrismaClient: RequireComClient } = require("@prisma/autosales");
+//
+// export const prisma = new RequireClient();
+// export const comClient = RequireComClient;

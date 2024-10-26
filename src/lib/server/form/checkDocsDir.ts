@@ -23,13 +23,6 @@ export const checkDocsDir = ({
 		withoutFilename.replaceAll(AUTOFLP_DATA_DIR, ""),
 	);
 	const doesExist = fs.existsSync(dir);
-	// console.log({
-	// 	doesExist,
-	// 	dir,
-	// 	isFullPath,
-	// 	checkPath,
-	// 	withoutFilename,
-	// });
 	if (doesExist || !createIfNotExists) return doesExist ? dir : null;
 	fs.mkdirSync(dir, { recursive: true });
 	return dir;

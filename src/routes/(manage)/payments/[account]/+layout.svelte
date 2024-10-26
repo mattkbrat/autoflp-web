@@ -1,17 +1,16 @@
 <script lang="ts">
-import { browser } from "$app/environment";
-import { goto } from "$app/navigation";
 import { page } from "$app/stores";
 import AccountDealTabs from "$lib/components/AccountDealTabs.svelte";
 import { accountDeals } from "$lib/stores";
-import type { PageData } from "./$types";
 
-export let data: PageData;
+const { data, children } = $props();
 
-$: if (data.accountDeals && $page.url) {
+$effect(() => {
+	if (!data.accountDeals || !$page.url) return;
 	accountDeals.set(data.accountDeals || []);
-}
+});
 </script>
 
 <AccountDealTabs />
-<slot />
+
+{@render children()}

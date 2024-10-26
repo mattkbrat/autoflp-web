@@ -24,9 +24,7 @@ const handlePaymentNavigation = (route: string) => {
 		console.error("Invalid route", route);
 		return;
 	}
-	console.log("nav", route);
 	if (!route || !route.startsWith("/payments")) {
-		console.log("Invalid selection", route);
 		return;
 	}
 
@@ -46,7 +44,7 @@ const handlePaymentNavigation = (route: string) => {
     value={$accountID}
   />
 
-  <label class="label flex flex-row-reverse gap-x-1 self-center">
+  <label class="label flex flex-row-reverse gap-x-1 self-center w-fit">
     Only Active
     <input type="checkbox" class="checkbox" bind:checked={filterActive} />
   </label>

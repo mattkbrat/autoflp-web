@@ -30,7 +30,6 @@ export const getMonthlyPayments = async (query: MonthlyPaymentsQuery) => {
 
 export const sumMonthlyPayments = async (query: MonthlyPaymentsQuery) => {
 	return getMonthlyPayments(query).then((payments) => {
-		// console.log("got", payments, query);
 		return payments.reduce(
 			(acc, curr) => {
 				const { amount, dealId } = curr;

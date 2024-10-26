@@ -54,6 +54,5 @@ accountDealLink.subscribe((link) => {
 		console.warn("invalid link", link);
 		return;
 	}
-	console.log("naving", { link });
 	goto(`/payments/${link}`);
 });

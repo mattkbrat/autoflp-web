@@ -1,20 +1,15 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
-import { goto, invalidate } from "$app/navigation";
-import type { DetailedAccount } from "$lib/server/database/account";
+import { goto } from "$app/navigation";
+import { fieldMap } from "$lib/accounts";
 import { allAccounts, handleSelect } from "$lib/stores";
-import type { FormFields } from "$lib/types/forms";
-import type { ActionData, PageData } from "./$types";
+import type { SelectedAccount } from "$lib/types";
 
-export let data: PageData;
-type Selected = Partial<
-	Omit<DetailedAccount, "contact"> & DetailedAccount["contact"]
->;
-let selected: Selected = {};
+let { data, form } = $props();
+let selected: SelectedAccount = $state({});
 
-export let form: ActionData;
-
-$: if (form?.data) {
+$effect(() => {
+	if (!form?.data?.account) return;
 	allAccounts.update((curr) => {
 		const index = curr.findIndex((a) => a.id === form.data.account.id);
 		const {
@@ -38,51 +33,14 @@ $: if (form?.data) {
 
 		return curr;
 	});
-}
+	form.data = null;
+});
 
-const fieldMap: FormFields<keyof Selected> = [
-	[
-		{ key: "firstName", label: "First Name" },
-		{ key: "lastName", label: "Last Name" },
-	],
-	[
-		{ key: "namePrefix", label: "Prefix" },
-		{ key: "middleInitial", label: "MI" },
-		{ key: "nameSuffix", label: "Suffix" },
-	],
-	[
-		{ key: "address_1", label: "Addr. Line 1" },
-		{ key: "address_2", label: "Line 2" },
-		{ key: "address_3", label: "Line 3" },
-	],
-	[
-		"city",
-		{ key: "stateProvince", label: "State" },
-		{ key: "zipPostal", label: "ZIP" },
-		{ key: "zip_4", label: "+4" },
-	],
-	[
-		{ key: "phonePrimary", label: "Primary Phone", type: "tel" },
-		{ key: "phoneSecondary", label: "Secondary", type: "tel" },
-		{ key: "phoneTertiary", label: "Tertiary", type: "tel" },
-	],
-	[
-		{ key: "emailPrimary", label: "Primary Email", type: "email" },
-		{ key: "emailSecondary", label: "Secondary", type: "email" },
-	],
-	[
-		{ key: "licenseNumber", label: "License" },
-		{ key: "licenseExpiration", label: "Exp.", type: "date" },
-		{ key: "dateOfBirth", label: "DOB", type: "date" },
-	],
-];
-
-$: if (data.account && selected.id !== data.account?.id) {
+$effect(() => {
+	if (!data.account || selected.id === data.account?.id) return;
 	const { contact, ...rest } = data.account;
 	selected = { ...contact, ...rest };
-} else {
-	console.log(data.account);
-}
+});
 </script>
 
 <form
@@ -116,7 +74,7 @@ $: if (data.account && selected.id !== data.account?.id) {
               {key.label || key.key}
               <input
                 value={selected[key.key] || ""}
-                on:change={(e) => {
+                onchange={(e) => {
                   // @ts-ignore
                   selected[key.key] = e.target.value;
                 }}
@@ -140,13 +98,13 @@ $: if (data.account && selected.id !== data.account?.id) {
     </div>
   {/each}
   <div class="btn-group gap-2">
-    <button type="submit" class="btn variant-soft-success flex-1">
+    <button type="submit" class="btn-lg preset-filled-success-100-900 flex-1">
       Save
     </button>
     <button
       type="button"
-      class="btn variant-outline-warning min-w-48"
-      on:click={() => {
+      class="btn-lg preset-outlined-warning-100-900 min-w-48"
+      onclick={() => {
         handleSelect("account", "new");
         goto("/accounts/new");
       }}

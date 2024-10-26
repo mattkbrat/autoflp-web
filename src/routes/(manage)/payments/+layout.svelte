@@ -1,10 +1,9 @@
 <script lang="ts">
 import { groupedDeals, deals } from "$lib/stores";
 import { onMount } from "svelte";
-import type { PageData } from "./$types";
 import PaymentCombobox from "$lib/components/PaymentCombobox.svelte";
 
-export let data: PageData;
+const { data, children } = $props();
 
 onMount(() => {
 	deals.set(data.deals);
@@ -13,4 +12,5 @@ onMount(() => {
 </script>
 
 <PaymentCombobox />
-<slot />
+      
+{@render children()}
