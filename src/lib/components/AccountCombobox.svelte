@@ -3,7 +3,7 @@ import { goto } from "$app/navigation";
 import { accountID, accountOptions, handleSelect } from "$lib/stores";
 import ComboBox from "./ComboBox.svelte";
 
-export let selectType: "account" | "deal" = "account";
+const { selectType = "account" }: { selectType: "account" | "deal" } = $props();
 
 const handleNavigation = (route: string) => {
 	handleSelect("account", route);
@@ -20,7 +20,9 @@ const handleNavigation = (route: string) => {
     name="account"
     placeholder="Select an account"
     onSelect={handleNavigation}
-    options={selectType === 'account' ? $accountOptions.concat({ text: "New", value: "new", state: 1 }) : $accountOptions}
+    options={selectType === "account"
+      ? $accountOptions.concat({ text: "New", value: "new", state: 1 })
+      : $accountOptions}
     value={$accountID}
   />
 </div>

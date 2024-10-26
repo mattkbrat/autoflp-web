@@ -1,17 +1,12 @@
 <script lang="ts">
 import { Time } from "$lib/fuzzy-time";
+import { formatDate } from "date-fns";
 import { onMount } from "svelte";
 
 const time = new Time();
-let now = new Date();
-let fuzzy = "";
+let now = $state(new Date());
 
-if (now && time !== null) {
-	time.update(now);
-	fuzzy = time.fuzzyTime;
-}
-
-$: fuzzy = time ? time.fuzzyTime : "";
+let fuzzy = $derived(time ? time.fuzzyTime : "");
 let interval: number | null = null;
 
 const timeCb = () => {
@@ -39,7 +34,6 @@ onMount(() => {
   <span
     class="hidden print:flex absolute print:relative left-0 top-8 print:top-0 flex-col w-full print:w-fit text-sm transition-all group-hover:flex"
   >
-    {now.toLocaleDateString()}
-    {now.toLocaleTimeString()}
+    {formatDate(now, "MM-dd-yyyy HH:MM:SS")}
   </span>
 </span>

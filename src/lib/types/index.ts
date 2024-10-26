@@ -1,3 +1,4 @@
+import type { DetailedAccount } from "$lib/server/database/account";
 import type { ComInventoryWithUrl } from "./com";
 import type { LocalInventory } from "./local";
 
@@ -22,3 +23,7 @@ type MissingLocal = { type: "local"; id: string };
 export type MissingVins = ((MissingCom | MissingLocal) & {
 	description: string;
 })[];
+
+export type SelectedAccount = Partial<
+	Omit<DetailedAccount, "contact"> & DetailedAccount["contact"]
+>;

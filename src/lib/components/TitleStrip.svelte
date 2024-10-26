@@ -1,6 +1,5 @@
 <script lang="ts">
 import { dev } from "$app/environment";
-import { env } from "$env/dynamic/public";
 import FuzzyClock from "./FuzzyClock.svelte";
 </script>
 
