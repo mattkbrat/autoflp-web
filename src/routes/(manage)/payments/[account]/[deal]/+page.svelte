@@ -42,7 +42,8 @@ let showFuturePayments = $state(false);
 
 const filteredSchedule = $derived(
 	scheduleRows.filter((r) => {
-		if (!r.paid.includes("*") && r.dateType === "b") return true;
+		if (!r.paid.includes("*") && !r.paid.includes("-") && r.dateType === "b")
+			return true;
 		if (r.dateType === "m") return true;
 		if (r.dateType === "a") return showFuturePayments;
 		return showMissingPayments;
