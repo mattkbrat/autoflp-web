@@ -28,7 +28,7 @@ export const defaultDeal: DealFields = {
 	vin: "",
 	account: "",
 	dealType: "credit",
-	taxCity: 4,
+	taxCity: 0,
 	taxCounty: 0,
 	taxRtd: 0,
 	taxState: 2.9,
