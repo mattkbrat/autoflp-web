@@ -206,15 +206,6 @@ $effect(() => {
 	}
 
 	if (data && "data" in data && data.data) {
-	} else if (data && "forms" in data) {
-		//await update();
-		const { forms } = data || {
-			id: "",
-			forms: [],
-		};
-		if (!Array.isArray(forms)) {
-			console.log("Failed to get forms", data);
-		}
 	}
 });
 
@@ -225,7 +216,6 @@ $effect(() => {
 
 $effect(() => {
 	if (!form?.data) return;
-	console.log("filling from form");
 	selected = form.data;
 });
 

@@ -33,8 +33,6 @@ export const formatCurrency = (
 		return formatted;
 	}
 	return `( ${formatted} )`;
-	// console.log({ formatted });
-	// return formatted;
 };
 
 export const dateFormatStandard = "MM/dd/yyyy";

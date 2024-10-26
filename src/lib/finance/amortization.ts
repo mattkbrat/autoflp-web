@@ -138,7 +138,6 @@ export const amoritization = ({
 		interest: 0,
 	};
 
-	console.log("payoff", currLastBal, interest);
 	const nextDueDate = setDate(
 		addMonths(today, paid && Number.isFinite(Number(paid)) ? 1 : 0),
 		startDate.getDate(),

@@ -46,6 +46,4 @@ export const defaultDeal: DealFields = {
 	cosigner: "",
 };
 
-console.log({ defaultDeal });
-
 export type DealFieldsWithFinance = DealFields & { finance: FinanceCalcResult };

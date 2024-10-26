@@ -76,7 +76,6 @@ const handleGetZip = async (forms: string[]) => {
 		return;
 	}
 	const account = $allAccounts.find((a) => a.id === deal.account);
-	console.log(forms, account);
 	if (!account?.contact) {
 		console.error("Could not submit deal", { account, deal });
 		throw new Error("No account assigned");
@@ -92,7 +91,6 @@ $effect(() => {
 		return;
 	}
 
-	console.log("updating prices");
 	deal.priceDown = Number(inventory.down || 0);
 	deal.vin = inventory.vin;
 	const sellingPrice = deal.term > 0 ? inventory.credit : inventory.cash;
@@ -108,8 +106,6 @@ $effect(() => {
 });
 
 const finance = $derived(calcFinance(deal));
-
-$effect(() => console.log(deal.taxCity));
 
 $effect(() => {
 	if (deal.dealType === "cash" && deal.term !== 0) {
@@ -144,7 +140,6 @@ const handleSearched = async (result: unknown) => {
 $effect(() => {
 	if (!form?.data) return;
 	const { id: resultId, forms: dealForms } = form.data;
-	console.log({ resultId }, form.data);
 	deal.id = typeof resultId === "string" ? resultId : "";
 	handleGetZip(dealForms).then(() => {
 		forms = dealForms;

@@ -24,7 +24,6 @@ export const handleInvNav = ({
 	navType = "folder",
 }: InvNavState) => {
 	const newUrl = new URL(url);
-	console.log(newUrl, navType);
 	if (vin) {
 		if (navType === "folder") {
 			newUrl.pathname = `/inventory/${vin}`;

@@ -80,11 +80,9 @@ export const actions = {
 			}).then((form) => form?.output);
 
 			if (!built) continue;
-			console.log("Adding", built);
 			builtForms.push(built);
 		}
 
-		console.log(builtForms);
 		return {
 			data: {
 				id: newDealId,

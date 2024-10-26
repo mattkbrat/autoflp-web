@@ -24,9 +24,7 @@ const handlePaymentNavigation = (route: string) => {
 		console.error("Invalid route", route);
 		return;
 	}
-	console.log("nav", route);
 	if (!route || !route.startsWith("/payments")) {
-		console.log("Invalid selection", route);
 		return;
 	}
 

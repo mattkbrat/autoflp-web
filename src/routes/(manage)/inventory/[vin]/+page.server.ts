@@ -64,15 +64,12 @@ export const actions = {
 			const removed = existing.filter((r) => !salesmen.includes(r));
 			const created = salesmen.filter((r) => !existing.includes(r));
 
-			console.log({ removed, newRows: created });
 			if (removed.length > 0) {
 				await tx.inventorySalesman
 					.deleteMany({
 						where: { salesmanId: { in: removed }, vin },
 					})
 					.then((e) => console.log("removed", e));
-			} else {
-				console.log("nothing to remove");
 			}
 
 			if (created.length > 0) {
@@ -83,8 +80,6 @@ export const actions = {
 						}),
 					})
 					.then((e) => console.log("created", e));
-			} else {
-				console.log("nothing to create");
 			}
 		});
 		if (upserted instanceof Error) {
@@ -126,7 +121,6 @@ export const actions = {
 			builtForms.push(built);
 		}
 
-		console.log(builtForms);
 		return {
 			forms: builtForms || [],
 			formsName: new Date().getTime(),
