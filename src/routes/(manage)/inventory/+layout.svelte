@@ -1,12 +1,11 @@
 <script lang="ts">
 import { page } from "$app/stores";
 
-$: pathName = $page.url.pathname;
-$: selected = pathName.endsWith("cars-for-sale")
-	? "sale"
-	: pathName.endsWith("print")
-		? "print"
-		: "inventory";
+const { children } = $props();
+
+const selected = $derived(
+	$page.url.pathname.endsWith("print") ? "print" : "inventory",
+);
 </script>
 
 <svelte:head>
@@ -21,13 +20,6 @@ $: selected = pathName.endsWith("cars-for-sale")
   >
     Manage Inventory
   </a>
-  <a
-    href={"/inventory/cars-for-sale"}
-    class:underline={selected === "sale"}
-    class="hover:text-surface-300"
-  >
-    Manage Cars for Sale
-  </a>
 
   <a
     href="/inventory/print?state=1"
@@ -39,4 +31,4 @@ $: selected = pathName.endsWith("cars-for-sale")
   </a>
 </nav>
 
-<slot />
+{@render children()}

@@ -1,8 +1,9 @@
 <script lang="ts">
 import { allAccounts, allInventory, deals } from "$lib/stores";
 import { onMount } from "svelte";
-import type { LayoutData } from "./$types";
-export let data: LayoutData;
+
+const { data, children } = $props();
+
 onMount(() => {
 	deals.set(data.deals);
 	allInventory.set(data.inventory);
@@ -11,7 +12,7 @@ onMount(() => {
 </script>
 
 <div class="flex flex-col gap-4 flex-1">
-  <slot />
+  {@render children()}
 </div>
 
 <section class="hidden print:block mt-auto">

@@ -16,6 +16,8 @@ hljs.registerLanguage("typescript", typescript);
 
 import RootNav from "$lib/components/RootNav.svelte";
 import TitleStrip from "$lib/components/TitleStrip.svelte";
+
+const { children } = $props();
 </script>
 
 <div class="flex flex-col gap-4 print:gap-0 w-screen min-h-screen">
@@ -36,7 +38,7 @@ import TitleStrip from "$lib/components/TitleStrip.svelte";
     <div
       class="flex flex-col flex-1 py-4 space-y-4 rounded-xl dark:bg-surface-900/75 bg-white print:text-black lg:px-4 lg:ml-12 print:contents"
     >
-      <slot />
+      {@render children()}
     </div>
   </main>
 </div>

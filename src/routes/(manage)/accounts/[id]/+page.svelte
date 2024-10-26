@@ -116,7 +116,7 @@ $: if (data.account && selected.id !== data.account?.id) {
               {key.label || key.key}
               <input
                 value={selected[key.key] || ""}
-                on:change={(e) => {
+                onchange={(e) => {
                   // @ts-ignore
                   selected[key.key] = e.target.value;
                 }}
@@ -146,7 +146,7 @@ $: if (data.account && selected.id !== data.account?.id) {
     <button
       type="button"
       class="btn-lg preset-outlined-warning-100-900 min-w-48"
-      on:click={() => {
+      onclick={() => {
         handleSelect("account", "new");
         goto("/accounts/new");
       }}

@@ -2,55 +2,69 @@
 import { enhance } from "$app/forms";
 import { el, waitForElm } from "$lib/element";
 import { formatCurrency, formatDate, fullNameFromPerson } from "$lib/format";
-import type { PageServerData } from "./$types";
 import { browser } from "$app/environment";
 import { addDays } from "date-fns/addDays";
-export let data: PageServerData;
 
-$: selected = data.deal;
+const { data } = $props();
+
+const selected = $derived(data.deal);
 
 const now = new Date();
-let today = "";
+let today = $state("");
+let defaultPmt = $state({ account: "", amount: 0 });
 
-$: if (!today && browser) {
+$effect(() => {
+	if (today || !browser) return;
 	waitForElm<HTMLInputElement>("#pmt-date-input").then((el) => {
 		if (!el) return;
 		today = now.toISOString().split("T")[0];
 		el.value = today;
 	});
-}
-
-$: selectedFinance = Number(selected?.finance || 0);
-$: schedule = data.schedule;
-$: scheduleRows = data.schedule.schedule.toReversed();
-$: totalOwed = schedule.owed;
-
-$: fullName =
-	selected && fullNameFromPerson({ person: selected?.account.contact });
-let defaultPmt = { account: "", amount: 0 };
-$: totalDelinquent = schedule.totalDelinquent;
-$: inventory = `${selected?.inventory?.make} ${selected?.inventory?.model}`;
-
-let showMissingPayments = false;
-let showFuturePayments = false;
-
-$: filteredSchedule = scheduleRows.filter((r) => {
-	if (!r.paid.includes("*") && r.dateType === "b") return true;
-	if (r.dateType === "m") return true;
-	if (r.dateType === "a") return showFuturePayments;
-	return showMissingPayments;
 });
 
-$: if (selected?.id) {
+const selectedFinance = $derived(Number(selected?.finance || 0));
+const schedule = $derived(data.schedule);
+const scheduleRows = $derived(schedule?.schedule.toReversed());
+const totalOwed = $derived(schedule?.owed);
+
+const fullName = $derived(
+	selected ? fullNameFromPerson({ person: selected?.account.contact }) : "",
+);
+const totalDelinquent = $derived(schedule.totalDelinquent);
+const inventory = $derived(
+	`${selected?.inventory?.make} ${selected?.inventory?.model}`,
+);
+
+// biome-ignore lint/style/useConst: changed by binded button
+let showMissingPayments = $state(false);
+// biome-ignore lint/style/useConst: changed by binded button
+let showFuturePayments = $state(false);
+
+const filteredSchedule = $derived(
+	scheduleRows.filter((r) => {
+		if (!r.paid.includes("*") && r.dateType === "b") return true;
+		if (r.dateType === "m") return true;
+		if (r.dateType === "a") return showFuturePayments;
+		return showMissingPayments;
+	}),
+);
+
+$effect(() => {
+	if (!selected?.id) return;
 	waitForElm<HTMLInputElement>("#pmt-amount").then((elm) => {
 		elm?.focus();
 	});
-}
+});
 
-$: if (
-	selected?.pmt &&
-	(defaultPmt.amount === 0 || defaultPmt.account !== selected.id)
-) {
+$effect(() => {
+	if (
+		!selected?.pmt ||
+		defaultPmt.amount === 0 ||
+		defaultPmt.account !== selected.id
+	) {
+		return;
+	}
+
 	defaultPmt = {
 		account: selected.id,
 		amount: Math.floor(
@@ -62,7 +76,7 @@ $: if (
 		today = now.toISOString().split("T")[0];
 		el.value = today;
 	});
-}
+});
 </script>
 
 <svelte:head>
@@ -187,7 +201,7 @@ $: if (
           type="button"
           class="btn preset-outlined-tertiary-200-800 flex flex-col !h-fit gap-y-1"
           class:bg-tertiary-900={showMissingPayments}
-          on:click={() => (showMissingPayments = !showMissingPayments)}
+          onclick={() => (showMissingPayments = !showMissingPayments)}
         >
           <span> Missing Payments </span>
           <span class="text-sm">
@@ -197,7 +211,7 @@ $: if (
         <button
           type="button"
           class="btn preset-outlined-tertiary-200-800 flex flex-col !h-fit gap-y-1"
-          on:click={() => (showFuturePayments = !showFuturePayments)}
+          onclick={() => (showFuturePayments = !showFuturePayments)}
           class:bg-tertiary-900={showFuturePayments}
         >
           <span> Future Payments </span>
@@ -282,7 +296,7 @@ $: if (
             <button
               class="btn preset-outlined-secondary-200-800 col-span-full"
               type="button"
-              on:click={() => {
+              onclick={() => {
                 defaultPmt.amount = schedule.payoff;
               }}>Apply remaining owed</button
             >
