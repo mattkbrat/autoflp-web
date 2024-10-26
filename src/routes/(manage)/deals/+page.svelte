@@ -17,8 +17,10 @@ import {
 import { getZip } from "$lib/index";
 import InventoryCombobox from "$lib/components/InventoryCombobox.svelte";
 import AccCombobox from "$lib/components/AccountCombobox.svelte";
+import type { ActionData } from "./$types";
 
 const deal = defaultDeal;
+export let form: ActionData;
 
 let currTrade = "";
 
@@ -42,7 +44,6 @@ $: deal.priceTrade = trades.reduce((acc, t) => {
 $: creditor = $allCreditors.find((c) => c.id === $creditorID);
 let lastCreditor = "";
 
-// biome-ignore lint/style/useConst: Is later assigned
 let forms: string[] = [];
 
 $: if (creditor && lastCreditor !== creditor.id) {
@@ -113,7 +114,19 @@ const handleSearched = async (result: unknown) => {
 	currTrade = "";
 };
 
-const navType: NavType = "query";
+$: if (form?.data) {
+	const { id: resultId, forms: dealForms } = form.data || {
+		id: "",
+		forms: [],
+	};
+	deal.id = typeof resultId === "string" ? resultId : "";
+	forms = dealForms;
+	if (!Array.isArray(forms)) {
+		console.log("Failed to get forms", form.data);
+	} else {
+		handleGetZip(forms);
+	}
+}
 </script>
 
 {#if forms.length > 0}
@@ -132,21 +145,8 @@ const navType: NavType = "query";
   class="flex flex-col flex-wrap space-y-4"
   id="inventory-form"
   use:enhance={() => {
-    return async ({ result, update }) => {
-      if ("data" in result && result.data && "data" in result.data) {
-        //await update();
-        const { id: resultId, forms: dealForms } = result.data.data || {
-          id: "",
-          forms: [],
-        };
-        deal.id = typeof resultId === "string" ? resultId : "";
-        forms = dealForms;
-        if (!Array.isArray(forms)) {
-          console.log("Failed to get forms", result.data);
-          return;
-        }
-        await handleGetZip(forms);
-      }
+    return async ({ update }) => {
+      await update({ reset: false });
     };
   }}
 >
