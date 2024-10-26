@@ -36,7 +36,7 @@ let showFuturePayments = false;
 
 $: filteredSchedule = scheduleRows.filter((r) => {
 	// console.table(r);
-	if (Number.isFinite(Number(r.paid)) && r.dateType === "b") return true;
+	if (!r.paid.includes("*") && r.dateType === "b") return true;
 	if (r.dateType === "m") return true;
 	if (r.dateType === "a") return showFuturePayments;
 	return showMissingPayments;
