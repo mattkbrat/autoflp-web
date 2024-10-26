@@ -32,12 +32,12 @@ export const defaultDeal: DealFields = {
 	taxCounty: 0,
 	taxRtd: 0,
 	taxState: 2.9,
-	priceSelling: 15_000,
-	priceDown: 3_000,
-	priceTrade: 2_000,
-	filingFees: 220.75,
+	priceSelling: 0,
+	priceDown: 0,
+	priceTrade: 0,
+	filingFees: 0,
 	downOwed: 0,
-	apr: 8.5,
+	apr: 10,
 	term: 12,
 	creditor: "",
 	trades: [],
@@ -45,5 +45,7 @@ export const defaultDeal: DealFields = {
 	finance: null,
 	cosigner: "",
 };
+
+console.log({ defaultDeal });
 
 export type DealFieldsWithFinance = DealFields & { finance: FinanceCalcResult };

@@ -140,12 +140,12 @@ $: if (data.account && selected.id !== data.account?.id) {
     </div>
   {/each}
   <div class="btn-group gap-2">
-    <button type="submit" class="btn variant-soft-success flex-1">
+    <button type="submit" class="btn-lg preset-filled-success-100-900 flex-1">
       Save
     </button>
     <button
       type="button"
-      class="btn variant-outline-warning min-w-48"
+      class="btn-lg preset-outlined-warning-100-900 min-w-48"
       on:click={() => {
         handleSelect("account", "new");
         goto("/accounts/new");

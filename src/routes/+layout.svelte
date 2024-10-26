@@ -1,7 +1,6 @@
 <script lang="ts">
 import "../app.postcss";
 
-import { storeHighlightJs } from "@skeletonlabs/skeleton";
 // Highlight JS
 import hljs from "highlight.js/lib/core";
 import css from "highlight.js/lib/languages/css";
@@ -14,20 +13,6 @@ hljs.registerLanguage("xml", xml); // for HTML
 hljs.registerLanguage("css", css);
 hljs.registerLanguage("javascript", javascript);
 hljs.registerLanguage("typescript", typescript);
-storeHighlightJs.set(hljs);
-
-// Floating UI for Popups
-import {
-	arrow,
-	autoUpdate,
-	computePosition,
-	flip,
-	offset,
-	shift,
-} from "@floating-ui/dom";
-import { storePopup } from "@skeletonlabs/skeleton";
-
-storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 
 import RootNav from "$lib/components/RootNav.svelte";
 import TitleStrip from "$lib/components/TitleStrip.svelte";

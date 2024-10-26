@@ -1,24 +1,39 @@
 <!-- Adapted from https://svelte.dev/repl/144f22d18c6943abb1fdd00f13e23fde?version=3.49.0 -->
 
 <script lang="ts">
-import { el, getElement, waitForElm } from "$lib/element";
+import { waitForElm } from "$lib/element";
 import { onMount } from "svelte";
 import { uid, onClickOutside, filterCache, type Option } from "./comboBox";
 
-export let disabled = undefined;
-export let error = undefined;
-export let expand = true;
-export let id = uid();
-export let label = "";
-export let loading = false;
-export let name: string;
-export let options: Option[] = [];
-export let placeholder: string | undefined = undefined;
-export let readonly = false;
-export let required = false;
-export let value = "";
-
-export let onSelect: (selected: string) => void;
+let {
+	disabled = false,
+	value = "",
+	name = "",
+	required = false,
+	readonly = false,
+	loading = false,
+	expand = true,
+	label = "",
+	id = uid(),
+	error,
+	placeholder,
+	options,
+	onSelect,
+}: {
+	value: string;
+	name: string;
+	onSelect?: (selected: string) => void;
+	disabled?: boolean;
+	required?: boolean;
+	readonly?: boolean;
+	loading?: boolean;
+	expand?: boolean;
+	options: Option[];
+	label?: string;
+	id?: string;
+	error?: unknown;
+	placeholder?: string;
+} = $props();
 
 let hasExited = false;
 export const filter = (text: string) => {
@@ -53,18 +68,29 @@ export const filter = (text: string) => {
 
 let listElement: HTMLUListElement;
 let inputElement: HTMLInputElement;
-let list: Option[] = [];
+let list: Option[] = $state([]);
 
-$: available = list.length || options.length;
+let available = $state(0);
 
-let isListOpen = false;
-let selectedOption: Pick<Option, "value" | "text"> = {
+$effect(() => {
+	if (options.length) {
+		available = options.length;
+	} else {
+		available = list.length;
+	}
+});
+
+let isListOpen = $state(false);
+let selectedOption: Pick<Option, "value" | "text"> = $state({
 	value: "",
 	text: "",
-};
+});
 
-$: inputValue = selectedOption.value;
-$: displayInputValue = selectedOption.text.replaceAll("|", " ").trim();
+const inputValue = $derived(selectedOption.value);
+const displayInputValue = $derived(
+	selectedOption.text.replaceAll("|", " ").trim(),
+);
+
 async function onInputKeyup(event: KeyboardEvent) {
 	if (
 		!event?.target ||
@@ -244,13 +270,15 @@ function hideList() {
 	inputElement.focus();
 }
 
-$: if (value && selectedOption?.value !== value && options.length) {
-	setTimeout(() => {
-		waitForElm(`#${CSS.escape(value)}`).then(
-			(el) => el && !hasExited && selectOption(el),
-		);
-	}, 200);
-}
+$effect(() => {
+	if (value && selectedOption?.value !== value && options.length) {
+		setTimeout(() => {
+			waitForElm(`#${CSS.escape(value)}`).then(
+				(el) => el && !hasExited && selectOption(el),
+			);
+		}, 200);
+	}
+});
 
 function selectOption(optionElement: HTMLElement) {
 	if (!optionElement.dataset.text || !optionElement.dataset.value) return;
@@ -265,7 +293,7 @@ function selectOption(optionElement: HTMLElement) {
 	}
 }
 
-$: cols = options[0]?.text?.split("|").length;
+const cols = $derived(options[0]?.text?.split("|").length);
 
 onMount(() => {
 	return () => {
@@ -289,16 +317,12 @@ onMount(() => {
     class="relative print:hidden"
     use:onClickOutside={hideList}
   >
-    <slot name="icon-start" />
     <input {id} {name} value={inputValue} type="hidden" />
     <input
       bind:this={inputElement}
-      on:focus
-      on:blur
-      on:input
-      on:keyup={onInputKeyup}
-      on:keydown={onInputKeydown}
-      on:mousedown={onInputClick}
+      onkeyup={onInputKeyup}
+      onkeydown={onInputKeydown}
+      onmousedown={onInputClick}
       value={displayInputValue}
       class="combobox__input m-0 w-full py-2 px-4 border-2 border-gray-50 rounded-sm focus:outline-none input"
       type="text"
@@ -322,8 +346,8 @@ onMount(() => {
       role="listbox"
       id="combobox-options"
       aria-label={label}
-      on:click={onOptionClick}
-      on:keydown={onListKeyDown}
+      onclick={onOptionClick}
+      onkeydown={onListKeyDown}
       bind:this={listElement}
     >
       {#each list as option (option)}
@@ -414,10 +438,6 @@ onMount(() => {
     outline: none;
   }
 
-  .combobox:focus-within .combobox__input {
-    border-color: var(--accent-color);
-  }
-
   .list__option-heading {
     font-size: 0.9em;
     padding-inline: 1rem;
@@ -437,11 +457,6 @@ onMount(() => {
 
   .list__option > :global(*) {
     pointer-events: none;
-  }
-
-  .list__option.--disabled {
-    pointer-events: none;
-    opacity: 0.4;
   }
 
   .list__option:focus,

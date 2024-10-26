@@ -271,7 +271,7 @@ onMount(() => {
   <SalesmenSelect
     selected={selected["inventory_salesman"]?.map(
       (is) => is.salesman.contact.id,
-    )}
+    ) || []}
   />
   {#if selected.inventory_salesman}
     <span>
@@ -317,7 +317,7 @@ onMount(() => {
   <div class="btn-group gap-2">
     <button
       type="submit"
-      class="btn variant-soft-success flex-1"
+      class="btn preset-tonal-success flex-1"
       id="inv-submit-button"
     >
       Save
@@ -328,12 +328,16 @@ onMount(() => {
         on:click={() => {
           typeof selected.state !== "undefined" && toggleState(+selected.state);
         }}
-        class="btn variant-outline-tertiary"
+        class="btn preset-outlined-tertiary-200-800"
       >
         Make {selected.state === 0 ? "Active" : "Inactive"}
       </button>
     {/if}
-    <button formaction="?/printForms" type="submit">Print forms</button>
+    <button
+      formaction="?/printForms"
+      type="submit"
+      class="preset-outlined-tertiary-200-800 px-4">Print forms</button
+    >
   </div>
 </form>
 
@@ -354,40 +358,43 @@ onMount(() => {
   }}
 >
   <input type="hidden" name="vin" value={selected.vin} />
-  <button
-    class="btn variant-ringed-secondary flex-1"
-    type="submit"
-    id="search-submit">Search</button
-  >
-  <button
-    type="button"
-    class="btn variant-ringed-warning min-w-60"
-    on:click={() => {
-      if (
-        !confirm(`Delete ${selected.vin} ${selected.year} ${selected.make} `)
-      ) {
-        return;
-      }
-      document.getElementById("inv-delete-submit")?.click();
-    }}
-  >
-    Delete
-  </button>
-  <button
-    type="button"
-    on:click={() => {
-      data.inventory = { inventory_salesman: [{}] };
-      selected = {};
-    }}
-  >
-    Clear
-  </button>
-  <button
-    formaction="?/delete"
-    class=" hidden"
-    type="submit"
-    id="inv-delete-submit">Delete</button
-  >
+  <div class="btn-group flex-1">
+    <button
+      class="btn preset-outlined-secondary-500 flex-1"
+      type="submit"
+      id="search-submit">Search</button
+    >
+    <button
+      type="button"
+      class="btn variant-ringed-warning min-w-60 preset-outlined-warning-200-800"
+      on:click={() => {
+        if (
+          !confirm(`Delete ${selected.vin} ${selected.year} ${selected.make} `)
+        ) {
+          return;
+        }
+        document.getElementById("inv-delete-submit")?.click();
+      }}
+    >
+      Delete
+    </button>
+    <button
+      type="button"
+      class="btn preset-outlined-warning-200-800"
+      on:click={() => {
+        data.inventory = { inventory_salesman: [{}] };
+        selected = {};
+      }}
+    >
+      Clear
+    </button>
+    <button
+      formaction="?/delete"
+      class=" hidden"
+      type="submit"
+      id="inv-delete-submit">Delete</button
+    >
+  </div>
 </form>
 
 {#if selected}

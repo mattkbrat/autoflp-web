@@ -1,6 +1,6 @@
 <script lang="ts">
 import { allSalesmen } from "$lib/stores";
-export let selected: string[] = [];
+let { selected }: { selected: string[] } = $props();
 </script>
 
 <select

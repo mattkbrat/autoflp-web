@@ -1,5 +1,6 @@
 <script lang="ts">
 import { formatCurrency } from "$lib/format";
+import { selectAll } from "$lib/element";
 import type { GroupedComInv, MissingVins } from "$lib/types";
 export let data: {
 	grouped: GroupedComInv;
@@ -31,7 +32,11 @@ $: missing = data.missingVins.reduce(
         <button type="submit" class="btn variant-ringed-warning flex-1">
           Toggle Visibility
         </button>
-        <button type="submit" class="btn variant-ringed-success flex-1">
+        <button
+          type="submit"
+          class="btn variant-ringed-success flex-1"
+          formaction="?/markSold"
+        >
           Mark sold and Hide
         </button>
       </div>
@@ -151,7 +156,7 @@ $: missing = data.missingVins.reduce(
                 </button>
               </th>
             </tr>
-            <section class="contents" id="missing-com">
+            <tr class="contents" id="missing-com">
               {#each missing.local as v}
                 {@const id = v.id.toString()}
                 <tr>
@@ -176,7 +181,7 @@ $: missing = data.missingVins.reduce(
                   </td>
                 </tr>
               {/each}
-            </section>
+            </tr>
             <tr>
               <td colspan="2">
                 <hr />
@@ -185,16 +190,18 @@ $: missing = data.missingVins.reduce(
             {#if missing.com.length > 0}
               <tr>
                 <th> Missing from local </th>
-                <button
-                  type="button"
-                  class="btn variant-ringed-secondary w-full"
-                  on:click={() => selectAll("missing-local")}
-                >
-                  Select all
-                </button>
+                <td>
+                  <button
+                    type="button"
+                    class="btn variant-ringed-secondary w-full"
+                    on:click={() => selectAll("missing-local")}
+                  >
+                    Select all
+                  </button>
+                </td>
               </tr>
             {/if}
-            <section class="contents" id="missing-local">
+            <tr class="contents" id="missing-local">
               {#each missing.com as v}
                 {@const id = v.id.toString()}
                 <tr>
@@ -220,7 +227,7 @@ $: missing = data.missingVins.reduce(
                   </td>
                 </tr>
               {/each}
-            </section>
+            </tr>
           </tbody>
         </table>
       </form>

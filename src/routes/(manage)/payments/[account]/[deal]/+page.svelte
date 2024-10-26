@@ -35,7 +35,6 @@ let showMissingPayments = false;
 let showFuturePayments = false;
 
 $: filteredSchedule = scheduleRows.filter((r) => {
-	// console.table(r);
 	if (!r.paid.includes("*") && r.dateType === "b") return true;
 	if (r.dateType === "m") return true;
 	if (r.dateType === "a") return showFuturePayments;
@@ -175,7 +174,7 @@ $: if (
           <input type="hidden" name="state" value={selected.state} />
           <button
             type="submit"
-            class="btn variant-outline-secondary flex flex-col flex-1"
+            class="btn preset-outlined-secondary-200-800 flex flex-col flex-1 !h-fit gap-y-1"
             class:bg-secondary-900={selected.state}
           >
             <span> Toggle State </span>
@@ -186,7 +185,7 @@ $: if (
         </form>
         <button
           type="button"
-          class="btn variant-outline-tertiary flex flex-col"
+          class="btn preset-outlined-tertiary-200-800 flex flex-col !h-fit gap-y-1"
           class:bg-tertiary-900={showMissingPayments}
           on:click={() => (showMissingPayments = !showMissingPayments)}
         >
@@ -197,7 +196,7 @@ $: if (
         </button>
         <button
           type="button"
-          class="btn variant-outline-tertiary flex flex-col"
+          class="btn preset-outlined-tertiary-200-800 flex flex-col !h-fit gap-y-1"
           on:click={() => (showFuturePayments = !showFuturePayments)}
           class:bg-tertiary-900={showFuturePayments}
         >
@@ -275,13 +274,13 @@ $: if (
             />
             <button
               type="submit"
-              class="btn variant-filled-success"
+              class="btn preset-filled-success-800-200"
               disabled={!selected.state}
             >
               Save
             </button>
             <button
-              class="btn variant-outline-secondary col-span-full"
+              class="btn preset-outlined-secondary-200-800 col-span-full"
               type="button"
               on:click={() => {
                 defaultPmt.amount = schedule.payoff;

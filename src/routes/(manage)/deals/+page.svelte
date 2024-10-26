@@ -132,7 +132,7 @@ $: if (form?.data) {
 {#if forms.length > 0}
   <button
     type="button"
-    on:click={async () => {
+    onclick={async () => {
       await handleGetZip(forms);
     }}
   >
@@ -171,13 +171,13 @@ $: if (form?.data) {
     name={"finance"}
   />
   <input name="id" type="hidden" class="input" />
-  <fieldset id="taxes" class="flex flex-row flex-wrap gap-4">
+  <fieldset id="taxes" class="flex flex-row flex-wrap gap-4 items-end">
     <legend>Deal</legend>
     <label>
       DATE
       <input
         value={deal.date.toISOString().split("T")[0]}
-        on:change={(e) => {
+        onchange={(e) => {
           const newDate = e.target?.value || new Date();
           deal.date = new Date(newDate);
         }}
@@ -201,8 +201,8 @@ $: if (form?.data) {
     <button
       name={"term"}
       type="button"
-      class="btn variant-outline-secondary"
-      on:click={() => {
+      class="btn-md preset-outlined-secondary-200-800 h-full"
+      onclick={() => {
         const newType = deal.dealType === "credit" ? "cash" : "credit";
 
         deal.dealType = newType;
@@ -306,16 +306,16 @@ $: if (form?.data) {
       />
     </label>
   </fieldset>
-  <fieldset id="trades" class="flex flex-row flex-wrap gap-4">
+  <fieldset id="trades" class="flex flex-row flex-wrap gap-4 items-end">
     <legend>Trades</legend>
     <label class="col-span-2 flex-1">
       VIN
       <input class="input" bind:value={currTrade} />
     </label>
     <button
-      class="btn variant-ringed-tertiary w-24"
+      class="btn-md preset-outlined-tertiary-200-800 w-24 h-full"
       type="button"
-      on:click={() => {
+      onclick={() => {
         document.getElementById("deal-trade-search-button")?.click();
       }}
       disabled={!currTrade ||
@@ -325,7 +325,7 @@ $: if (form?.data) {
     </button>
   </fieldset>
   {#each trades as trade, n}
-    <section class="flex flex-row flex-wrap gap-4">
+    <section class="flex flex-row flex-wrap gap-4 items-end">
       <span class="self-center uppercase">
         {trade.year}
         {trade.make}
@@ -349,8 +349,8 @@ $: if (form?.data) {
       </label>
       <button
         type="button"
-        class="btn variant-ringed-warning w-24"
-        on:click={() => {
+        class="btn preset-outlined-warning-200-800 w-24"
+        onclick={() => {
           const newTrades = trades;
           newTrades.splice(n, 1);
           trades = newTrades;
@@ -397,7 +397,9 @@ $: if (form?.data) {
       </label>
     </fieldset>
   {/if}
-  <button type="submit" class="btn variant-ringed-primary"> Submit </button>
+  <button type="submit" class="btn-lg preset-outlined-primary-200-800">
+    Submit
+  </button>
 </form>
 
 <form

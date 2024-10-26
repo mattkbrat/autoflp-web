@@ -15,7 +15,8 @@ export const load = async () => {
 	const missingVins: MissingVins = [];
 	const grouped = localInventory.reduce((acc, local) => {
 		const matching = currentInventory.find(
-			(i) => i.vin?.toLowerCase() === local.vin,
+			(i) =>
+				i.vin?.toLowerCase().slice(-6) === local.vin.toLowerCase().slice(-6),
 		);
 		if (!matching) {
 			missingVins.push({
@@ -79,5 +80,9 @@ export const actions = {
 				}),
 			});
 		}
+	},
+	markSold: async ({ request }) => {
+		const data = await request.formData();
+		console.log({ data });
 	},
 } satisfies Actions;

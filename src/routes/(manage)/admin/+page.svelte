@@ -59,7 +59,7 @@ $: keys = [...data.keys, { value: "", key: "", id: "" }];
     };
   }}
 >
-  <button class="btn variant-filled-primary btn-xl" type="submit"
+  <button class=" btn-lg preset-filled-primary-200-800" type="submit"
     >Print Billing</button
   >
 </form>

@@ -16,15 +16,17 @@ $: inventory = $allInventory
   <thead
     class="table-header-group col-g uppercase dark:bg-gray-900 bg-gray-50 border-b-2 text-left"
   >
-    <th />
-    <th scope="col" class="">Salesman</th>
-    <th scope="col" class="ml-2 print:ml-0">Make</th>
-    <th scope="col" class="">Model</th>
-    <th scope="col" class="">Year</th>
-    <th scope="col" class="">Color</th>
-    <th scope="col" class="">Cash</th>
-    <th scope="col" class="">Down</th>
-    <th scope="col" class="">Credit</th>
+    <tr>
+      <th></th>
+      <th scope="col" class="">Salesman</th>
+      <th scope="col" class="ml-2 print:ml-0">Make</th>
+      <th scope="col" class="">Model</th>
+      <th scope="col" class="">Year</th>
+      <th scope="col" class="">Color</th>
+      <th scope="col" class="">Cash</th>
+      <th scope="col" class="">Down</th>
+      <th scope="col" class="">Credit</th>
+    </tr>
   </thead>
   <tbody>
     {#each inventory as i, n}
