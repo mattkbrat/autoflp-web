@@ -1,16 +1,24 @@
-import { join } from "path";
+import { join } from "node:path";
 import type { Config } from "tailwindcss";
 import forms from "@tailwindcss/forms";
 import typography from "@tailwindcss/typography";
-import { skeleton } from "@skeletonlabs/tw-plugin";
 import plugin from "tailwindcss/plugin";
+
+import { skeleton } from "@skeletonlabs/skeleton/plugin";
+import * as themes from "@skeletonlabs/skeleton/themes";
+
+import * as svelte from "@skeletonlabs/skeleton-svelte";
 
 export default {
 	darkMode: null,
 	content: [
 		"./src/**/*.{html,js,svelte,ts}",
+		// join(
+		// 	require.resolve("@skeletonlabs/skeleton"),
+		// 	"../**/*.{html,js,svelte,ts}",
+		// ),
 		join(
-			require.resolve("@skeletonlabs/skeleton"),
+			require.resolve("@skeletonlabs/skeleton-svelte"),
 			"../**/*.{html,js,svelte,ts}",
 		),
 	],
@@ -21,14 +29,7 @@ export default {
 		forms,
 		typography,
 		skeleton({
-			themes: {
-				preset: [
-					{
-						name: "vintage",
-						enhancements: true,
-					},
-				],
-			},
+			themes: [themes.vintage],
 		}),
 		plugin(({ addUtilities }) => {
 			addUtilities({
