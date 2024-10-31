@@ -5,9 +5,8 @@ import typography from "@tailwindcss/typography";
 import plugin from "tailwindcss/plugin";
 
 import { skeleton } from "@skeletonlabs/skeleton/plugin";
-import * as themes from "@skeletonlabs/skeleton/themes";
 
-import * as svelte from "@skeletonlabs/skeleton-svelte";
+import * as themes from "@skeletonlabs/skeleton/themes";
 
 export default {
 	darkMode: null,
