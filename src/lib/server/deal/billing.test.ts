@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
 	generateBilling,
 	generateMergedBilling,
@@ -31,9 +31,7 @@ describe("Can run billing", async () => {
 			const a = descGroups[0][i];
 			const b = descGroups[0][i + 1];
 			if (!a || !b) return;
-			expect(a.schedule.totalDelinquent).toBeGreaterThan(
-				b.schedule.totalDelinquent,
-			);
+			expect(a.schedule.totalDiff).toBeGreaterThan(b.schedule.totalDiff);
 		}
 	});
 	it("gets grouped billable accounts in ascending order by total delinquent", async () => {
@@ -43,9 +41,7 @@ describe("Can run billing", async () => {
 			const a = ascGroups[0][i];
 			const b = ascGroups[0][i + 1];
 			if (!a || !b) return;
-			expect(a.schedule.totalDelinquent).toBeLessThan(
-				b.schedule.totalDelinquent,
-			);
+			expect(a.schedule.totalDiff).toBeLessThan(b.schedule.totalDiff);
 		}
 	});
 
@@ -81,7 +77,7 @@ describe("Can run billing", async () => {
 		}
 	});
 
-	it.runIf(!dev)("generates merged pdf", async () => {
+	it.runIf(dev)("generates merged pdf", async () => {
 		const generated = await generateMergedBilling("desc");
 		const outputPath = join(AUTOFLP_DATA_DIR, generated);
 		expect(fs.existsSync(outputPath)).toBeTruthy();

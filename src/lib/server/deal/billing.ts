@@ -1,4 +1,3 @@
-import { dealAmortization } from "$lib/finance/amortization";
 import type { AsyncReturnType } from "$lib/types";
 import { writeFileSync } from "node:fs";
 import { getBilling, type BillingAccounts } from "../database/deal";
@@ -10,6 +9,7 @@ import { AUTOFLP_DATA_DIR } from "..";
 import { cleanup } from "../form/cleanupBillingDir";
 import { dev } from "$app/environment";
 import { generate } from "../form/generate";
+import { getPaymentSchedule } from "$lib/finance/payment-history";
 
 type SortOrder = "asc" | "desc";
 
@@ -18,24 +18,31 @@ const getSchedules = (
 	sortDelinquent: SortOrder = "desc",
 ) => {
 	const mapped = accounts.map((a) => {
-		return { account: a, schedule: dealAmortization(a, a.payments || []) };
+		return {
+			account: a,
+			schedule: getPaymentSchedule(
+				{
+					apr: Number(a.apr),
+					pmt: Number(a.pmt),
+					term: Number(a.term),
+					balance: Number(a.lien),
+					startDate: new Date(a.date),
+					finance: Number(a.finance),
+				},
+				a.payments || [],
+			),
+		};
 	});
 
 	if (sortDelinquent === "desc") {
 		return mapped.sort(
-			(
-				{ schedule: { totalDelinquent: a } },
-				{ schedule: { totalDelinquent: b } },
-			) => {
+			({ schedule: { totalDiff: a } }, { schedule: { totalDiff: b } }) => {
 				return b - a;
 			},
 		);
 	}
 	return mapped.sort(
-		(
-			{ schedule: { totalDelinquent: a } },
-			{ schedule: { totalDelinquent: b } },
-		) => {
+		({ schedule: { totalDiff: a } }, { schedule: { totalDiff: b } }) => {
 			return a - b;
 		},
 	);
