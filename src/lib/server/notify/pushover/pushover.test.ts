@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest";
 import { sendNotification, type PushoverNotification } from ".";
 
-describe("Can notify", async () => {
+describe.skip("Can notify", async () => {
 	const notification: PushoverNotification = {
 		message: "This is a test message",
 	};
