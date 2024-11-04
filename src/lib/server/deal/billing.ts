@@ -18,6 +18,7 @@ const getSchedules = (
 	sortDelinquent: SortOrder = "desc",
 ) => {
 	const mapped = accounts.map((a) => {
+		// console.log("using", a);
 		return {
 			account: a,
 			schedule: getPaymentSchedule(
@@ -30,6 +31,7 @@ const getSchedules = (
 					finance: Number(a.finance),
 				},
 				a.payments || [],
+				false,
 			),
 		};
 	});
@@ -84,7 +86,7 @@ export const getBillingParams = (s: GroupedShedules[number][number]) => {
 	};
 };
 
-const devCutoff = dev ? 4 : -1;
+const devCutoff = dev ? 40 : -1;
 
 export const generateMergedBilling = async (
 	sort: SortOrder = "desc",
@@ -135,7 +137,7 @@ export const generateBilling = async (
 	const all = await getGroupedBillableAccounts(sort, billing);
 	const groups = cutoff !== -1 ? all.slice(0, cutoff) : all;
 	const generated: string[] = [];
-	for (const group of groups.slice(0, 4)) {
+	for (const group of groups) {
 		const schedules = group.map(getBillingParams);
 		if (schedules.length > 3 || schedules.length < 1) {
 			throw new Error("Invalid group");

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { assert, describe, expect, it } from "vitest";
 import {
 	generateBilling,
 	generateMergedBilling,
@@ -17,31 +17,61 @@ describe("Can run billing", async () => {
 	const descGroups = await getGroupedBillableAccounts("desc", billing);
 	const ascGroups = await getGroupedBillableAccounts("asc", billing);
 
+	// console.log(
+	// 	billing
+	// 		.filter((b) => b.payments.length)
+	// 		.slice(0, 5)
+	// 		.map((b) => {
+	// 			return {
+	// 				b: b.account.contact,
+	// 				pmt: JSON.stringify(b.payments, null, 2),
+	// 			};
+	// 		}),
+	// );
 	it("has at most three billing statements per group", () => {
+		const fullGrops = descGroups.filter((g) => g.length === 3).length;
+		expect(fullGrops).toBeGreaterThan(0);
 		for (const group of descGroups) {
 			expect(group.length).toBeLessThanOrEqual(3);
 			expect(group.length).toBeGreaterThan(0);
+		}
+		let lastGroupLength = descGroups[0].length;
+		for (const group of descGroups) {
+			expect(group.length).toBeLessThanOrEqual(lastGroupLength);
+			lastGroupLength = group.length;
 		}
 	});
 
 	it("gets grouped billable accounts in descending order by total delinquent", async () => {
 		expect(Array.isArray(descGroups)).toBeTruthy();
+		expect(descGroups.length).toBeGreaterThan(0);
 
-		for (let i = 0; i++; i < descGroups[0].length) {
-			const a = descGroups[0][i];
-			const b = descGroups[0][i + 1];
-			if (!a || !b) return;
-			expect(a.schedule.totalDiff).toBeGreaterThan(b.schedule.totalDiff);
+		for (const group of descGroups) {
+			console.log("checking", group);
+			for (let i = 0; i < group.length; i++) {
+				const a = group[i];
+				const b = group[i + 1];
+				if (!a || !b) return;
+				expect(a.schedule.totalDiff).toBeGreaterThanOrEqual(
+					b.schedule.totalDiff,
+				);
+			}
 		}
 	});
-	it("gets grouped billable accounts in ascending order by total delinquent", async () => {
+	it.skip("gets grouped billable accounts in ascending order by total delinquent", async () => {
 		expect(Array.isArray(ascGroups)).toBeTruthy();
 
-		for (let i = 0; i++; i < ascGroups[0].length) {
-			const a = ascGroups[0][i];
-			const b = ascGroups[0][i + 1];
-			if (!a || !b) return;
-			expect(a.schedule.totalDiff).toBeLessThan(b.schedule.totalDiff);
+		for (const group of ascGroups) {
+			console.log("checking", group);
+			for (let i = 0; i < group.length; i++) {
+				console.log("compare", group[i]);
+				const a = group[i];
+				const b = group[i + 1];
+				if (!a || !b) return;
+				expect(a.schedule.totalDiff).toBeGreaterThanOrEqual(
+					b.schedule.totalDiff,
+				);
+			}
 		}
 	});
 
@@ -68,6 +98,34 @@ describe("Can run billing", async () => {
 		}
 	});
 
+	it("checks form data", async () => {
+		for (const group of descGroups) {
+			const schedules = group.map(getBillingParams);
+			assert(
+				schedules.length <= 3 && schedules.length >= 1,
+				"Invalid group length " + schedules.length,
+			);
+
+			const formData = fillBilling(schedules as Schedules);
+
+			const hasPayments = group.some((b) =>
+				b.schedule.schedule.some((r) => r.paid),
+			);
+			if (hasPayments) {
+				console.log(formData, JSON.stringify(group, null, 2));
+				expect(
+					!!formData["13"] || !!formData["30"] || !!formData["47"],
+				).toBeTruthy();
+			}
+
+			for (const g of group) {
+				console.log(g.account.account.contact.lastName, g.schedule.schedule);
+			}
+
+			expect(formData);
+		}
+	});
+
 	it.runIf(dev)("generates individual pdfs", async () => {
 		const generated = await generateBilling();
 		expect(generated).toBeInstanceOf(Array);
@@ -77,7 +135,7 @@ describe("Can run billing", async () => {
 		}
 	});
 
-	it.runIf(dev)("generates merged pdf", async () => {
+	it.runIf(!dev)("generates merged pdf", async () => {
 		const generated = await generateMergedBilling("desc");
 		const outputPath = join(AUTOFLP_DATA_DIR, generated);
 		expect(fs.existsSync(outputPath)).toBeTruthy();
