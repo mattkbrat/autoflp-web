@@ -147,11 +147,15 @@ export const getOpenInventoryDeals = async (vin: string) => {
 export const getBilling = async () => {
 	return prisma.deal.findMany({
 		where: {
-			state: 1,
-			pmt: {
-				not: null,
-			},
 			AND: [
+				{
+					state: 1,
+				},
+				{
+					pmt: {
+						not: null,
+					},
+				},
 				{
 					lien: {
 						not: null,
