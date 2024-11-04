@@ -28,7 +28,7 @@ const today = new Date();
 const fillBill = (
 	{
 		schedule: {
-			schedule: { totalDelinquent, pmt, nextDueDate, schedule },
+			schedule: { totalDiff, pmt, nextDueDate, schedule },
 		},
 		deal,
 	}: BillingDataElement,
@@ -36,16 +36,18 @@ const fillBill = (
 ) => {
 	if (!deal) return {};
 	const inventory = "inventory" in deal ? deal.inventory : deal;
-	const history = schedule.filter((r) => isBefore(r.date, today) && r.paid > 0);
+	const history = schedule.filter((r) => r.paid);
+
+	const totalDelinquent = totalDiff < 0 ? totalDiff * -1 : 0;
 
 	const monthsDelinquent = Math.floor(totalDelinquent / pmt);
 
 	const introText =
-		monthsDelinquent <= 0
+		monthsDelinquent === 0
 			? "Your account is in good standing"
 			: `${
 					monthsDelinquent === 1
-						? "You are 1 month delinquent"
+						? "You are 1 month late"
 						: `You are ${monthsDelinquent} months delinquent`
 				}\n( ${formatCurrency(totalDelinquent)} )`;
 
@@ -62,10 +64,10 @@ const fillBill = (
 		history.reduce(
 			([beg, pay, end, month], curr, i) => {
 				const last = history[i - 1];
-				beg += `\n${formatCurrency(last?.lastBalance || deal.finance || 0)} `;
+				beg += `\n${formatCurrency(last?.owed || deal.finance || 0)} `;
 				pay += `\n${formatCurrency(curr.paid)} `;
-				end += `\n${formatCurrency(curr.lastBalance)} `;
-				month += `\n${formatDate(curr.date, "MM yyyy")} `;
+				end += `\n${formatCurrency(curr.owed)} `;
+				month += `\n${curr.dateFmt} `;
 
 				return [beg, pay, end, month];
 			},
@@ -106,7 +108,7 @@ export type Schedules =
 	| [BillingDataElement, BillingDataElement]
 	| [BillingDataElement];
 
-export const fillBilling = (schedules: Schedules) => {
+export const fillBilling = (schedules: Schedules): Partial<BillingTemplate> => {
 	if (!schedules[0]) return {};
 	const billOne = fillBill(schedules[0], 1);
 	const billTwo = schedules[1] && fillBill(schedules[1], 2);

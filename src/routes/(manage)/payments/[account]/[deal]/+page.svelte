@@ -9,9 +9,10 @@ const { data } = $props();
 
 const selected = $derived(data.deal);
 
+let payoff = $state(false);
 const now = new Date();
 let today = $state("");
-let defaultPmt = $state({ account: "", amount: 0 });
+let defaultPmt = $state({ account: "", amount: 0, deal: "" });
 
 $effect(() => {
 	if (today || !browser) return;
@@ -22,15 +23,17 @@ $effect(() => {
 	});
 });
 
-const selectedFinance = $derived(Number(selected?.finance || 0));
 const schedule = $derived(data.schedule);
+
+$effect(() => console.table(schedule?.schedule));
+
 const scheduleRows = $derived(schedule?.schedule.toReversed());
-const totalOwed = $derived(schedule?.owed);
+const totalOwed = $derived(schedule?.owed || 0);
 
 const fullName = $derived(
 	selected ? fullNameFromPerson({ person: selected?.account.contact }) : "",
 );
-const totalDelinquent = $derived(schedule.totalDelinquent);
+const totalDelinquent = $derived(schedule?.totalDiff || 0);
 const inventory = $derived(
 	`${selected?.inventory?.make} ${selected?.inventory?.model}`,
 );
@@ -41,12 +44,10 @@ let showMissingPayments = $state(false);
 let showFuturePayments = $state(false);
 
 const filteredSchedule = $derived(
-	scheduleRows.filter((r) => {
-		if (!r.paid.includes("*") && !r.paid.includes("-") && r.dateType === "b")
-			return true;
-		if (r.dateType === "m") return true;
-		if (r.dateType === "a") return showFuturePayments;
-		return showMissingPayments;
+	scheduleRows?.filter((r) => {
+		if (r.monthType === "after") return showFuturePayments;
+		if (r.monthType === "before" && r.paid === 0) return showMissingPayments;
+		return true;
 	}),
 );
 
@@ -58,16 +59,23 @@ $effect(() => {
 });
 
 $effect(() => {
+	if (selected?.id !== data.deal?.id) {
+		setsele;
+	}
+});
+
+$effect(() => {
 	if (
-		!selected?.pmt ||
-		defaultPmt.amount === 0 ||
-		defaultPmt.account !== selected.id
+		!selected ||
+		(defaultPmt.account === selected.account.id &&
+			defaultPmt.deal === selected.id)
 	) {
 		return;
 	}
 
 	defaultPmt = {
-		account: selected.id,
+		account: selected.account.id,
+		deal: selected.id,
 		amount: Math.floor(
 			Math.min(selected ? +(selected.pmt || 0) : 0, totalOwed),
 		),
@@ -96,20 +104,20 @@ $effect(() => {
 <div class="flex flex-row uppercase justify-around text-center flex-wrap">
   <span>
     <span class="text-lg">
-      {selected && formatCurrency(selectedFinance)}
+      {selected && formatCurrency(selected.lien)}
     </span>
-    <br />Financed
+    <br />Lien
   </span>
   <span>
     <span class="text-lg">
-      {formatCurrency(schedule.totalPaid)}
+      {formatCurrency(schedule?.totalPaid)}
     </span>
     <br /> paid
   </span>
-  {#if schedule.totalDelinquent > 0}
+  {#if totalDelinquent}
     <span>
       <span class="text-lg">
-        {formatCurrency(schedule.totalExpected)}
+        {formatCurrency(schedule?.owed)}
       </span>
       <br />Expected
     </span>
@@ -117,13 +125,21 @@ $effect(() => {
   {#if selected?.state && Math.abs(totalDelinquent) > 5}
     <span class:hidden={!totalDelinquent}>
       <span class="text-lg">
-        {formatCurrency(Math.abs(totalDelinquent))}
+        <span>
+          {formatCurrency(Math.abs(totalDelinquent))}
+        </span>
       </span>
       <br />
-      {totalDelinquent > 0 ? "delinquent" : "advanced"}
+      {totalDelinquent < 0 ? "delinquent" : "advanced"}
+      <br />
+      {#if schedule?.monthsDelinquent}
+        <span class="text-sm">
+          {Math.abs(schedule?.monthsDelinquent)} mo.
+        </span>
+      {/if}
     </span>
   {/if}
-  <span>
+  <span class:hidden={!selected.state}>
     <span class="text-lg">
       {formatCurrency(schedule.payoff)}
     </span>
@@ -131,9 +147,16 @@ $effect(() => {
   </span>
   <span>
     <span class="text-lg">
-      {formatCurrency(schedule.futurePaymentSum)}
+      {formatCurrency(schedule?.remaining)}
     </span>
-    <br /> remaining
+    <br />
+
+    {#if selected?.state}
+      remaining
+    {:else}
+      saved
+    {/if}
+    <span> </span>
   </span>
 </div>
 <hr />
@@ -141,7 +164,7 @@ $effect(() => {
   <span>
     {selected && Number(selected.term)} month term;
     <span class="text-lg">
-      {selected && formatCurrency(schedule.pmt)}
+      {selected && formatCurrency(schedule?.pmt)}
       Monthly;
     </span>
     <span>
@@ -235,6 +258,7 @@ $effect(() => {
             method="post"
             class="contents"
             action="?/record"
+            class:hidden={!selected.state}
             use:enhance={() => {
               return async ({ result, update }) => {
                 if (
@@ -294,11 +318,18 @@ $effect(() => {
             >
               Save
             </button>
+            <input
+              type="checkbox"
+              class="hidden"
+              name="payoff"
+              bind:checked={payoff}
+            />
             <button
               class="btn preset-outlined-secondary-200-800 col-span-full"
               type="button"
               onclick={() => {
                 defaultPmt.amount = schedule.payoff;
+                payoff = true;
               }}>Apply remaining owed</button
             >
           </form>
@@ -325,7 +356,7 @@ $effect(() => {
               />
               <div class="text-right">{pmt.amount}</div>
               <input type="hidden" name="id" value={pmt.id} />
-              <button type="submit" class="btn variant-outline-error">
+              <button type="submit" class="btn preset-outlined-error-500">
                 Remove
               </button>
             </form>
@@ -340,20 +371,16 @@ $effect(() => {
         <thead>
           <tr>
             <th>Date</th>
-            <!-- <th>Monthly</th> -->
+            <th>B. Bal</th>
             <th>Paid</th>
-            <th>Principal</th>
-            <th>Interest</th>
-            <!-- <th>Int (%)</th> -->
-            <th>Princ (%)</th>
             <th>Advanced</th>
-            <th>Balance</th>
+            <th>E. Bal</th>
           </tr>
         </thead>
         <tbody class="font-mono text-right">
-          {#each filteredSchedule as row}
-            {@const dateAfter = row.dateType === "a"}
-            {@const isCurrentMonth = row.dateType === "m"}
+          {#each filteredSchedule || [] as row}
+            {@const dateAfter = row.monthType === "after"}
+            {@const isCurrentMonth = row.monthType === "current"}
             <tr
               class:!bg-gray-400={isCurrentMonth}
               class:dark:text-gray-200={!dateAfter && !isCurrentMonth}
@@ -362,50 +389,30 @@ $effect(() => {
               class:border-2={isCurrentMonth}
             >
               <td>
-                {formatDate(addDays(row.date, 1), "MMM `yy")}
+                {row.dateFmt}
               </td>
-              <td
-                class:text-center={!row.paid}
-                class:text-red-600={!row.paid && !dateAfter}
-              >
+              <td>
+                {formatCurrency(row.start)}
+              </td>
+              <td>
                 {row.paid}
               </td>
-              <td
-                class:text-center={!row.principal}
-                class:text-red-600={!row.paid && !dateAfter}
-              >
-                {formatCurrency(row.principal)}
-              </td>
-              <td
-                class:text-center={!row.interest}
-                class:text-red-600={!row.paid && !dateAfter}
-              >
-                {formatCurrency(row.interest)}
-              </td>
-              <!-- <td> -->
-              <!--   {formatCurrency(row.percentInterest * 100)}{" "}<span -->
-              <!--     class="text-xs">%</span -->
-              <!--   > -->
-              <!-- </td> -->
-              <td>
-                {formatCurrency(row.percentPrincipal * 100)}{" "}<span
-                  class="text-xs">%</span
-                >
+              <td class="grid grid-cols-2">
+                {formatCurrency(row.diff)}
+                <br />
+                {formatCurrency(row.totalDiff)}
               </td>
               <td>
-                {formatCurrency(row.delinquentBalance * -1)}
-              </td>
-              <td>
-                {formatCurrency(row.lastBalance)}
+                {formatCurrency(row.owed)}
               </td>
             </tr>
           {/each}
         </tbody>
-        <tfoot>
-          <tr>
-            <td class="row-span-full">* expected</td>
-          </tr>
-        </tfoot>
+        <!-- <tfoot> -->
+        <!--   <tr> -->
+        <!--     <td class="row-span-full">* expected</td> -->
+        <!--   </tr> -->
+        <!-- </tfoot> -->
       </table>
     </section>
   </div>

@@ -16,9 +16,13 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 	const creditorAddress =
 		deal.creditor && addressFromPerson(deal.creditor.contact);
 
-	const witnessName = fullNameFromPerson({
-		person: deal.inventory.inventory_salesman[0].salesman.contact,
-	});
+	const salesman = deal.inventory.inventory_salesman?.[0]?.salesman.contact;
+
+	const witnessName = salesman
+		? fullNameFromPerson({
+				person: salesman,
+			})
+		: "";
 
 	const vinSplit = deal.inventory.vin.split("");
 	if (vinSplit.length !== 17) {

@@ -3,19 +3,26 @@ import { deletePayment, recordPayment } from "$lib/server/database/payment";
 import { fail, type Actions } from "@sveltejs/kit";
 import { getPayments } from "$lib/server/database/deal/getPayments";
 import type { Payment } from "@prisma/client";
-import {
-	dealAmortization,
-	defaultSchedule,
-	type AmortizedDeal,
-} from "$lib/finance/amortization";
 import { getDetailedDeal, updatePartialDeal } from "$lib/server/database/deal";
 import type { PageServerLoad } from "./$types";
+import { getPaymentSchedule } from "$lib/finance/payment-history";
+import { addMonths } from "date-fns";
 export const load: PageServerLoad = async ({ params }) => {
 	const payments = await getPayments(params.deal);
 	const deal = await getDetailedDeal({ id: params.deal });
-	const schedule: AmortizedDeal = deal?.finance
-		? dealAmortization(deal, payments)
-		: defaultSchedule;
+	const schedule = deal?.finance
+		? getPaymentSchedule(
+				{
+					pmt: Number(deal.pmt),
+					term: Number(deal.term),
+					balance: Number(deal.lien),
+					startDate: addMonths(new Date(deal.date), 1),
+					finance: Number(deal.finance),
+					apr: Number(deal.apr),
+				},
+				payments,
+			)
+		: null;
 	return {
 		payments,
 		schedule,
@@ -28,6 +35,8 @@ export const actions = {
 		const data = await request.formData();
 
 		const balance = data.get("balance");
+		const isPayoff = data.get("payoff") === "on";
+
 		const payment: Payment = {
 			amount: data.get("pmt") as string,
 			date: data.get("date") as string,
@@ -41,6 +50,12 @@ export const actions = {
 			await updatePartialDeal(payment.dealId, { state: 0 });
 		}
 		const { dealId: _, ...inserted } = payment;
+
+		if (isPayoff) {
+			await updatePartialDeal(payment.dealId, { state: 0 }).then(
+				(deal) => deal.state,
+			);
+		}
 
 		return { inserted };
 	},
