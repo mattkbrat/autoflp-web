@@ -16,9 +16,15 @@ import type { SecurityTemplate } from "./maps";
 
 export const fillSecurityData = ({ deal, finance }: DealFormParams) => {
 	const { cosigner, creditor, inventory } = deal;
-	const financeType = finance?.type || !deal?.term ? "cash" : "credit";
-	if (finance?.type !== "credit" || financeType !== "credit") {
-		console.log("Must provide finance data for security generation.");
+	const financeType = finance
+		? finance.type
+		: deal?.term === "0"
+			? "cash"
+			: "credit";
+	if (!finance || finance.type !== "credit" || financeType !== "credit") {
+		console.log("Must provide finance data for security generation.", finance, {
+			financeType,
+		});
 		return [];
 	}
 	if (!deal.lien || !creditor) {
