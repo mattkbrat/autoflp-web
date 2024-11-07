@@ -22,6 +22,7 @@ export const getPaymentSchedule = (
 	withFutures = true,
 ) => {
 	const now = new Date();
+	const startAfterNow = isAfter(p.startDate, now);
 
 	let workingBalance = p.balance;
 	let totalPaid = 0;
@@ -115,10 +116,10 @@ export const getPaymentSchedule = (
 			totalDiff = remaining;
 		}
 
-		if (monthType === "current") {
+		if (monthType === "current" || startAfterNow) {
 			currOwed = expected;
 			currDiff = totalDiff;
-			hasPaid = currDiff - p.pmt <= 10;
+			hasPaid = totalDiff > p.pmt || p.pmt - paid <= 10;
 		}
 		schedule.push({
 			dateFmt: formatDate(date, "MMM `yy"),
@@ -141,15 +142,15 @@ export const getPaymentSchedule = (
 	}
 
 	const nextDueDateMonth = setDay(
-		hasPaid ? addMonths(now, 1) : now,
+		startAfterNow ? p.startDate : hasPaid ? addMonths(now, 1) : now,
 		p.startDate.getDate(),
 	);
 
-	//
-
 	const remainingMonths = Math.ceil(currOwed / p.pmt);
 
-	const currentMonth = schedule.find((s) => s.monthType === "current");
+	const currentMonth = startAfterNow
+		? schedule[0]
+		: schedule.find((s) => s.monthType === "current");
 
 	const presentValue = Math.max(
 		0,
