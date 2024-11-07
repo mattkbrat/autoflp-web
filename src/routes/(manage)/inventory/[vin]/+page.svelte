@@ -105,31 +105,34 @@ const handleSearched = async (result: unknown) => {
 	}, 100);
 };
 
-const syncSelect = (vin: string) => {
-	const selectEl = el<HTMLSelectElement>`inventory-select`;
-	if (!selectEl) return;
-	const currentIndex = selectEl.selectedIndex;
-	if (vin === "new") {
-		if (currentIndex !== 0) {
-			selectEl.selectedIndex = 0;
-		}
-		return;
-	}
-	const items = Array.from(selectEl.children) as HTMLOptionElement[];
-	const indexOf = items.findIndex((el) => el.value === vin);
-	if (indexOf === -1 || indexOf === currentIndex) {
-		return;
-	}
-	selectEl.selectedIndex = indexOf;
-};
+// const syncSelect = (vin: string) => {
+// 	const selectEl = el<HTMLSelectElement>`inventory-select`;
+// 	if (!selectEl) return;
+// 	const currentIndex = selectEl.selectedIndex;
+// 	if (vin === "new") {
+// 		if (currentIndex !== 0) {
+// 			selectEl.selectedIndex = 0;
+// 		}
+// 		return;
+// 	}
+// 	const items = Array.from(selectEl.children) as HTMLOptionElement[];
+// 	const indexOf = items.findIndex((el) => el.value === vin);
+// 	if (indexOf === -1 || indexOf === currentIndex) {
+// 		return;
+// 	}
+// 	selectEl.selectedIndex = indexOf;
+// };
 
 $effect(() => {
-	if (selected.vin?.length !== 17 || hasLoaded) return;
+	if (!selected.vin || selected.vin.length < 17 || selected.make) {
+		return;
+	}
 	const vin = selected.vin.toLowerCase();
 	const exists =
 		$page.params.vin.toLowerCase() === vin
 			? -1
 			: $allInventory.findIndex((i) => i.vin.toLowerCase() === vin);
+
 	if (exists !== -1) {
 		handleInvNav({
 			url: $page.url,
@@ -137,17 +140,14 @@ $effect(() => {
 			invalidate: true,
 		});
 	}
-	if (!import.meta.env.PROD || vin === searched) return;
+	if (selected.vin === searched) {
+		return;
+	}
 	searched = vin;
 	setTimeout(() => {
 		el<HTMLButtonElement>`search-submit`?.click();
 	}, 1000);
 });
-
-// page.subscribe((p) => {
-//   if (!hasLoaded) return;
-//   syncSelect(p.params.vin);
-// });
 
 const updateAllInventory = (
 	vin: string,
