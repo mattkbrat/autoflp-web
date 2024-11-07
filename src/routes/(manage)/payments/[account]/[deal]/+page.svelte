@@ -25,8 +25,6 @@ $effect(() => {
 
 const schedule = $derived(data.schedule);
 
-$effect(() => console.table(schedule?.schedule));
-
 const scheduleRows = $derived(schedule?.schedule.toReversed());
 const totalOwed = $derived(schedule?.owed || 0);
 

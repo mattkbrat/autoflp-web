@@ -46,16 +46,14 @@ export const actions = {
 
 		await recordPayment(payment);
 
-		if (Number(balance) - Number(payment.amount) <= 10) {
-			await updatePartialDeal(payment.dealId, { state: 0 });
-		}
-		const { dealId: _, ...inserted } = payment;
+		const hasPaidOff = Number(balance) - Number(payment.amount) <= 1;
 
-		if (isPayoff) {
+		if (isPayoff || hasPaidOff) {
 			await updatePartialDeal(payment.dealId, { state: 0 }).then(
 				(deal) => deal.state,
 			);
 		}
+		const { dealId: _, ...inserted } = payment;
 
 		return { inserted };
 	},
