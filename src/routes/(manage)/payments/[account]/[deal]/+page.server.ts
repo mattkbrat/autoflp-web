@@ -78,7 +78,7 @@ export const actions = {
 		if (state !== 0 && state !== 1)
 			return fail(400, { state, message: "state must be 1 or 0" });
 		return updatePartialDeal(dealId, { state: state === 0 ? 1 : 0 }).then(
-			(deal) => deal.state,
+			(deal) => deal?.state,
 		);
 	},
 } satisfies Actions;
