@@ -1,39 +1,89 @@
 <script lang="ts">
-import { Time } from "$lib/fuzzy-time";
-import { formatDate } from "date-fns";
+import { formatDate, roundToNearestMinutes } from "date-fns";
 import { onMount } from "svelte";
 
-const time = new Time();
-let now = $state(new Date());
+type Interval = ReturnType<typeof setInterval>;
 
-let fuzzy = $derived(time ? time.fuzzyTime : "");
-let interval: number | null = null;
+let date = $state(new Date().getTime());
+let lastFuzzied = $state(0);
+let fuzzyTime = $state("");
 
-const timeCb = () => {
-	now = new Date();
+let isFirefox = $state(false);
+
+let longInterval = $state(0 as Interval | number);
+let shortInterval = $state(0 as Interval | number);
+
+const setOneSecondInteval = () => {
+	if (shortInterval) return;
+	date = new Date().getTime();
+	shortInterval = setInterval(() => {
+		date = new Date().getTime();
+	}, 1_000);
 };
 
-const handleInterval = (clear = false) => {
-	if (clear) {
-		return interval && window.clearInterval(interval);
-	}
-	interval = window.setInterval(timeCb, 1000);
+const clearOneSecondInteval = () => {
+	if (!shortInterval) return;
+	clearInterval(shortInterval);
+	shortInterval = 0;
 };
+
+const getFuzzyTime = () => {
+	const roundedDate = roundToNearestMinutes(date, {
+		nearestTo: 15,
+	});
+	lastFuzzied = date;
+	return formatDate(roundedDate, "~ h:mm B, ccc");
+};
+
 onMount(() => {
-	handleInterval();
+	isFirefox = !!navigator.userAgent.match(/firefox|fxios/i);
+
+	fuzzyTime = getFuzzyTime();
+	window.addEventListener("beforeprint", () => {
+		console.log("printing");
+		setOneSecondInteval();
+	});
+	window.addEventListener("afterprint", () => {
+		clearOneSecondInteval();
+	});
+	longInterval = setInterval(() => {
+		date = new Date().getTime();
+		if (!lastFuzzied || date - lastFuzzied > 15_000) {
+			fuzzyTime = getFuzzyTime();
+		}
+	}, 120_000);
 });
 </script>
 
 <span
-  class="flex relative flex-col flex-1 self-end pl-8 text-right opacity-75 cursor-pointer group print:contents"
+  class="flex relative flex-col flex-1 self-end pl-8 text-right opacity-75 cursor-pointer group print:contents w-80"
   id="fuzzy-clock-string"
+  role="figure"
+  onfocus={() => {
+    setOneSecondInteval();
+  }}
+  onmouseover={() => {
+    setOneSecondInteval();
+  }}
+  onfocusout={() => {
+    clearOneSecondInteval();
+  }}
+  onmouseout={() => {
+    clearOneSecondInteval();
+  }}
+  onblur={() => {
+    clearOneSecondInteval();
+  }}
 >
-  <span class="print:hidden">
-    {fuzzy}
-  </span>
-  <span
-    class="hidden print:flex absolute print:relative left-0 top-8 print:top-0 flex-col w-full print:w-fit text-sm transition-all group-hover:flex"
-  >
-    {formatDate(now, "MM-dd-yyyy HH:MM:SS")}
-  </span>
+  {#if shortInterval || isFirefox}
+    <span class:hidden={!shortInterval} class="print:!block">
+      {formatDate(date, "PPpp")}
+    </span>
+    <br />
+  {/if}
+  {#if !isFirefox || !shortInterval}
+    <span class="print:hidden">
+      {fuzzyTime}
+    </span>
+  {/if}
 </span>
