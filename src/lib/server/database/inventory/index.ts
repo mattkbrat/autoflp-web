@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client/edge";
 import { prisma } from "..";
 import { randomUUID } from "node:crypto";
+import { sendInventoryNotification } from "$lib/server/notify";
 
 const includeInvSalesman = (alwaysIncludeSalesmen = false) => {
 	return {
@@ -79,6 +80,7 @@ export type InventoryField = keyof Inventory;
 
 export const upsertInventory = async (
 	i: Exclude<Partial<Inventory>, "inventory_salesman">,
+	notify = true,
 ) => {
 	const exists = i.vin && (await getSingleInventory({ vin: i.vin }));
 	if (exists) {
@@ -95,6 +97,9 @@ export const upsertInventory = async (
 				data: { state: 0 },
 			});
 
+			if (notify) {
+				sendInventoryNotification({ inventory: updated, type: "update" });
+			}
 			return updated;
 		});
 	}
@@ -104,9 +109,19 @@ export const upsertInventory = async (
 	if (!vin || !year || !make) {
 		return new Error("Must provide vin, year, and make");
 	}
-	return prisma.inventory.create({ data: { ...i, id, vin, year, make } });
+	return prisma.inventory
+		.create({ data: { ...i, id, vin, year, make } })
+		.then((i) => {
+			if (notify) {
+				sendInventoryNotification({ inventory: i, type: "create" });
+			}
+			return i;
+		});
 };
 
 export const deleteInventory = async (vin: string) => {
-	return prisma.inventory.delete({ where: { vin } });
+	return prisma.inventory.delete({ where: { vin } }).then((i) => {
+		sendInventoryNotification({ inventory: i, type: "delete" });
+		return i;
+	});
 };
