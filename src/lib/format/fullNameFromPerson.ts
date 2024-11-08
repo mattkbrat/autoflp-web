@@ -13,39 +13,32 @@ export function fullNameFromPerson({
 		namePrefix: prefix,
 	} = person;
 
-	let name;
+	let name = "";
+
+	if (lastName && !firstName) {
+		name = lastName;
+	} else if (firstName && !lastName) {
+		name = firstName;
+	}
 
 	// suffix first because it's more likely to be empty
-	if (suffix && prefix) {
-		if (format === "firstLast") {
-			name = `${firstName} ${middleInitial} ${lastName} ${suffix} ${prefix}`;
-		}
-		name = `${prefix} ${lastName}, ${firstName} ${middleInitial} ${suffix}`;
-	} else if (suffix) {
-		if (format === "firstLast") {
-			name = `${firstName} ${middleInitial} ${lastName} ${suffix}`;
-		}
-		name = `${lastName}, ${firstName} ${middleInitial} ${suffix}`;
-	} else if (prefix) {
-		if (format === "firstLast") {
-			name = `${firstName} ${middleInitial} ${lastName} ${prefix}`;
-		}
-		name = `${prefix} ${lastName}, ${firstName} ${middleInitial}`;
-	} else if (!middleInitial) {
-		if (format === "firstLast") {
-			name = `${firstName} ${lastName}`;
-		}
-		name = `${lastName}, ${firstName}`;
+	else if (format === "lastFirst") {
+		name = [
+			[prefix, lastName].filter(Boolean).join(" "),
+			[firstName, middleInitial, suffix].filter(Boolean).join(" ") || undefined,
+		]
+			.filter(Boolean)
+			.join(", ");
 	} else {
-		if (format === "firstLast") {
-			name = `${firstName} ${middleInitial} ${lastName}`;
-		}
-		name = `${lastName}, ${firstName} ${middleInitial}`;
+		name = [prefix, firstName, middleInitial, lastName, suffix]
+			.filter(Boolean)
+			.join(" ");
 	}
 
 	if (titleCase) {
 		return name
 			.split(" ")
+			.filter(Boolean)
 			.map((word) => word[0].toUpperCase() + word.slice(1))
 			.join(" ");
 	}
