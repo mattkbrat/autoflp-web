@@ -1,5 +1,6 @@
 <script lang="ts">
 import { page } from "$app/stores";
+import { formatInventory } from "$lib/format";
 import { accountDeals } from "$lib/stores";
 </script>
 
@@ -18,12 +19,7 @@ import { accountDeals } from "$lib/stores";
     >
       <li>
         <span class="text-xl">
-          <span>
-            {deal.inventory.make}
-          </span>
-          <span>
-            {deal.inventory.model}
-          </span>
+          {formatInventory(deal.inventory)}
         </span>
         <br />
         <span>{deal.date.split("T")[0].split(" ")[0]}</span>

@@ -3,7 +3,7 @@ import { formatSalesmen } from "./salesmen";
 
 export const formatInventory = (
 	inventory: Partial<Inventory>,
-	titleCase = true,
+	titleCase = false,
 	joinCharacter = " ",
 	includeSalesman = false,
 ) => {
@@ -11,26 +11,11 @@ export const formatInventory = (
 		return "";
 	}
 
-	let { make, model, year, color, vin } = inventory;
-
-	if (!make || make.toLowerCase() === "none") {
-		make = "";
-	}
-
-	if (!year || year.toLowerCase() === "none") {
-		year = "";
-	} else {
-		year = year.split(".")[0].slice(-2);
-	}
-
-	if (!color || color.toLowerCase() === "none") {
-		color = "";
-	}
-
-	vin = vin?.slice(-4) || "";
+	const { make, model, year, color, vin } = inventory;
 
 	const inv = [
-		`'${year} ${make}`.trim(),
+		year ? `'${year.split(".")[0].slice(-2)}` : "",
+		make,
 		model,
 		vin?.slice(-4),
 		color,
@@ -38,8 +23,9 @@ export const formatInventory = (
 			? formatSalesmen(inventory.inventory_salesman, "firstName")
 			: "",
 	]
-		.map((i) => i || "")
-		.join(joinCharacter);
+		.filter((p) => p && p.toLowerCase() !== "none")
+		.join(joinCharacter)
+		.trim();
 
 	if (titleCase) {
 		return inv
@@ -54,5 +40,5 @@ export const formatInventory = (
 			.join(" ");
 	}
 
-	return `${color} ${year} ${make} ${vin}`.trim();
+	return inv.toUpperCase();
 };
