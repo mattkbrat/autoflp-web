@@ -4,8 +4,9 @@ import { randomUUID } from "node:crypto";
 import type { DealFields } from "$lib/finance";
 import type { FinanceCalcResult } from "$lib/finance/calc";
 import type { Trades } from "$lib/server/deal";
-import { getPayments } from "./getPayments";
+import type { getPayments } from "./getPayments";
 import { dealFieldsToDeal } from "./dealFieldsToDeal";
+import { sendDealNotification } from "$lib/server/notify";
 export * from "./dealCharge";
 export * from "./getDeals";
 export * from "./getSalesmanPayments";
@@ -56,7 +57,19 @@ export const updatePartialDeal = async (id: string, data: Partial<Deal>) => {
 	if (!id) {
 		throw new Error("Must provide a deal ID");
 	}
-	return prisma.deal.update({ where: { id }, data });
+
+	const closeDeal = data.state === 0;
+
+	const updated = await prisma.deal.update({ where: { id }, data });
+	console.log("updating deal", data, updated, { closeDeal });
+
+	if (!closeDeal) return updated;
+
+	return sendDealNotification({ type: "close", dealId: updated.id }).then(
+		() => {
+			return updated;
+		},
+	);
 };
 
 export const createDeal = async (

@@ -29,7 +29,11 @@ const scheduleRows = $derived(schedule?.schedule.toReversed());
 const totalOwed = $derived(schedule?.owed || 0);
 
 const fullName = $derived(
-	selected ? fullNameFromPerson({ person: selected?.account.contact }) : "",
+	selected
+		? fullNameFromPerson({
+				person: selected.account.contact,
+			})
+		: "",
 );
 const totalDelinquent = $derived(schedule?.totalDiff || 0);
 const inventory = $derived(

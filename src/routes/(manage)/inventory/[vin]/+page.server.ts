@@ -10,6 +10,7 @@ import type { Actions, PageServerLoad } from "./$types";
 import { inventoryForms } from "$lib/types/forms";
 import { builder } from "$lib/server/form/builder";
 import { prisma } from "$lib/server/database";
+import { sendInventoryNotification } from "$lib/server/notify";
 
 export const load: PageServerLoad = async ({ params }) => {
 	const inventory =
@@ -49,7 +50,7 @@ export const actions = {
 		inventory.dateModified = new Date().toISOString().split("T")[0];
 		inventory.state = +((data.get("state") || "1") as string);
 
-		const upserted = await upsertInventory(inventory);
+		const upserted = await upsertInventory(inventory, false);
 		const salesmen = data.getAll("salesmen") as string[];
 
 		await prisma.$transaction(async (tx) => {
@@ -89,6 +90,12 @@ export const actions = {
 		}
 
 		console.log("res", upserted);
+		if (!(upserted instanceof Error)) {
+			sendInventoryNotification({
+				id: upserted.id,
+				type: upserted.id === id ? "update" : "create",
+			});
+		}
 		return {
 			data: upserted,
 			method: id === upserted.id ? "update" : "insert",

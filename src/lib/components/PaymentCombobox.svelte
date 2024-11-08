@@ -1,5 +1,5 @@
 <script lang="ts">
-import { fullNameFromPerson } from "$lib/format";
+import { formatInventory, fullNameFromPerson } from "$lib/format";
 import { accountID, deals, handleSelect } from "$lib/stores";
 import ComboBox from "./ComboBox.svelte";
 
@@ -7,12 +7,16 @@ let filterActive = true;
 
 $: options = $deals.map((d) => {
 	const dealLink = `/payments/${d.account.id}/${d.id}`;
-	const fullName = fullNameFromPerson({ person: d.account.contact });
-	const text = `${fullName} | ${d.inventory.make} ${
-		d.inventory.model
-	} | ${d.inventory.vin?.slice(-6)}`;
+	const fullName = fullNameFromPerson({
+		person: d.account.contact,
+		titleCase: false,
+	});
+	const { vin, ...inv } = d.inventory;
+	const inventory = formatInventory(inv);
 	return {
-		text,
+		text: [fullName.toUpperCase(), inventory, vin.slice(-6).toUpperCase()].join(
+			"|",
+		),
 		value: dealLink,
 		state: d.state,
 	};
