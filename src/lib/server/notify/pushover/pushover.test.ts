@@ -1,5 +1,6 @@
 import { describe, test, expect } from "vitest";
-import { sendNotification, type PushoverNotification } from ".";
+import { type PushoverNotification } from ".";
+import { sendNotification } from "./sendNotification";
 
 describe.skip("Can notify", async () => {
 	const notification: PushoverNotification = {
