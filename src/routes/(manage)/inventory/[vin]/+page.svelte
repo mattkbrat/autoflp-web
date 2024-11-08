@@ -19,6 +19,8 @@ let shouldFocus = $state(false);
 let hasLoaded = $state(false);
 let printedForms = $state(0);
 
+let lastUpdated = $state("");
+
 let { data, form } = $props();
 
 let selected = $state({} as Partial<Inventory>);
@@ -196,7 +198,7 @@ const toggleState = (oldState: number) => {
 };
 
 $effect(() => {
-	if (!form?.data) return;
+	if (!form?.data || form.data.id === lastUpdated) return;
 	const { vin, id } = form.data;
 	if (id) {
 		selected.id = id;
@@ -205,8 +207,7 @@ $effect(() => {
 		updateAllInventory(vin, data.inventory);
 	}
 
-	if (data && "data" in data && data.data) {
-	}
+	lastUpdated = form.data.id;
 });
 
 $effect(() => {
