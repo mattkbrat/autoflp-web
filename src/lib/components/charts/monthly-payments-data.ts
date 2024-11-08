@@ -1,3 +1,8 @@
+import {
+	stringToColorHex,
+	stringToColorHsl,
+	stringToHash,
+} from "$lib/format/stringToColor";
 import type { GroupedSalesmanPayments } from "$lib/server/database/deal";
 
 const sum = (numbers: number[]) => {
@@ -18,7 +23,8 @@ export const data = (payments: GroupedSalesmanPayments) => {
 		new Set() as Set<string>,
 	);
 
-	const allLabels = Array.from(labelsSet);
+	const allLabels = Array.from(labelsSet).sort();
+	const hashes = allLabels.map((label) => stringToHash(label));
 	const keys = Object.keys(payments);
 	const baseData = Array.from(new Array(allLabels.length)).map((_k) => {
 		return Array.from(new Array(keys).keys()).map((_) => 0);
@@ -42,8 +48,17 @@ export const data = (payments: GroupedSalesmanPayments) => {
 	return {
 		labels: keys,
 		datasets: allLabels.map((k, i) => {
+			const isUnasigned = k === "Unasigned";
 			return {
 				label: k,
+				backgroundColor: isUnasigned
+					? "gray"
+					: stringToColorHsl(k, 40, 50, hashes[i]),
+				borderColor: isUnasigned
+					? "black"
+					: stringToColorHsl(k, 90, 50, hashes[i]),
+				borderRadius: 2,
+				borderWidth: 1,
 				data: baseData[i],
 			};
 		}),
