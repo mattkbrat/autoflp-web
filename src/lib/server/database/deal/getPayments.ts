@@ -1,8 +1,7 @@
 import { prisma } from "$lib/server/database";
 import type { Prisma } from "@prisma/client";
 
-export const getPayments = async (deal: string) => {
-	if (!deal) return [];
+export const getPayments = async (deal?: string) => {
 	return prisma.payment.findMany({
 		where: {
 			dealId: deal,

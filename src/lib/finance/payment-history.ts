@@ -122,7 +122,7 @@ export const getPaymentSchedule = (
 			hasPaid = totalDiff > p.pmt || p.pmt - paid <= 10;
 		}
 		schedule.push({
-			dateFmt: formatDate(date, "MMM `yy"),
+			dateFmt: formatDate(date, "MMM ''yy"),
 			date,
 			monthType,
 			paid: roundToPenny(paid),
