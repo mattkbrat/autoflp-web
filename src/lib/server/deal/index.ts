@@ -15,6 +15,7 @@ import {
 } from "../database/deal";
 import type { DealFieldsWithFinance } from "$lib/finance/fields";
 import type { Deal } from "@prisma/client";
+import { sendDealNotification } from "../notify";
 
 export type Trades = { vin: string; value: number }[];
 export * from "./billing";
@@ -62,18 +63,17 @@ export const upsertDeal = async (
 		await deleteDealTrades(deal.id);
 		await deleteDealCharges(deal.id);
 
-		// Close the inventory
-		if (inv) {
-			await upsertInventory({
-				vin: inv.vin,
-				state: 0,
-			});
-		}
-
 		updatedDeal = await updateDeal(deal, deal.finance);
 	} else {
 		deal.id = randomUUID();
 		updatedDeal = await createDeal(deal, deal.finance);
+	}
+	// Close the inventory
+	if (inv) {
+		await upsertInventory({
+			vin: inv.vin,
+			state: 0,
+		});
 	}
 
 	if (!updatedDeal) {
@@ -85,10 +85,12 @@ export const upsertDeal = async (
 
 	await createTrades(updatedDeal.id, trades || []);
 
-	// TODO: notify Deal
-	//
+	sendDealNotification({
+		type: dealDoesExist ? "update" : "create",
+		dealId: updatedDeal.id,
+	});
 
-	console.debug({ updatedDeal });
+	console.debug("updated deal", { updatedDeal });
 
 	return updatedDeal;
 };
