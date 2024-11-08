@@ -1,10 +1,11 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
-import { download, getZip } from "$lib";
+import { getZip } from "$lib";
+import MonthlyPayments from "$lib/components/charts/MonthlyPayments.svelte";
 
-export let data;
+const { data } = $props();
 
-$: keys = [...data.keys, { value: "", key: "", id: "" }];
+const keys = $derived([...data.keys, { value: "", key: "", id: "" }]);
 </script>
 
 <svelte:head>
@@ -58,3 +59,5 @@ $: keys = [...data.keys, { value: "", key: "", id: "" }];
     >Print Billing</button
   >
 </form>
+
+<MonthlyPayments payments={data.payments} />

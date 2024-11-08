@@ -47,3 +47,15 @@ export function waitForElm<Element extends HTMLElement>(
 		});
 	});
 }
+
+export function printCanvas(dataUrl: string, title = "Print Canvas") {
+	const windowContent = `<!DOCTYPE html><html><head><title>${title}</title></head><body><img src="${dataUrl}"></body></html>`;
+	const printWin = window.open("", "", "width=340,height=260");
+	if (!printWin) return;
+	printWin.document.open();
+	printWin.document.write(windowContent);
+	printWin.document.close();
+	printWin.focus();
+	printWin.print();
+	printWin.close();
+}

@@ -8,6 +8,7 @@ import { getPayments } from "./getPayments";
 import { dealFieldsToDeal } from "./dealFieldsToDeal";
 export * from "./dealCharge";
 export * from "./getDeals";
+export * from "./getSalesmanPayments";
 
 export const closeDeals = async (deals: string[]) => {
 	return prisma.deal.updateMany({
