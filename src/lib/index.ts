@@ -2,3 +2,4 @@
 
 export { notEmpty } from "./notEmpty";
 export { getZip, download } from "./getZip";
+export { printCanvas } from "./element";
