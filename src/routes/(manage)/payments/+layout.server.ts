@@ -1,4 +1,3 @@
-import { getAndGroupDeals } from "$lib/server/database/deal";
 import { getDeals, groupDeals } from "$lib/server/database/deal/getDeals";
 import type { LayoutServerLoad } from "./$types";
 
