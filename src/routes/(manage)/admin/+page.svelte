@@ -1,7 +1,7 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import { getZip } from "$lib";
-import MonthlyPayments from "$lib/components/charts/MonthlyPayments.svelte";
+import ExpectedPayments from "$lib/components/charts/ExpectedPayments.svelte";
 
 const { data } = $props();
 
@@ -11,8 +11,6 @@ const keys = $derived([...data.keys, { value: "", key: "", id: "" }]);
 <svelte:head>
   <title>Admin - AutoFLP</title>
 </svelte:head>
-
-<h2>Admin</h2>
 
 <div class="flex flex-col flex-wrap space-y-4"></div>
 {#each keys as key}
@@ -59,5 +57,3 @@ const keys = $derived([...data.keys, { value: "", key: "", id: "" }]);
     >Print Billing</button
   >
 </form>
-
-<MonthlyPayments payments={data.payments} />

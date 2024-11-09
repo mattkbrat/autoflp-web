@@ -3,13 +3,15 @@ import { createKey, getKeys } from "$lib/server/database/keys";
 import type { Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 import { generateMergedBilling } from "$lib/server/deal";
-import { getSalesmanPayments } from "$lib/server/database/deal";
+import {
+	getExpectedWithSalesmen,
+	getSalesmanPayments,
+} from "$lib/server/database/deal";
 import { addMonths } from "date-fns";
 
 export const load: PageServerLoad = async ({ url }) => {
 	const keys = await getKeys(BUSINESS_NAME);
 
-	// const groupBy = url.searchParams.getAll("groupBy");
 	const yearFilter = url.searchParams.get("year");
 
 	const startDateFilter = yearFilter
@@ -27,7 +29,9 @@ export const load: PageServerLoad = async ({ url }) => {
 		},
 	});
 
-	return { keys, payments };
+	const expectedWithSalesmen = await getExpectedWithSalesmen();
+
+	return { keys, payments, expected: expectedWithSalesmen };
 };
 
 export const actions = {
@@ -47,7 +51,7 @@ export const actions = {
 			method: id ? "update" : "insert",
 		};
 	},
-	printBilling: async ({ request }) => {
+	printBilling: async () => {
 		const data = await generateMergedBilling("desc");
 
 		return { built: data };
