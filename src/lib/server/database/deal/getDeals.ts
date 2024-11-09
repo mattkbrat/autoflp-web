@@ -2,11 +2,84 @@ import { prisma } from "$lib/server/database";
 import type { Prisma } from "@prisma/client";
 import type { AsyncReturnType } from "$lib/types";
 import { fullNameFromPerson } from "$lib/format";
+import { endOfMonth, startOfMonth } from "date-fns";
+import type { DateFilter } from "./get-expected-with-salesmen";
 type DealQuery = Prisma.DealFindUniqueArgs["where"];
-export const getDeals = async (account?: string) => {
+
+export const getMonthlyOpenDeals = async (q?: DateFilter) => {
+	const dateFilter = {
+		gte: startOfMonth(q?.gte ? new Date(q.gte) : new Date())
+			.toISOString()
+			.split("T")[0],
+		lte:
+			q?.gte || q?.lte
+				? endOfMonth(new Date(q.gte || q.lte || 0))
+						.toISOString()
+						.split("T")[0]
+				: undefined,
+	};
+
 	return prisma.deal.findMany({
 		where: {
-			accountId: account ? account : undefined,
+			state: 1,
+			date: {
+				lte: dateFilter.lte,
+			},
+		},
+		select: {
+			pmt: true,
+			id: true,
+			date: true,
+			account: {
+				select: {
+					id: true,
+					contact: {
+						select: {
+							phonePrimary: true,
+							firstName: true,
+							lastName: true,
+						},
+					},
+				},
+			},
+			inventory: {
+				select: {
+					make: true,
+					model: true,
+					year: true,
+					vin: true,
+					inventory_salesman: {
+						select: {
+							salesman: {
+								select: {
+									id: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			payments: {
+				select: {
+					amount: true,
+					date: true,
+				},
+				where: {
+					date: dateFilter,
+				},
+			},
+		},
+		orderBy: {
+			pmt: "desc",
+		},
+	});
+};
+
+export const getDeals = async (account?: string, state?: number) => {
+	return prisma.deal.findMany({
+		where: {
+			accountId: account,
+			state,
 		},
 		include: {
 			account: {

@@ -1,13 +1,6 @@
-import {
-	stringToColorHex,
-	stringToColorHsl,
-	stringToHash,
-} from "$lib/format/stringToColor";
+import { stringToColorHsl, stringToHash } from "$lib/format/stringToColor";
 import type { GroupedSalesmanPayments } from "$lib/server/database/deal";
-
-const sum = (numbers: number[]) => {
-	return numbers.reduce((acc, curr) => acc + curr, 0);
-};
+import { sum } from "$lib/sum";
 
 export const data = (payments: GroupedSalesmanPayments) => {
 	const labelsSet = Object.keys(payments).reduce(

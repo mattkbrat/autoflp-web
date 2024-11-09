@@ -11,14 +11,13 @@ import { groupSalesmanPayments } from "$lib/finance";
 const { payments }: { payments: SalesmanPayments } = $props();
 
 let ctx: HTMLCanvasElement | null = null;
-const defaultStacked = true;
 
 let groupBy = $state<string[]>([]);
 let filterYear = $state<number | string>(
 	Number($page.url.searchParams?.get("year")) || "",
 );
 
-let stacked = $state(defaultStacked);
+let stacked = $state(true);
 
 const chartData = $derived(
 	data(
