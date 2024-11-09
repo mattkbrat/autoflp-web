@@ -10,6 +10,7 @@ import { sendDealNotification } from "$lib/server/notify";
 export * from "./dealCharge";
 export * from "./getDeals";
 export * from "./getSalesmanPayments";
+export * from "./get-expected-with-salesmen";
 
 export const closeDeals = async (deals: string[]) => {
 	return prisma.deal.updateMany({

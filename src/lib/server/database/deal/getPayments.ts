@@ -1,5 +1,6 @@
 import { prisma } from "$lib/server/database";
 import type { Prisma } from "@prisma/client";
+import { getDeals } from ".";
 
 export const getPayments = async (deal?: string) => {
 	return prisma.payment.findMany({
@@ -14,6 +15,12 @@ type MonthlyPaymentsQuery = {
 	year: number;
 } & Omit<Prisma.PaymentWhereInput, "date">;
 
+export const getExpectedMonthlyPayments = async () => {
+	const openDeals = await getDeals(undefined, 1);
+
+	console.log(openDeals);
+};
+
 export const getMonthlyPayments = async (query: MonthlyPaymentsQuery) => {
 	const { year, month, ...filter } = query;
 	const date = new Date(query.year, query.month, 2);
@@ -23,6 +30,25 @@ export const getMonthlyPayments = async (query: MonthlyPaymentsQuery) => {
 				startsWith: `${date.getFullYear()}-${date.getMonth()}`,
 			},
 			...filter,
+		},
+		include: {
+			deal: {
+				select: {
+					inventory: {
+						select: {
+							inventory_salesman: {
+								select: {
+									salesman: {
+										select: {
+											contact: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	});
 };
