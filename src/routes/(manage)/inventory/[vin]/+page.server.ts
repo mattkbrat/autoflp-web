@@ -10,7 +10,10 @@ import type { Actions, PageServerLoad } from "./$types";
 import { inventoryForms } from "$lib/types/forms";
 import { builder } from "$lib/server/form/builder";
 import { prisma } from "$lib/server/database";
-import { sendInventoryNotification } from "$lib/server/notify";
+import {
+	sendDealNotification,
+	sendInventoryNotification,
+} from "$lib/server/notify";
 
 export const load: PageServerLoad = async ({ params }) => {
 	const inventory =
@@ -50,12 +53,42 @@ export const actions = {
 		inventory.dateModified = new Date().toISOString().split("T")[0];
 		inventory.state = +((data.get("state") || "1") as string);
 
-		const upserted = await upsertInventory(inventory, false);
+		const upserted = await upsertInventory(inventory, { notify: false });
+		if (upserted instanceof Error) {
+			return fail(400, {
+				message: `Could not update inventory: ${upserted.message}`,
+			});
+		}
 		const salesmen = data.getAll("salesmen") as string[];
 
-		await prisma.$transaction(async (tx) => {
+		const matchingDeals = await prisma.$transaction(async (tx) => {
+			let matchingDeals: string[] = [];
+			if (upserted.state === 1) {
+				matchingDeals = await tx.deal
+					.findMany({
+						where: {
+							inventoryId: upserted.vin,
+							state: 1,
+						},
+						select: { id: true },
+					})
+					.then((r) => r.map((deal) => deal.id));
+
+				if (matchingDeals.length) {
+					await tx.deal.updateMany({
+						where: {
+							id: { in: matchingDeals },
+						},
+
+						data: {
+							state: 0,
+						},
+					});
+				}
+			}
 			const { vin } = inventory;
 			if (!vin) return;
+
 			const existing = await tx.inventorySalesman
 				.findMany({
 					where: { vin },
@@ -82,11 +115,14 @@ export const actions = {
 					})
 					.then((e) => console.log("created", e));
 			}
+
+			return matchingDeals;
 		});
-		if (upserted instanceof Error) {
-			return fail(400, {
-				message: `Could not update inventory: ${upserted.message}`,
-			});
+
+		if (matchingDeals) {
+			for (const id of matchingDeals) {
+				sendDealNotification({ type: "close", dealId: id });
+			}
 		}
 
 		console.log("res", upserted);

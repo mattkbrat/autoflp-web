@@ -80,7 +80,13 @@ export type InventoryField = keyof Inventory;
 
 export const upsertInventory = async (
 	i: Exclude<Partial<Inventory>, "inventory_salesman">,
-	notify = true,
+	actions: {
+		notify?: boolean;
+		excludeCloseDeals?: string[];
+	} = {
+		notify: true,
+		excludeCloseDeals: [],
+	},
 ) => {
 	const exists = i.vin && (await getSingleInventory({ vin: i.vin }));
 	if (exists) {
@@ -93,11 +99,14 @@ export const upsertInventory = async (
 				return updated;
 			}
 			await tx.deal.updateMany({
-				where: { inventoryId: exists.vin },
+				where: {
+					inventoryId: exists.vin,
+					id: { notIn: actions.excludeCloseDeals },
+				},
 				data: { state: 0 },
 			});
 
-			if (notify) {
+			if (actions.notify) {
 				sendInventoryNotification({ inventory: updated, type: "update" });
 			}
 			return updated;
@@ -112,7 +121,7 @@ export const upsertInventory = async (
 	return prisma.inventory
 		.create({ data: { ...i, id, vin, year, make } })
 		.then((i) => {
-			if (notify) {
+			if (actions.notify) {
 				sendInventoryNotification({ inventory: i, type: "create" });
 			}
 			return i;

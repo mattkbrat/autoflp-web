@@ -50,7 +50,6 @@ export const sendNotification = async (p: PushoverNotification) => {
 		...p,
 		message: p.message.trim().replaceAll(/\s+/g, " "),
 	};
-	console.log("sending", params);
 
 	if (p.priority === 2) {
 		params.retry = 60;

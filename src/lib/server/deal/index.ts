@@ -38,9 +38,9 @@ export const upsertDeal = async (
 		deal.id = dealDoesExist.id;
 	}
 
-	const openDeals = await getOpenInventoryDeals(deal.vin).then(
-		(deals) => deal.id && deals.filter((d) => d.id !== deal.id),
-	);
+	const openDeals = await getOpenInventoryDeals(deal.vin, {
+		exclude: [deal.id],
+	});
 	const account = await getAccount({ id: deal.account });
 
 	let updatedDeal: Deal | null = null;
@@ -68,12 +68,17 @@ export const upsertDeal = async (
 		deal.id = randomUUID();
 		updatedDeal = await createDeal(deal, deal.finance);
 	}
+
+	console.log(updatedDeal);
 	// Close the inventory
 	if (inv) {
-		await upsertInventory({
-			vin: inv.vin,
-			state: 0,
-		});
+		await upsertInventory(
+			{
+				vin: inv.vin,
+				state: 0,
+			},
+			{ excludeCloseDeals: [deal.id] },
+		);
 	}
 
 	if (!updatedDeal) {

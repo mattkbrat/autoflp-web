@@ -49,7 +49,10 @@ export const actions = {
 				state: 1,
 			};
 
-			await upsertInventory(inventory);
+			await upsertInventory(inventory, {
+				excludeCloseDeals: [deal.id],
+				notify: true,
+			});
 
 			trades.push({ vin: trade.vin, value: trade.value });
 		}

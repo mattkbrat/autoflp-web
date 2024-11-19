@@ -4,6 +4,7 @@ import { siteUrl } from "$lib/server/env";
 import type { Inventory } from "@prisma/client";
 import type { PushoverNotification } from "./constants";
 import { sendNotification } from "./sendNotification";
+import type { InventorySalesmen } from "$lib/types";
 
 type NotifyInventoryParams = {
 	notification?: Omit<PushoverNotification, "title" | "message">;
@@ -22,7 +23,7 @@ export const sendInventoryNotification = async ({
 	type,
 	...i
 }: NotifyInventoryParams) => {
-	const singleInventory = "id" in i ? await getSingleInventory(i) : null;
+	const singleInventory = "id" in i ? await getSingleInventory(i) : i.inventory;
 
 	if (!singleInventory) {
 		console.warn("Failed to get inventory, cannot send notification", i);
@@ -47,7 +48,10 @@ export const sendInventoryNotification = async ({
 
 	const salesmen =
 		"inventory_salesman" in singleInventory
-			? formatSalesmen(singleInventory.inventory_salesman, "firstInitial")
+			? formatSalesmen(
+					singleInventory.inventory_salesman as InventorySalesmen,
+					"firstInitial",
+				)
 			: "";
 
 	const inventory = "inventory" in i ? i.inventory : singleInventory;

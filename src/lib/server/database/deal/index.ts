@@ -62,7 +62,6 @@ export const updatePartialDeal = async (id: string, data: Partial<Deal>) => {
 	const closeDeal = data.state === 0;
 
 	const updated = await prisma.deal.update({ where: { id }, data });
-	console.log("updating deal", data, updated, { closeDeal });
 
 	if (!closeDeal) return updated;
 

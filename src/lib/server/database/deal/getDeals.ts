@@ -208,11 +208,21 @@ export const getAndGroupDeals = async () => {
 	return getDeals().then(groupDeals);
 };
 
-export const getOpenInventoryDeals = async (vin: string) => {
+export const getOpenInventoryDeals = async (
+	vin: string,
+	query?: {
+		exclude?: string[];
+	},
+) => {
 	return prisma.deal.findMany({
 		where: {
 			inventoryId: vin,
 			state: 1,
+			id: query?.exclude
+				? {
+						notIn: query.exclude,
+					}
+				: undefined,
 		},
 	});
 };
