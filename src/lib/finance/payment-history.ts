@@ -49,15 +49,6 @@ export const getPaymentSchedule = (
 
 	while (workingBalance > 0 && month < 50) {
 		const date = addMonths(p.startDate, month);
-		const monthType = (
-			isSameMonth(date, now)
-				? "current"
-				: isAfter(date, now)
-					? "after"
-					: "before"
-		) as MonthType;
-
-		const monthAfter = monthType === "after";
 
 		const bBal = workingBalance;
 
@@ -73,13 +64,21 @@ export const getPaymentSchedule = (
 					return sameMonth;
 				});
 
-		let paid = matchingHistory.length
+		const matchingPayments = matchingHistory.length
 			? matchingHistory.reduce((acc, curr) => {
 					return acc + Number(curr.amount);
 				}, 0)
-			: monthAfter
-				? p.pmt
-				: 0;
+			: 0;
+		const monthType = (
+			isSameMonth(date, now) || (month === 0 && matchingPayments)
+				? "current"
+				: isAfter(date, now)
+					? "after"
+					: "before"
+		) as MonthType;
+
+		const monthAfter = monthType === "after";
+		let paid = matchingPayments ? matchingPayments : monthAfter ? p.pmt : 0;
 
 		const skipMissingCurrentMonth =
 			monthType === "current" && isAfter(date, now) && paid === 0;
@@ -116,7 +115,7 @@ export const getPaymentSchedule = (
 			totalDiff = remaining;
 		}
 
-		if (monthType === "current" || startAfterNow) {
+		if ((monthType === "current" || startAfterNow) && !currOwed) {
 			currOwed = expected;
 			currDiff = totalDiff;
 			hasPaid = totalDiff > p.pmt || p.pmt - paid <= 10;
