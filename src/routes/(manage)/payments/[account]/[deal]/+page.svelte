@@ -3,7 +3,7 @@ import { enhance } from "$app/forms";
 import { el, waitForElm } from "$lib/element";
 import { formatCurrency, fullNameFromPerson } from "$lib/format";
 import { browser } from "$app/environment";
-import { formatDate } from "date-fns";
+import { differenceInDays, formatDate } from "date-fns";
 
 const { data } = $props();
 
@@ -24,6 +24,11 @@ $effect(() => {
 
 const schedule = $derived(data.schedule);
 
+const pmtIsLate = $derived(
+	schedule ? differenceInDays(now, schedule.nextDueDate) : 0,
+);
+
+// console.log($state.snapshot(schedule));
 const scheduleRows = $derived(schedule?.schedule.toReversed());
 const totalOwed = $derived(schedule?.remaining || 0);
 
@@ -166,14 +171,29 @@ $effect(() => {
   {#if selected?.date && schedule}
     <span class="text-center">
       Starting
-      {formatDate(schedule.startDate, "MMMM yyyy")}
+      {formatDate(schedule.startDate, "MMM. do ''yy")}
     </span>
   {/if}
   <span class="text-right">
     {#if selected?.state && schedule}
-      Next payment due by
-      <span class="text-lg">
-        {formatDate(schedule.nextDueDate, "MMM'' co")}
+      Nex payment due by
+      <span class="text-lg" class:text-red-400={pmtIsLate > 0}>
+        {formatDate(
+          schedule.nextDueDate,
+          schedule.nextDueDate.getFullYear() < now.getFullYear()
+            ? "MMM. do yyyy"
+            : "MMM. do",
+        )}
+        {#if pmtIsLate > 7}
+          <span>
+            {Array.from(
+              new Array(Math.min(10, Math.floor(pmtIsLate / 7)))
+                .keys()
+                .map(() => "!"),
+            ).join("")}
+          </span>
+        {/if}
+        <br />
       </span>
     {:else}
       Thank you!
@@ -291,8 +311,10 @@ $effect(() => {
                 type="button"
                 onclick={() => {
                   defaultPmt.amount = schedule?.payoff || 0;
-                }}>Apply remaining owed</button
+                }}
               >
+                Apply Remaining Owed
+              </button>
               <button
                 type="submit"
                 class="btn flex flex-col flex-1 !h-fit gap-y-1"
@@ -300,7 +322,7 @@ $effect(() => {
                 class:preset-outlined-warning-200-800={selected.state}
                 formaction="?/toggleState"
               >
-                <span> Toggle State </span>
+                <span>{selected.state ? "Close Deal" : "Open Deal"}</span>
               </button>
               <button
                 type="submit"
@@ -354,6 +376,8 @@ $effect(() => {
             <th>B. Bal</th>
             <th>Paid</th>
             <th>Advanced</th>
+            <th>T. Paid</th>
+            <th>Expected</th>
             <th>E. Bal</th>
           </tr>
         </thead>
@@ -362,11 +386,12 @@ $effect(() => {
             {@const dateAfter = row.monthType === "after"}
             {@const isCurrentMonth = row.monthType === "current"}
             <tr
+              class="odd:bg-gray-50 even:bg-white dark:odd:bg-gray-900 dark:even:bg-black border-black"
               class:!bg-gray-400={isCurrentMonth}
               class:dark:text-gray-200={!dateAfter && !isCurrentMonth}
               class:dark:!bg-gray-800={isCurrentMonth}
-              class="odd:bg-gray-50 even:bg-white dark:odd:bg-gray-900 dark:even:bg-black border-black"
-              class:border-2={isCurrentMonth}
+              class:border-4={isCurrentMonth}
+              class:border-b-2={!isCurrentMonth}
             >
               <td>
                 {row.dateFmt}
@@ -375,12 +400,18 @@ $effect(() => {
                 {formatCurrency(row.start)}
               </td>
               <td>
-                {row.paid}
+                {formatCurrency(row.paid)}
               </td>
-              <td class="grid grid-cols-2">
+              <td>
                 {formatCurrency(row.diff)}
                 <br />
                 {formatCurrency(row.totalDiff)}
+              </td>
+              <td>
+                {formatCurrency(row.totalPaid)}
+              </td>
+              <td>
+                {formatCurrency(row.expected)}
               </td>
               <td>
                 {formatCurrency(row.owed)}

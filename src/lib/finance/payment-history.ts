@@ -25,13 +25,9 @@ export const getPaymentSchedule = (
 	const startAfterNow = isAfter(p.startDate, now);
 
 	let workingBalance = p.balance;
-	let totalPaid = 0;
+	let futureAdjustment = 0;
 	let month = 0;
-	let currOwed = 0;
-	let totalDiff = 0;
-	let currDiff = 0;
-
-	let hasPaid = false;
+	let totalPaid = 0;
 
 	const schedule: {
 		dateFmt: string;
@@ -42,6 +38,8 @@ export const getPaymentSchedule = (
 		start: number;
 		diff: number;
 		totalDiff: number;
+		totalPaid: number;
+		expected: number;
 	}[] = [];
 
 	const lastPmtDate = history?.slice(-1)[0]?.date;
@@ -64,13 +62,15 @@ export const getPaymentSchedule = (
 					return sameMonth;
 				});
 
-		const matchingPayments = matchingHistory.length
+		let matchingPayments = matchingHistory.length
 			? matchingHistory.reduce((acc, curr) => {
 					return acc + Number(curr.amount);
 				}, 0)
 			: 0;
+
 		const monthType = (
-			isSameMonth(date, now) || (month === 0 && matchingPayments)
+			isSameMonth(date, now) ||
+			(month === 0 && matchingPayments > 0 && startAfterNow)
 				? "current"
 				: isAfter(date, now)
 					? "after"
@@ -78,58 +78,54 @@ export const getPaymentSchedule = (
 		) as MonthType;
 
 		const monthAfter = monthType === "after";
-		let paid = matchingPayments ? matchingPayments : monthAfter ? p.pmt : 0;
+
+		if (monthAfter && matchingPayments === 0) {
+			matchingPayments = p.pmt;
+			futureAdjustment += p.pmt;
+		}
+
+		totalPaid += matchingPayments;
 
 		const skipMissingCurrentMonth =
-			monthType === "current" && isAfter(date, now) && paid === 0;
+			monthType === "current" && isAfter(date, now) && matchingPayments === 0;
 
 		const diff = skipMissingCurrentMonth
 			? 0
-			: paid - p.pmt > 0.01
-				? paid - p.pmt
+			: matchingPayments - p.pmt > 0.01
+				? matchingPayments - p.pmt
 				: 0;
-		totalPaid += paid;
 
-		if (workingBalance - paid < 0.5) {
-			paid = workingBalance;
+		if (workingBalance - matchingPayments < 0.5) {
+			matchingPayments = workingBalance;
 			workingBalance = 0;
 		} else {
-			workingBalance = roundToPenny(workingBalance - paid);
+			workingBalance = roundToPenny(workingBalance - matchingPayments);
 		}
 
 		const monthsSince = differenceInMonths(date, p.startDate);
 		const expected = roundToPenny(
-			Math.min(p.balance, p.pmt * (monthsSince + 1)) -
-				(skipMissingCurrentMonth ? p.pmt : 0),
+			Math.min(
+				p.balance,
+				p.pmt * (monthsSince + (skipMissingCurrentMonth ? 0 : 1)),
+			),
 		);
-
 		const thisTotalDiff = roundToPenny(totalPaid - expected);
 
 		const remaining = p.balance - totalPaid;
 
-		totalDiff = thisTotalDiff;
-
-		if (totalDiff < remaining * -1) {
-			totalDiff = remaining * -1;
-		} else if (totalDiff > remaining) {
-			totalDiff = remaining;
-		}
-
-		if ((monthType === "current" || startAfterNow) && !currOwed) {
-			currOwed = expected;
-			currDiff = totalDiff;
-			hasPaid = totalDiff > p.pmt || p.pmt - paid <= 10;
-		}
 		schedule.push({
 			dateFmt: formatDate(date, "MMM ''yy"),
 			date,
 			monthType,
-			paid: roundToPenny(paid),
-			owed: workingBalance,
+			paid: roundToPenny(matchingPayments),
+			owed: remaining,
 			start: bBal,
 			diff,
-			totalDiff,
+			totalDiff: thisTotalDiff,
+			totalPaid,
+			expected,
 		});
+
 		if (
 			(!history?.length && !withFutures) ||
 			(lastPmtDate && isAfter(date, lastPmtDate) && !withFutures)
@@ -140,16 +136,31 @@ export const getPaymentSchedule = (
 		month++;
 	}
 
-	const nextDueDateMonth = setDay(
-		startAfterNow ? p.startDate : hasPaid ? addMonths(now, 1) : now,
-		p.startDate.getDate(),
-	);
-
-	const remainingMonths = Math.ceil(currOwed / p.pmt);
+	totalPaid -= futureAdjustment;
 
 	const currentMonth = startAfterNow
 		? schedule[0]
 		: schedule.find((s) => s.monthType === "current");
+
+	const lastPaid = startAfterNow
+		? null
+		: schedule.findLast((s) => s.monthType !== "after" && s.paid);
+
+	const nextDueDateMonth = startAfterNow
+		? p.startDate
+		: setDay(
+				addMonths(lastPaid ? lastPaid.date : p.startDate, 1),
+				p.startDate.getDate(),
+			);
+
+	const currOwed = p.balance - totalPaid;
+	const expectedMonthsPaid = Math.min(
+		p.term,
+		differenceInMonths(now, p.startDate),
+	);
+	const totalExpected = expectedMonthsPaid * p.pmt;
+	const totalDiff = totalPaid - totalExpected;
+	const remainingMonths = Math.ceil(currOwed / p.pmt);
 
 	const presentValue = Math.max(
 		0,
@@ -158,7 +169,7 @@ export const getPaymentSchedule = (
 
 	const payoff = presentValue;
 
-	const monthsDelinquent = currDiff / p.pmt;
+	const monthsDelinquent = totalDiff / p.pmt;
 
 	return {
 		schedule,
@@ -167,7 +178,7 @@ export const getPaymentSchedule = (
 		totalPaid: history?.reduce((acc, curr) => {
 			return acc + Number(curr.amount);
 		}, 0),
-		totalDiff: currDiff,
+		totalDiff: roundToPenny(totalDiff),
 		owed: currOwed,
 		payoff: roundToPenny(payoff),
 		monthsDelinquent: Math.round(monthsDelinquent),
