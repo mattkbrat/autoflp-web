@@ -184,14 +184,12 @@ $effect(() => {
             ? "MMM. do yyyy"
             : "MMM. do",
         )}
-        {#if pmtIsLate > 7}
-          <span>
-            {Array.from(
-              new Array(Math.min(10, Math.floor(pmtIsLate / 7)))
-                .keys()
-                .map(() => "!"),
-            ).join("")}
-          </span>
+        {#if pmtIsLate > 60}
+          {"!!!"}
+        {:else if pmtIsLate > 30}
+          {"!!"}
+        {:else if pmtIsLate > 7}
+          {"!"}
         {/if}
         <br />
       </span>
