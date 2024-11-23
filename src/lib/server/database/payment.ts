@@ -17,16 +17,26 @@ export const recordPayment = async (payment: Payment) => {
 	});
 };
 
-export const deletePayment = async (payment: string) => {
+export const deletePayment = async (payment: string | string[]) => {
 	if (!payment) {
 		throw new Error("Must provide a payment ID");
 	}
-	return prisma.payment.delete({ where: { id: payment } }).then((p) => {
-		sendPaymentNotification({
-			dealId: p.dealId,
-			type: "delete",
-			amount: p.amount,
-		});
-		return p;
+
+	const paymentArr = Array.isArray(payment) ? payment : [payment];
+	const payments = await prisma.payment.findMany({
+		where: { id: { in: paymentArr } },
 	});
+
+	return prisma.payment
+		.deleteMany({ where: { id: { in: paymentArr } } })
+		.then(async () => {
+			for await (const p of payments) {
+				sendPaymentNotification({
+					dealId: p.dealId,
+					type: "delete",
+					amount: p.amount,
+				});
+			}
+			return payments;
+		});
 };

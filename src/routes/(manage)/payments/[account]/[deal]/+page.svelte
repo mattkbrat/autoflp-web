@@ -1,15 +1,14 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import { el, waitForElm } from "$lib/element";
-import { formatCurrency, formatDate, fullNameFromPerson } from "$lib/format";
+import { formatCurrency, fullNameFromPerson } from "$lib/format";
 import { browser } from "$app/environment";
-import { addDays } from "date-fns/addDays";
+import { formatDate } from "date-fns";
 
 const { data } = $props();
 
 const selected = $derived(data.deal);
 
-let payoff = $state(false);
 const now = new Date();
 let today = $state("");
 let defaultPmt = $state({ account: "", amount: 0, deal: "" });
@@ -26,7 +25,7 @@ $effect(() => {
 const schedule = $derived(data.schedule);
 
 const scheduleRows = $derived(schedule?.schedule.toReversed());
-const totalOwed = $derived(schedule?.owed || 0);
+const totalOwed = $derived(schedule?.remaining || 0);
 
 const fullName = $derived(
 	selected
@@ -58,12 +57,6 @@ $effect(() => {
 	waitForElm<HTMLInputElement>("#pmt-amount").then((elm) => {
 		elm?.focus();
 	});
-});
-
-$effect(() => {
-	if (selected?.id !== data.deal?.id) {
-		setsele;
-	}
 });
 
 $effect(() => {
@@ -141,9 +134,9 @@ $effect(() => {
       {/if}
     </span>
   {/if}
-  <span class:hidden={!selected.state}>
+  <span class:hidden={!selected?.state}>
     <span class="text-lg">
-      {formatCurrency(schedule.payoff)}
+      {formatCurrency(schedule?.payoff)}
     </span>
     <br /> Payoff
   </span>
@@ -165,26 +158,22 @@ $effect(() => {
 <span class="grid grid-cols-3 border-b-2">
   <span>
     {selected && Number(selected.term)} month term;
-    <span class="text-lg">
+    <span class="text-lg text-primary-200 print:text-primary-800">
       {selected && formatCurrency(schedule?.pmt)}
-      Monthly;
-    </span>
-    <span>
-      {selected && formatCurrency(selected.lien)}
-      lien
+      Monthly
     </span>
   </span>
-  {#if selected?.date}
+  {#if selected?.date && schedule}
     <span class="text-center">
       Starting
-      {formatDate(schedule.startDate)}
+      {formatDate(schedule.startDate, "MMMM yyyy")}
     </span>
   {/if}
   <span class="text-right">
-    {#if selected?.state}
+    {#if selected?.state && schedule}
       Next payment due by
       <span class="text-lg">
-        {formatDate(schedule.nextDueDate)}
+        {formatDate(schedule.nextDueDate, "MMM'' co")}
       </span>
     {:else}
       Thank you!
@@ -194,83 +183,37 @@ $effect(() => {
 
 {#if selected}
   <div
-    class="flex flex-col 2xl:flex-row gap-x-4"
+    class="flex flex-col md:flex-row gap-x-4"
     class:flex-row={data.payments.length > 10}
   >
-    <section class="bg-black/20 py-6 px-2 print:hidden">
-      <h2>Admin Panel</h2>
-      <section class="flex flex-row flex-wrap text-surface-50">
-        <form
-          method="post"
-          action="?/toggleState"
-          class="contents"
-          use:enhance={() => {
-            return async ({ update }) => {
-              await update();
-            };
-          }}
-        >
-          <input type="hidden" name="id" value={selected.id} />
-          <input type="hidden" name="state" value={selected.state} />
-          <button
-            type="submit"
-            class="btn preset-outlined-secondary-200-800 flex flex-col flex-1 !h-fit gap-y-1"
-            class:bg-secondary-900={selected.state}
-          >
-            <span> Toggle State </span>
-            <span class="text-sm">
-              {selected?.state ? "open" : "closed"}
-            </span>
-          </button>
-        </form>
-        <button
-          type="button"
-          class="btn preset-outlined-tertiary-200-800 flex flex-col !h-fit gap-y-1"
-          class:bg-tertiary-900={showMissingPayments}
-          onclick={() => (showMissingPayments = !showMissingPayments)}
-        >
-          <span> Missing Payments </span>
-          <span class="text-sm">
-            {showMissingPayments ? "show" : "hide"}
-          </span>
-        </button>
-        <button
-          type="button"
-          class="btn preset-outlined-tertiary-200-800 flex flex-col !h-fit gap-y-1"
-          onclick={() => (showFuturePayments = !showFuturePayments)}
-          class:bg-tertiary-900={showFuturePayments}
-        >
-          <span> Future Payments </span>
-          <span class="text-sm">
-            {showFuturePayments ? "show" : "hide"}
-          </span>
-        </button>
-      </section>
+    <section class="bg-black/20 px-2 print:hidden">
+      <h2 class="text-lg underline underline-offset-2 tracking-wide">
+        Admin Panel
+      </h2>
       <div class="grid grid-cols-[1fr_1fr_auto] max-w-fit self-start gap-2">
         <section
           id="heading"
           class="contents text-lg font-bold text-primary-300"
         >
-          <div>Date</div>
-          <div class="text-right">$ (USD)</div>
-          <div class="text-right"></div>
+          <span>Date</span>
+          <span>$ (USD)</span>
+          <span></span>
         </section>
         <section id="body" class="contents">
           <form
             method="post"
             class="contents"
             action="?/record"
-            class:hidden={!selected.state}
             use:enhance={() => {
               return async ({ result, update }) => {
+                await update();
                 if (
                   "data" in result &&
                   result.data &&
                   "inserted" in result.data
                 ) {
-                  await update();
                   setTimeout(() => {
-                    const element = el < HTMLInputElement > `pmt-date-input`;
+                    const element = el<HTMLInputElement>`pmt-date-input`;
                     if (element) {
                       element.value = today;
                     }
@@ -283,7 +226,6 @@ $effect(() => {
               value={today}
               name="date"
               type="date"
-              required
               class="input"
               id="pmt-date-input"
               disabled={!selected.state}
@@ -294,7 +236,6 @@ $effect(() => {
               id={"pmt-amount"}
               min={0}
               step={0.01}
-              required
               class="input"
               bind:value={defaultPmt.amount}
               disabled={!selected.state}
@@ -320,55 +261,92 @@ $effect(() => {
             >
               Save
             </button>
-            <input
-              type="checkbox"
-              class="hidden"
-              name="payoff"
-              bind:checked={payoff}
-            />
-            <button
-              class="btn preset-outlined-secondary-200-800 col-span-full"
-              type="button"
-              onclick={() => {
-                defaultPmt.amount = schedule.payoff;
-                payoff = true;
-              }}>Apply remaining owed</button
-            >
-          </form>
-          {#each data.payments as pmt}
-            <form
-              method="post"
-              action="?/delete"
-              class="even:bg-unset odd:bg-surface-700 contents"
-              use:enhance={() => {
-                return async ({ result, update }) => {
-                  if (result.status === 200) {
-                    update();
-                  }
-                };
-              }}
-            >
-              <div>{formatDate(pmt.date)}</div>
-              <input
-                type="hidden"
-                name="deal"
-                value={selected.id}
-                required
-                class="input"
-              />
-              <div class="text-right">{pmt.amount}</div>
-              <input type="hidden" name="id" value={pmt.id} />
-              <button type="submit" class="btn preset-outlined-error-500">
-                Remove
+            <input type="hidden" name="id" value={selected.id} />
+            <input type="hidden" name="state" value={selected.state} />
+            <input type="hidden" name="payoff" value={schedule?.payoff} />
+            <hr class="col-span-full" />
+            <span class="underline underline-offset-2">Date</span>
+            <span class="underline underline-offset-2">Amount</span>
+            <span class="underline underline-offset-2">Select</span>
+            {#each data.payments as pmt}
+              <label class="contents">
+                <span>
+                  {pmt.date.split(" ")[0]}
+                </span>
+                <span>
+                  {formatCurrency(pmt.amount)}
+                </span>
+                <input
+                  class="checkbox"
+                  type="checkbox"
+                  value={pmt.id}
+                  name={"pmt-id"}
+                />
+              </label>
+            {/each}
+            <hr class="col-span-full" />
+            <div class="flex flex-row gap-1 col-span-full">
+              <button
+                class="btn preset-outlined-secondary-200-800 h-full flex-1"
+                type="button"
+                onclick={() => {
+                  defaultPmt.amount = schedule?.payoff || 0;
+                }}>Apply remaining owed</button
+              >
+              <button
+                type="submit"
+                class="btn flex flex-col flex-1 !h-fit gap-y-1"
+                class:preset-outlined-secondary-200-800={!selected.state}
+                class:preset-outlined-warning-200-800={selected.state}
+                formaction="?/toggleState"
+              >
+                <span> Toggle State </span>
               </button>
-            </form>
-          {/each}
+              <button
+                type="submit"
+                class="btn flex flex-col flex-1 h-full gap-y-1"
+                class:preset-outlined-secondary-200-800={!selected.state}
+                class:preset-outlined-warning-200-800={selected.state}
+                formaction="?/delete"
+              >
+                Remove Selected
+              </button>
+            </div>
+          </form>
+          <section
+            class="flex flex-row flex-wrap text-surface-50 col-span-full"
+          >
+            <button
+              type="button"
+              class="btn preset-outlined-tertiary-200-800 flex flex-col !h-fit gap-y-1 flex-1"
+              class:bg-tertiary-900={showMissingPayments}
+              onclick={() => (showMissingPayments = !showMissingPayments)}
+            >
+              <span> Missing Payments </span>
+              <span class="text-sm">
+                {showMissingPayments ? "show" : "hide"}
+              </span>
+            </button>
+            <button
+              type="button"
+              class="btn preset-outlined-tertiary-200-800 flex flex-col !h-fit gap-y-1"
+              onclick={() => (showFuturePayments = !showFuturePayments)}
+              class:bg-tertiary-900={showFuturePayments}
+            >
+              <span> Future Payments </span>
+              <span class="text-sm">
+                {showFuturePayments ? "show" : "hide"}
+              </span>
+            </button>
+          </section>
         </section>
       </div>
     </section>
 
-    <section class="flex-1">
-      <h2>Payment History</h2>
+    <section class="flex-1 bg-black/20">
+      <h2 class="text-lg underline underline-offset-2 tracking-wide">
+        Payment History
+      </h2>
       <table class="w-full">
         <thead>
           <tr>
@@ -410,11 +388,6 @@ $effect(() => {
             </tr>
           {/each}
         </tbody>
-        <!-- <tfoot> -->
-        <!--   <tr> -->
-        <!--     <td class="row-span-full">* expected</td> -->
-        <!--   </tr> -->
-        <!-- </tfoot> -->
       </table>
     </section>
   </div>

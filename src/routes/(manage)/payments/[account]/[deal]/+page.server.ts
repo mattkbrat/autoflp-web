@@ -35,20 +35,27 @@ export const actions = {
 		const data = await request.formData();
 
 		const balance = data.get("balance");
-		const isPayoff = data.get("payoff") === "on";
+		const amount = data.get("pmt") as string;
+		const date = data.get("date") as string;
+		const payoff = Number(data.get("payoff"));
+		if (!amount || !date) {
+			return fail(400, { message: "must provide amount and date" });
+		}
+		const isPayoff =
+			payoff <= Number(amount) || Number(balance) - Number(amount) <= 1;
 
 		const payment: Payment = {
-			amount: data.get("pmt") as string,
-			date: data.get("date") as string,
+			amount,
+			date,
 			id: randomUUID(),
 			dealId: data.get("deal") as string,
 		};
 
 		await recordPayment(payment);
 
-		const hasPaidOff = Number(balance) - Number(payment.amount) <= 1;
+		console.log({ balance, payment, isPayoff, payoff, amount });
 
-		if (isPayoff || hasPaidOff) {
+		if (isPayoff) {
 			await updatePartialDeal(payment.dealId, { state: 0 }).then(
 				(deal) => deal.state,
 			);
@@ -60,19 +67,24 @@ export const actions = {
 
 	delete: async ({ request }) => {
 		const data = await request.formData();
-		const paymentId = data.get("id") as string;
-		const dealId = data.get("deal") as string;
-		if (!paymentId) return fail(400, { id: paymentId, incorrect: true });
+		const payments = data.getAll("pmt-id");
 
-		await updatePartialDeal(dealId, { state: 1 });
-		await deletePayment(paymentId);
+		console.log({ payments, data });
+		if (!payments.length)
+			return fail(400, {
+				payments,
+				incorrect: true,
+				message: "must provide at least one payment to delete",
+			});
+
+		await deletePayment(payments as string[]);
 
 		return {};
 	},
 
 	toggleState: async ({ request }) => {
 		const data = await request.formData();
-		const dealId = data.get("id") as string;
+		const dealId = data.get("deal") as string;
 		if (!dealId) return fail(400, { id: dealId, incorrect: true });
 		const state = Number(data.get("state") as string);
 		if (state !== 0 && state !== 1)
