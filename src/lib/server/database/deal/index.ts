@@ -6,7 +6,10 @@ import type { FinanceCalcResult } from "$lib/finance/calc";
 import type { Trades } from "$lib/server/deal";
 import type { getPayments } from "./getPayments";
 import { dealFieldsToDeal } from "./dealFieldsToDeal";
-import { sendDealNotification } from "$lib/server/notify";
+import {
+	sendDealNotification,
+	sendInventoryNotification,
+} from "$lib/server/notify";
 export * from "./dealCharge";
 export * from "./getDeals";
 export * from "./getSalesmanPayments";
@@ -96,8 +99,38 @@ export const createTrades = async (deal: string, trades: Trades) => {
 			id: randomUUID(),
 		};
 	});
-	return prisma.dealTrade.createMany({
-		data: dealTrades,
+	return prisma.$transaction(async (tx) => {
+		const trades = await tx.dealTrade.createMany({
+			data: dealTrades,
+		});
+
+		const open = await tx.deal.findMany({
+			where: {
+				inventoryId: {
+					in: dealTrades.map((t) => t.vin),
+				},
+				state: 1,
+			},
+		});
+
+		if (open.length) {
+			await tx.deal.updateMany({
+				where: {
+					id: {
+						in: open.map((v) => v.id),
+					},
+				},
+				data: {
+					state: 0,
+				},
+			});
+
+			for await (const v of open) {
+				await sendDealNotification({ dealId: v.id, type: "close" });
+			}
+		}
+
+		return trades;
 	});
 };
 
