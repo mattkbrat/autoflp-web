@@ -186,7 +186,9 @@ const getReference = (number: number) => {
         <input
           id={"lengthOfEmployment"}
           readonly={!!credit.employmentLength}
-          value={credit.employmentLength}
+          value={credit.employmentLength
+            ? `${credit.employmentLength} ${Number(credit.employmentLength) > 1 ? "years" : "year"}`
+            : ""}
           class="input col-span-2"
         />
         <label for="company" class="col-span-3"> Name </label>
@@ -261,6 +263,12 @@ const getReference = (number: number) => {
               class="radio"
               readonly={!!credit.housingOrRenting}
               checked={credit.housingOrRenting === "housing"}
+              on:change={(e) => {
+                if (!e.target.checked) {
+                  return;
+                }
+                credit.housingOrRenting = "housing";
+              }}
             />
             <span> Housing </span>
           </label>
@@ -275,6 +283,12 @@ const getReference = (number: number) => {
               value="renting"
               class="radio"
               readonly={!!credit.housingOrRenting}
+              on:change={(e) => {
+                if (!e.target.checked) {
+                  return;
+                }
+                credit.housingOrRenting = "renting";
+              }}
               checked={isRenting}
             />
             <span> Renting </span>
@@ -292,8 +306,8 @@ const getReference = (number: number) => {
           />
           <hr class="col-span-full" />
           <label for="ownersName" class="radio-label">
-            Landlord's Name / <br /> Mortgage Company</label
-          >
+            {isRenting ? "Landlord's Name" : "Mortgage Company"}
+          </label>
           <input
             id={"ownersName"}
             readonly={isRenting ? !!credit.landlordname : !!credit.mortgage}

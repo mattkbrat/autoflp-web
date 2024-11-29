@@ -53,8 +53,6 @@ export const actions = {
 
 		await recordPayment(payment);
 
-		console.log({ balance, payment, isPayoff, payoff, amount });
-
 		if (isPayoff) {
 			await updatePartialDeal(payment.dealId, { state: 0 }).then(
 				(deal) => deal.state,
@@ -69,7 +67,6 @@ export const actions = {
 		const data = await request.formData();
 		const payments = data.getAll("pmt-id");
 
-		console.log({ payments, data });
 		if (!payments.length)
 			return fail(400, {
 				payments,

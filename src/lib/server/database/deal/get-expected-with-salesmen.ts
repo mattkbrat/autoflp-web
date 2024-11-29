@@ -56,13 +56,6 @@ export const getExpectedWithSalesmen = async (q?: DateFilter) => {
 				phone: curr.account.contact.phonePrimary,
 			} satisfies AccountDetail;
 
-			console.log("deal", curr.date);
-			if (curr.payments.length) {
-				console.log(
-					"payments",
-					curr.payments.map((p) => p.date),
-				);
-			}
 			if (matchingSalesman in acc) {
 				acc[matchingSalesman].expected += expected;
 				acc[matchingSalesman].paid += paid;
