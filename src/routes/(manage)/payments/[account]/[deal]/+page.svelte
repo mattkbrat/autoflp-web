@@ -139,7 +139,7 @@ $effect(() => {
   {#if totalDelinquent}
     <span>
       <span class="text-lg">
-        {formatCurrency(schedule?.owed)}
+        {formatCurrency(schedule?.totalExpected)}
       </span>
       <br />Expected
     </span>
