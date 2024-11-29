@@ -1,4 +1,4 @@
-FROM node:21.3-alpine3.17 AS base
+FROM node:23.3-alpine3.19 AS base
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
