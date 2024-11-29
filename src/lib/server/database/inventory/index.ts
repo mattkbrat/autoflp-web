@@ -93,7 +93,10 @@ export const upsertInventory = async (
 		return prisma.$transaction(async (tx) => {
 			const updated = await tx.inventory.update({
 				where: { vin: exists.vin },
-				data: i,
+				data: {
+					...i,
+					inventory_salesman: undefined,
+				},
 			});
 			if (updated.state === 1) {
 				return updated;
@@ -119,7 +122,9 @@ export const upsertInventory = async (
 		return new Error("Must provide vin, year, and make");
 	}
 	return prisma.inventory
-		.create({ data: { ...i, id, vin, year, make } })
+		.create({
+			data: { ...i, id, vin, year, make, inventory_salesman: undefined },
+		})
 		.then((i) => {
 			if (actions.notify) {
 				sendInventoryNotification({ inventory: i, type: "create" });

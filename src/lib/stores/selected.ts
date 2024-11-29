@@ -47,7 +47,6 @@ const accountDealLink = derived([accountID, dealID], ([$acc, $deal]) => {
 
 accountDealLink.subscribe((link) => {
 	if (!browser) {
-		console.warn("No browser");
 		return;
 	}
 	if (!link) {
