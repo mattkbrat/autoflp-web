@@ -1,13 +1,25 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import { el, waitForElm } from "$lib/element";
-import { formatCurrency, fullNameFromPerson } from "$lib/format";
+import {
+	formatCurrency,
+	formatInventory,
+	formatSalesmen,
+	fullNameFromPerson,
+} from "$lib/format";
 import { browser } from "$app/environment";
 import { differenceInDays, formatDate } from "date-fns";
+import { title } from "$lib/stores/title.js";
 
 const { data } = $props();
 
 const selected = $derived(data.deal);
+
+const salesmen = $derived(
+	selected
+		? formatSalesmen(selected?.inventory.inventory_salesman, "firstName")
+		: "",
+);
 
 const now = new Date();
 let today = $state("");
@@ -41,7 +53,7 @@ const fullName = $derived(
 );
 const totalDelinquent = $derived(schedule?.totalDiff || 0);
 const inventory = $derived(
-	`${selected?.inventory?.make} ${selected?.inventory?.model}`,
+	selected ? formatInventory(selected?.inventory) : "",
 );
 
 // biome-ignore lint/style/useConst: changed by binded button
@@ -86,11 +98,12 @@ $effect(() => {
 		el.value = today;
 	});
 });
+
+$effect(() => {
+	title.set(`${fullName} - ${inventory}`);
+});
 </script>
 
-<svelte:head>
-  <title>{fullName} - Payments - {inventory}</title>
-</svelte:head>
 <h2 class="flex flex-col uppercase items-center">
   <span class="text-xl tracking-wider underline underline-offset-4"> </span>
   <span class="text-lg tracking-tight">
@@ -98,6 +111,15 @@ $effect(() => {
   </span>
   <span class={"text-2xl"}>
     {inventory}
+  </span>
+  <span class="print:hidden text-gray-300">
+    (
+    {#if selected && salesmen}
+      Sold by {salesmen}
+    {:else if selected}
+      No salesman
+    {/if}
+    )
   </span>
 </h2>
 <hr />

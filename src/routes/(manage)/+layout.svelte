@@ -1,4 +1,5 @@
 <script lang="ts">
+import Head from "$lib/components/Head.svelte";
 import { allAccounts, allInventory, deals } from "$lib/stores";
 import { onMount } from "svelte";
 
@@ -16,6 +17,7 @@ onMount(() => {
 </div>
 
 <section class="hidden print:block mt-auto">
+  <Head />
   <div class="grid grid-cols-3 border-t-2 border-black w-full mt-auto">
     <span class="text-left font-extrabold">
       {data.businessData.name}

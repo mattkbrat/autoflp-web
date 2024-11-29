@@ -1,7 +1,8 @@
 <script lang="ts">
 import AccountCombobox from "$lib/components/AccountCombobox.svelte";
 import { allAccounts } from "$lib/stores/accounts";
-import { dealID, handleSelect } from "$lib/stores/selected.js";
+import { dealID, handleSelect } from "$lib/stores";
+import { title } from "$lib/stores";
 import { onMount } from "svelte";
 
 const { data, children } = $props();
@@ -12,12 +13,10 @@ $effect(() => {
 });
 onMount(() => {
 	allAccounts.set(data.accounts);
+	title.set("Accounts");
 });
 </script>
 
-<svelte:head>
-  <title>Accounts - AutoFLP</title>
-</svelte:head>
-<AccountCombobox />
+<AccountCombobox selectType={"account"} />
 
 {@render children()}

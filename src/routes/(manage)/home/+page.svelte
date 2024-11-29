@@ -1,6 +1,5 @@
 <script lang="ts">
-import AccountCombobox from "$lib/components/AccountCombobox.svelte";
-import MonthlyPayments from "$lib/components/charts/MonthlyPayments.svelte";
+import PaymentCombobox from "$lib/components/PaymentCombobox.svelte";
 </script>
 
-<AccountCombobox selectType={"account"} />
+<PaymentCombobox />

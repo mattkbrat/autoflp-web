@@ -15,24 +15,16 @@ let selected = $derived(
 );
 </script>
 
-<svelte:head>
-  <title>Inventory - AutoFLP</title>
-</svelte:head>
-
-
-<div class='flex'>
+<div class="flex">
   <h2>
-    <a href="/admin"
-      class:underline={$page.url.href.endsWith('admin')}
-    >
+    <a href="/admin" class:underline={$page.url.href.endsWith("admin")}>
       Admin
     </a>
   </h2>
   <span>/</span>
-  <a href="/admin/charts" class:underline={$page.url.href.includes('charts')}>
+  <a href="/admin/charts" class:underline={$page.url.href.includes("charts")}>
     Charts
   </a>
-
 </div>
 
 {@render children()}

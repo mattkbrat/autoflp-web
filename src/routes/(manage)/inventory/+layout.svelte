@@ -1,16 +1,18 @@
 <script lang="ts">
 import { page } from "$app/stores";
+import { title } from "$lib/stores";
+import { onMount } from "svelte";
 
 const { children } = $props();
 
 const selected = $derived(
 	$page.url.pathname.endsWith("print") ? "print" : "inventory",
 );
-</script>
 
-<svelte:head>
-  <title>Inventory - AutoFLP</title>
-</svelte:head>
+onMount(() => {
+	title.set("Inventory");
+});
+</script>
 
 <nav class="flex gap-4 print:hidden text-lg">
   <a

@@ -2,7 +2,8 @@
 import { enhance } from "$app/forms";
 import { goto } from "$app/navigation";
 import { fieldMap } from "$lib/accounts";
-import { allAccounts, handleSelect } from "$lib/stores";
+import { fullNameFromPerson } from "$lib/format/fullNameFromPerson.js";
+import { allAccounts, handleSelect, title } from "$lib/stores";
 import type { SelectedAccount } from "$lib/types";
 
 let { data, form } = $props();
@@ -40,6 +41,14 @@ $effect(() => {
 	if (!data.account || selected.id === data.account?.id) return;
 	const { contact, ...rest } = data.account;
 	selected = { ...contact, ...rest };
+});
+
+$effect(() => {
+	title.set(
+		data.account
+			? fullNameFromPerson({ person: data.account?.contact })
+			: "Accounts",
+	);
 });
 </script>
 

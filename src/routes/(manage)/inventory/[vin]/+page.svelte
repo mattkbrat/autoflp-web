@@ -5,11 +5,11 @@ import { page } from "$app/stores";
 import { getZip } from "$lib";
 import SalesmenSelect from "$lib/components/SalesmenSelect.svelte";
 import { el } from "$lib/element";
-import { formatDate, formatSalesmen } from "$lib/format";
+import { formatDate, formatInventory, formatSalesmen } from "$lib/format";
 import { handleInvNav } from "$lib/navState";
 import type { Inventory, InventoryField } from "$lib/server/database/inventory";
 import type { ParsedNHTA } from "$lib/server/inventory";
-import { allInventory, handleSelect, selectedStates } from "$lib/stores";
+import { allInventory, handleSelect, selectedStates, title } from "$lib/stores";
 import type { FormFields } from "$lib/types/forms";
 import { onMount } from "svelte";
 
@@ -27,6 +27,14 @@ let selected = $state({} as Partial<Inventory>);
 let hasCleared = $state(false);
 let searched = $state("");
 let searchedInfo: { [key: string]: string } | null = $state(null);
+
+const formatted = $derived(selected ? formatInventory(selected) : "");
+
+$effect(() => {
+	if (!selected) return;
+
+	title.set(formatted);
+});
 
 $effect(() => {
 	if (!data.inventory?.vin || selected.id === data.inventory.id || !hasLoaded) {

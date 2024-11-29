@@ -1,11 +1,14 @@
 <script lang="ts">
+import { onMount } from "svelte";
 import type { PageData } from "./$types";
+import { title } from "$lib/stores";
 export let data: PageData;
+
+onMount(() => {
+	title.set("Applications");
+});
 </script>
 
-<svelte:head>
-  <title>Credit - AutoFLP</title>
-</svelte:head>
 <a class="text-lg underline text-blue-200 col-span-full" href={`/credit/blank`}
   >Blank</a
 >

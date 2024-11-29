@@ -1,16 +1,17 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import { getZip } from "$lib";
-import ExpectedPayments from "$lib/components/charts/ExpectedPayments.svelte";
+import { title } from "$lib/stores";
+import { onMount } from "svelte";
 
 const { data } = $props();
 
 const keys = $derived([...data.keys, { value: "", key: "", id: "" }]);
-</script>
 
-<svelte:head>
-  <title>Admin - AutoFLP</title>
-</svelte:head>
+onMount(() => {
+	title.set("Admin");
+});
+</script>
 
 <div class="flex flex-col flex-wrap space-y-4"></div>
 {#each keys as key}
