@@ -146,17 +146,15 @@ export const getPaymentSchedule = (
 		? null
 		: schedule.findLast((s) => s.monthType !== "after" && s.paid);
 
-	const nextDueDateMonth = startAfterNow
-		? p.startDate
-		: setDay(
-				addMonths(lastPaid ? lastPaid.date : p.startDate, 1),
-				p.startDate.getDate(),
-			);
+	const nextDueDateMonth =
+		startAfterNow || !lastPaid
+			? p.startDate
+			: setDay(addMonths(lastPaid.date, 1), p.startDate.getDate());
 
 	const currOwed = p.balance - totalPaid;
 	const expectedMonthsPaid = Math.min(
 		p.term,
-		differenceInMonths(now, p.startDate),
+		differenceInMonths(now, p.startDate) + 1,
 	);
 	const totalExpected = expectedMonthsPaid * p.pmt;
 	const totalDiff = totalPaid - totalExpected;
@@ -183,6 +181,7 @@ export const getPaymentSchedule = (
 		payoff: roundToPenny(payoff),
 		monthsDelinquent: Math.round(monthsDelinquent),
 		startDate: p.startDate,
+		totalExpected,
 		nextDueDate: isSunday(nextDueDateMonth)
 			? addDays(nextDueDateMonth, 1)
 			: nextDueDateMonth,
