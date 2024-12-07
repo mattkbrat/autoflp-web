@@ -11,8 +11,6 @@ let {
 	name = "",
 	required = false,
 	readonly = false,
-	loading = false,
-	expand = true,
 	label = "",
 	id = uid(),
 	error,
@@ -26,8 +24,6 @@ let {
 	disabled?: boolean;
 	required?: boolean;
 	readonly?: boolean;
-	loading?: boolean;
-	expand?: boolean;
 	options: Option[];
 	label?: string;
 	id?: string;
@@ -302,6 +298,27 @@ onMount(() => {
 });
 </script>
 
+{#snippet combo_option(o: Option)}
+  {@const parts = o.text.split("|")}
+  <li
+    class="list__option grid grid-cols-subgrid col-span-full"
+    id={o.value}
+    class:--disabled={o.disabled}
+    role="option"
+    tabindex={o.disabled ? undefined : -1}
+    data-text={o.text}
+    data-value={o.value}
+    aria-selected={value === o.value}
+    aria-disabled={o.disabled}
+  >
+    {#each parts as part}
+      <span>
+        {part}
+      </span>
+    {/each}
+  </li>
+{/snippet}
+
 <div class="flex flex-col focus-within:border-primary-200 print:hidden flex-1">
   <label class="min-w-max uppercase" for={id}>
     {label}
@@ -319,6 +336,9 @@ onMount(() => {
   >
     <input {id} {name} value={inputValue} type="hidden" />
     <input
+      {disabled}
+      {readonly}
+      {placeholder}
       bind:this={inputElement}
       onkeyup={onInputKeyup}
       onkeydown={onInputKeydown}
@@ -326,11 +346,8 @@ onMount(() => {
       value={displayInputValue}
       class="combobox__input m-0 w-full py-2 px-4 border-2 border-gray-50 rounded-sm focus:outline-none input"
       type="text"
-      {disabled}
       autocapitalize="none"
       autocomplete="off"
-      {readonly}
-      {placeholder}
       spellcheck="false"
       role="combobox"
       aria-autocomplete="list"
@@ -353,58 +370,13 @@ onMount(() => {
       {#each list as option (option)}
         {#if option.options}
           <li class="list__option-heading">
-            <slot name="group" group={option}>
-              {option.text}
-            </slot>
+            {option.text}
           </li>
           {#each option.options as o (o)}
-            <li
-              class="list__option"
-              id={o.value}
-              class:--disabled={o.disabled}
-              role="option"
-              tabindex={o.disabled ? undefined : -1}
-              data-text={o.text}
-              data-value={o.value}
-              aria-selected={value === o.value}
-              aria-disabled={o.disabled}
-            >
-              <slot name="option" option={o}>
-                {o.text}
-              </slot>
-              <!-- {#if option.value === value} -->
-              <!--   <svg viewBox="0 0 24 24" class="icon"> -->
-              <!--     <polyline points="20 6 9 17 4 12"></polyline> -->
-              <!--   </svg> -->
-              <!-- {/if} -->
-            </li>
+            {@render combo_option(o)}
           {/each}
         {:else}
-          <li
-            class="list__option grid grid-cols-subgrid col-span-full"
-            id={option.value}
-            class:bg-secondary-700={option.value === selectedOption.value}
-            class:--disabled={option.disabled}
-            role="option"
-            tabindex={option.disabled === true ? undefined : -1}
-            data-text={option.text}
-            data-value={option.value}
-            aria-selected={value === option.value}
-            aria-disabled={option.disabled}
-          >
-            <slot name="option" {option}>
-              {#each option.text.split("|") as part}
-                <span>
-                  {part}
-                </span>
-              {/each}
-            </slot>
-            <!-- {#if option.value === value} -->
-            <!--   <svg viewBox="0 0 24 24" class="icon"> -->
-            <!--     <polyline points="20 6 9 17 4 12"></polyline> -->
-            <!--   </svg> -->
-            <!-- {/if} -->
-          </li>
+          {@render combo_option(option)}
         {/if}
       {:else}
         <li>No results available</li>
@@ -418,58 +390,5 @@ onMount(() => {
 </div>
 
 <style>
-  .combobox {
-    --accent-color: #06113c;
-    --border-radius: 1em;
-
-    --option-border: ;
-    --option-padding: ;
-
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-  }
-
-  .input-container {
-    position: relative;
-  }
-
-  .combobox__input:focus {
-    outline: none;
-  }
-
-  .list__option-heading {
-    font-size: 0.9em;
-    padding-inline: 1rem;
-    padding-block-start: 0.4rem;
-    color: gray;
-  }
-
-  .list__no-results {
-    padding: 0.8rem 1rem;
-  }
-
-  .list__option {
-    padding: 0.8rem 1rem;
-    border: 0.2rem solid transparent;
-    border-radius: 0.3rem;
-  }
-
-  .list__option > :global(*) {
-    pointer-events: none;
-  }
-
-  .list__option:focus,
-  .list__option:not([aria-disabled="true"]):hover {
-    outline: none;
-    cursor: pointer;
-    background-color: rgba(0, 0, 0, 0.1);
-  }
-
-  .list__option:active {
-    cursor: pointer;
-    outline: none;
-    color: white;
-    /* background-color: var(--accent-color) !important; */
-  }
+  @import "./combobox.css";
 </style>
