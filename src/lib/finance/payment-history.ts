@@ -154,7 +154,7 @@ export const getPaymentSchedule = (
 	const currOwed = p.balance - totalPaid;
 	const expectedMonthsPaid = Math.min(
 		p.term,
-		differenceInMonths(now, p.startDate) + 1,
+		differenceInMonths(now, p.startDate) + (startAfterNow ? 0 : 1),
 	);
 	const totalExpected = expectedMonthsPaid * p.pmt;
 	const totalDiff = totalPaid - totalExpected;
