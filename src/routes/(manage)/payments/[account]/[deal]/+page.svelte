@@ -395,10 +395,10 @@ $effect(() => {
             <th>Date</th>
             <th>B. Bal</th>
             <th>Paid</th>
-            <th>Advanced</th>
-            <th>T. Paid</th>
             <th>Expected</th>
+            <th>T. Paid</th>
             <th>E. Bal</th>
+            <th>Advanced</th>
           </tr>
         </thead>
         <tbody class="font-mono text-right">
@@ -423,18 +423,16 @@ $effect(() => {
                 {formatCurrency(row.paid)}
               </td>
               <td>
-                {formatCurrency(row.diff)}
-                <br />
-                {formatCurrency(row.totalDiff)}
+                {formatCurrency(row.expected)}
               </td>
               <td>
                 {formatCurrency(row.totalPaid)}
               </td>
               <td>
-                {formatCurrency(row.expected)}
+                {formatCurrency(row.owed)}
               </td>
               <td>
-                {formatCurrency(row.owed)}
+                {formatCurrency(row.totalDiff)}
               </td>
             </tr>
           {/each}
