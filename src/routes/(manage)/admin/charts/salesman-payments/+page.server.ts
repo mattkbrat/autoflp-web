@@ -1,6 +1,6 @@
 import { addMonths } from "date-fns";
 import type { PageServerLoad } from "./$types";
-import { getSalesmanPayments } from "$lib/server/database/deal";
+import { getCashDeals, getSalesmanPayments } from "$lib/server/database/deal";
 
 export const load: PageServerLoad = async ({ url }) => {
 	const yearFilter = url.searchParams.get("year");
@@ -8,6 +8,8 @@ export const load: PageServerLoad = async ({ url }) => {
 	const startDateFilter = yearFilter
 		? new Date(Number(yearFilter) - 1, 12, 1)
 		: undefined;
+
+	const cashDeals = await getCashDeals();
 
 	const payments = await getSalesmanPayments({
 		date: {
@@ -20,5 +22,5 @@ export const load: PageServerLoad = async ({ url }) => {
 		},
 	});
 
-	return { payments };
+	return { payments, cashDeals };
 };

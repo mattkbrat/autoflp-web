@@ -1,11 +1,11 @@
+import type { GroupedSalesmanPayments } from "$lib/finance/groupSalesmanPayments";
 import { stringToColorHsl, stringToHash } from "$lib/format/stringToColor";
-import type { GroupedSalesmanPayments } from "$lib/server/database/deal";
 import { sum } from "$lib/sum";
 
-export const data = (payments: GroupedSalesmanPayments) => {
-	const labelsSet = Object.keys(payments).reduce(
+export const data = (amounts: GroupedSalesmanPayments) => {
+	const labelsSet = Object.keys(amounts).reduce(
 		(acc, k) => {
-			const theseLabels = Object.keys(payments[k]);
+			const theseLabels = Object.keys(amounts[k]);
 
 			for (const label of theseLabels) {
 				acc.add(label);
@@ -18,14 +18,14 @@ export const data = (payments: GroupedSalesmanPayments) => {
 
 	const allLabels = Array.from(labelsSet).sort();
 	const hashes = allLabels.map((label) => stringToHash(label));
-	const keys = Object.keys(payments);
+	const keys = Object.keys(amounts);
 	const baseData = Array.from(new Array(allLabels.length)).map((_k) => {
 		return Array.from(new Array(keys).keys()).map((_) => 0);
 	});
 
 	for (let i = 0; i < keys.length; i++) {
 		const key = keys[i];
-		const salesmen = payments[key];
+		const salesmen = amounts[key];
 
 		for (const [salesman, payments] of Object.entries(salesmen)) {
 			const index = allLabels.indexOf(salesman);

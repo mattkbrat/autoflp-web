@@ -107,6 +107,7 @@ export const getCashDeals = async (q?: SalesmanPaymentsQuery) => {
 	});
 };
 export type CashDeals = Prisma.PromiseReturnType<typeof getCashDeals>;
+
 export type SalesmanPayments = Prisma.PromiseReturnType<
 	typeof getSalesmanPayments
 >;
@@ -121,8 +122,9 @@ export type SalemanPaymentsGroupBy = {
 export const getGroupedSalesmanPayments = async (
 	q?: SalesmanPaymentsQuery & { groupBy: SalemanPaymentsGroupBy },
 ) => {
+	const cashDeals = await getCashDeals(q);
 	return getSalesmanPayments(q).then((r) =>
-		groupSalesmanPayments(r, q?.groupBy),
+		groupSalesmanPayments(r, cashDeals, q?.groupBy),
 	);
 };
 
