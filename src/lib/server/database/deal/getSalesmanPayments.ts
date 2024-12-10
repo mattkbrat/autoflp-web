@@ -61,6 +61,52 @@ export const getSalesmanPayments = async (q?: SalesmanPaymentsQuery) => {
 	});
 };
 
+export const getCashDeals = async (q?: SalesmanPaymentsQuery) => {
+	return prisma.deal.findMany({
+		include: {
+			inventory: {
+				select: {
+					inventory_salesman: {
+						select: {
+							salesman: {
+								select: {
+									contact: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		orderBy: {
+			state: "asc",
+		},
+		where: {
+			date: q?.date
+				? typeof q?.date === "string"
+					? {}
+					: {
+							gte: q.date.gte,
+							lte: q.date.lte,
+						}
+				: undefined,
+			cash: {
+				gte: "0.00",
+			},
+			OR: [
+				{
+					lien: {
+						lte: "0.00",
+					},
+				},
+				{
+					lien: null,
+				},
+			],
+		},
+	});
+};
+export type CashDeals = Prisma.PromiseReturnType<typeof getCashDeals>;
 export type SalesmanPayments = Prisma.PromiseReturnType<
 	typeof getSalesmanPayments
 >;
