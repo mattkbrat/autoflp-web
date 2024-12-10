@@ -10,4 +10,4 @@ onMount(() => {
 });
 </script>
 
-<MonthlyPayments payments={data.payments} />
+<MonthlyPayments payments={data.payments} cashDeals={data.cashDeals} />
