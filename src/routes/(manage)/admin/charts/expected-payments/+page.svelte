@@ -1,7 +1,10 @@
 <script lang="ts">
 import { page } from "$app/stores";
 import ExpectedPayments from "$lib/components/charts/ExpectedPayments.svelte";
+import type { AccountDetail } from "$lib/server/database/deal";
 import { formatCurrency } from "$lib/format";
+import { onMount } from "svelte";
+import { title } from "$lib/stores";
 const { data } = $props();
 
 const salesmen = $derived(Object.keys(data.expected));
@@ -18,11 +21,65 @@ page.subscribe((p) => {
 });
 
 let row = $derived(data.expected[tab] || {});
+onMount(() => {
+	title.set("Charts - Expected Payments");
+});
 </script>
 
-<ExpectedPayments expected={data.expected} />
+<div class="print:hidden">
+  <ExpectedPayments expected={data.expected} />
+</div>
 
-<div class="flex gap-2">
+{#snippet section_head(paid: boolean)}
+  <tr
+    class="text-lg underline font-bold"
+    class:text-red-200={!paid}
+    class:text-green-200={paid}
+  >
+    <td> {paid ? "Paid" : "Unpaid"}</td>
+  </tr>
+{/snippet}
+
+{#snippet row_info(r: AccountDetail)}
+  {@const { name, lastPaid, address, vehicle, link: pmtLink, phone } = r}
+  <tr class="border-2 border-white">
+    <td>
+      <input
+        class="print:!bg-transparent print:outline-black outline-2 outline m-auto"
+        type="checkbox"
+      />
+    </td>
+    <td>
+      <span class="underline">
+        {name}
+      </span>
+      <br />
+
+      <span>
+        {lastPaid}
+      </span>
+      <br />
+      <span class="print:hidden">
+        <a class="text-blue-200 underline" href={pmtLink}> Deal Page </a>
+      </span>
+    </td>
+    <td class="max-w-80">
+      <span>
+        {vehicle}
+      </span>
+      <br />
+      <span>
+        {phone}
+      </span>
+      <br />
+      <span class="uppercase break-words">
+        {address}
+      </span>
+    </td>
+  </tr>
+{/snippet}
+
+<nav class="flex gap-2 print:hidden">
   {#each salesmen as salesman}
     <a
       href={`#${encodeURIComponent(salesman)}`}
@@ -32,46 +89,20 @@ let row = $derived(data.expected[tab] || {});
       {salesman}
     </a>
   {/each}
-</div>
-<div class="grid grid-cols-2 gap-4">
-  <div class="grid grid-cols-subgrid col-span-full outline p-4">
-    <h3 class="col-span-full">{tab}</h3>
-    <p>
-      {formatCurrency(row.paid)} / {formatCurrency(row.paid + row.expected)}
-    </p>
-    <h4 class="col-span-full text-lg underline">Paid</h4>
+</nav>
+<h3 class="col-span-full">{tab}</h3>
+<span>
+  {formatCurrency(row.paid)} / {formatCurrency(row.paid + row.expected)}
+</span>
+<table class="table">
+  <tbody>
+    {@render section_head(true)}
     {#each row?.paidAccounts as r}
-      {@const { name, vehicle, link: pmtLink, phone } = r}
-      <div>
-        {name}
-      </div>
-      <div class="grid grid-cols-subgrid">
-        <div>
-          {vehicle}
-        </div>
-        <div>
-          {phone}
-        </div>
-        <a class="text-blue-200 underline" href={pmtLink}> Deal Page </a>
-      </div>
-      <hr class="col-span-full" />
+      {@render row_info(r)}
     {/each}
-    <h4 class="col-span-full text-lg underline mt-4">Unpaid</h4>
+    {@render section_head(false)}
     {#each row?.unpaidAccounts as r}
-      {@const { name, vehicle, link: pmtLink, phone } = r}
-      <div>
-        {name}
-      </div>
-      <div class="grid grid-cols-subgrid">
-        <div>
-          {vehicle}
-        </div>
-        <div>
-          {phone}
-        </div>
-        <a class="text-blue-200 underline" href={pmtLink}> Deal Page </a>
-      </div>
-      <hr class="col-span-full" />
+      {@render row_info(r)}
     {/each}
-  </div>
-</div>
+  </tbody>
+</table>

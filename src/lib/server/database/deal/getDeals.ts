@@ -7,29 +7,34 @@ import type { DateFilter } from "./get-expected-with-salesmen";
 type DealQuery = Prisma.DealFindUniqueArgs["where"];
 
 export const getMonthlyOpenDeals = async (q?: DateFilter) => {
-	const dateFilter = {
-		gte: startOfMonth(q?.gte ? new Date(q.gte) : new Date())
-			.toISOString()
-			.split("T")[0],
-		lte:
-			q?.gte || q?.lte
-				? endOfMonth(new Date(q.gte || q.lte || 0))
-						.toISOString()
-						.split("T")[0]
-				: undefined,
-	};
+	const dateFilter = q?.gte
+		? {
+				gte: startOfMonth(q?.gte ? new Date(q.gte) : new Date())
+					.toISOString()
+					.split("T")[0],
+				lte:
+					q?.gte || q?.lte
+						? endOfMonth(new Date(q.gte || q.lte || 0))
+								.toISOString()
+								.split("T")[0]
+						: undefined,
+			}
+		: undefined;
 
 	return prisma.deal.findMany({
 		where: {
 			state: 1,
-			date: {
-				lte: dateFilter.lte,
-			},
+			date: dateFilter?.lte
+				? {
+						lte: dateFilter.lte,
+					}
+				: undefined,
 		},
 		select: {
 			pmt: true,
 			id: true,
 			date: true,
+			lien: true,
 			account: {
 				select: {
 					id: true,
@@ -38,6 +43,12 @@ export const getMonthlyOpenDeals = async (q?: DateFilter) => {
 							phonePrimary: true,
 							firstName: true,
 							lastName: true,
+							address_1: true,
+							address_2: true,
+							address_3: true,
+							city: true,
+							country: true,
+							stateProvince: true,
 						},
 					},
 				},
@@ -64,11 +75,21 @@ export const getMonthlyOpenDeals = async (q?: DateFilter) => {
 					amount: true,
 					date: true,
 				},
-				where: {
-					date: dateFilter,
+				take: 1,
+				where: dateFilter
+					? {
+							date: {
+								gte: dateFilter.gte,
+								lte: dateFilter.lte,
+							},
+						}
+					: undefined,
+				orderBy: {
+					date: "desc",
 				},
 			},
 		},
+
 		orderBy: {
 			pmt: "desc",
 		},
