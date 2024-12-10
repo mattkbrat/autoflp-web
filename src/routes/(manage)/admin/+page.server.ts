@@ -46,7 +46,7 @@ export const actions = {
 
 		return {
 			data: {
-				key: newKey.key,
+				key: newKey.k,
 			},
 			method: id ? "update" : "insert",
 		};

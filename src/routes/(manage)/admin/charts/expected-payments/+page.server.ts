@@ -11,13 +11,8 @@ export const load: PageServerLoad = async ({ url }) => {
 			? new Date(Number(yearFilter), Number(monthFilter) - 1, 1, 12, 10, 10)
 			: "";
 
-	// const lte = url.searchParams.get("lte") || undefined;
 	const sameMonth = start ? isSameMonth(start, now) : false;
 
-	console.log(
-		{ isSameMonth: sameMonth },
-		differenceInMonths(new Date(start), now),
-	);
 	const expectedWithSalesmen = await getExpectedWithSalesmen(
 		start && !sameMonth
 			? {

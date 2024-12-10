@@ -346,9 +346,7 @@ $effect(() => {
               </button>
               <button
                 type="submit"
-                class="btn flex flex-col flex-1 h-full gap-y-1"
-                class:preset-outlined-secondary-200-800={!selected.state}
-                class:preset-outlined-warning-200-800={selected.state}
+                class="btn flex flex-col flex-1 h-full gap-y-1 preset-outlined-warning-200-800"
                 formaction="?/delete"
               >
                 Remove Selected

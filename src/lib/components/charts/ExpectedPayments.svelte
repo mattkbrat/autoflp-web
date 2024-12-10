@@ -14,7 +14,7 @@ const now = new Date();
 
 let stacked = $state(true);
 let filterMonth = $state(
-	Number($page.url.searchParams?.get("month")) || now.getMonth(),
+	Number($page.url.searchParams?.get("month")) || now.getMonth() + 1,
 );
 let filterYear = $state(
 	Number($page.url.searchParams?.get("year")) ||
@@ -84,7 +84,6 @@ $effect(() => {
 });
 
 onMount(() => {
-	console.log(expected);
 	waitForElm("#expectedPayments").then((el) => {
 		if (!el || !(el instanceof HTMLCanvasElement)) {
 			console.log("Invalid element", el);
