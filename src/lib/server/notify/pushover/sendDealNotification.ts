@@ -15,7 +15,7 @@ export const sendDealNotification = async ({
 }: {
 	type: "update" | "close" | "create";
 	dealId: string;
-	notification?: Omit<PushoverNotification, "title" | "message">;
+	notification?: Partial<PushoverNotification>;
 }) => {
 	const accountInfo = await prisma.deal.findUnique({
 		where: { id },
@@ -51,11 +51,12 @@ export const sendDealNotification = async ({
 		return;
 	}
 	const title =
-		type === "close"
+		notification?.title ||
+		(type === "close"
 			? "Deal Closed"
 			: type === "update"
 				? "Deal Updated"
-				: "New Deal Recorded";
+				: "New Deal Recorded");
 
 	const fullName = fullNameFromPerson({
 		person: accountInfo.account.contact,
@@ -67,7 +68,9 @@ export const sendDealNotification = async ({
 		accountInfo.lien,
 	)}`;
 
-	const message = `${fullName} - ${invString} ${messageSuffix}`.trim();
+	const message = `${fullName} - ${invString} ${messageSuffix}${
+		notification?.message ? `\n${notification.message}` : ""
+	}`.trim();
 
 	const url = `${siteUrl}/payments/${accountInfo.account.id}/${accountInfo.id}`;
 
