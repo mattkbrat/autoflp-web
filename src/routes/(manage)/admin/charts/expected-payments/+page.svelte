@@ -5,6 +5,7 @@ import type { AccountDetail } from "$lib/server/database/deal";
 import { formatCurrency } from "$lib/format";
 import { onMount } from "svelte";
 import { title } from "$lib/stores";
+import Tabs from "$lib/components/tabs/Tabs.svelte";
 const { data } = $props();
 
 const salesmen = $derived(Object.keys(data.expected));
@@ -79,30 +80,32 @@ onMount(() => {
   </tr>
 {/snippet}
 
-<nav class="flex gap-2 print:hidden">
-  {#each salesmen as salesman}
-    <a
-      href={`#${encodeURIComponent(salesman)}`}
-      class={"font-bold"}
-      class:underline={salesman === tab}
-    >
-      {salesman}
-    </a>
-  {/each}
-</nav>
-<h3 class="col-span-full">{tab}</h3>
-<span>
-  {formatCurrency(row.paid)} / {formatCurrency(row.paid + row.expected)}
-</span>
-<table class="table">
-  <tbody>
-    {@render section_head(true)}
-    {#each row?.paidAccounts as r}
-      {@render row_info(r)}
-    {/each}
-    {@render section_head(false)}
-    {#each row?.unpaidAccounts as r}
-      {@render row_info(r)}
-    {/each}
-  </tbody>
-</table>
+<Tabs
+  title={"Admin"}
+  tabs={salesmen.map((salesman) => {
+    return {
+      id: `#${encodeURIComponent(salesman)}`,
+      text: salesman,
+    };
+  })}
+  asLinks
+  useHash
+  rootUrl="/admin/charts/expected-payments"
+>
+  <h3 class="col-span-full">{tab}</h3>
+  <span>
+    {formatCurrency(row.paid)} / {formatCurrency(row.paid + row.expected)}
+  </span>
+  <table class="table">
+    <tbody>
+      {@render section_head(true)}
+      {#each row?.paidAccounts as r}
+        {@render row_info(r)}
+      {/each}
+      {@render section_head(false)}
+      {#each row?.unpaidAccounts as r}
+        {@render row_info(r)}
+      {/each}
+    </tbody>
+  </table>
+</Tabs>

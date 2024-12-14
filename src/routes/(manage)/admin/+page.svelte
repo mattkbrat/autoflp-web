@@ -32,7 +32,7 @@ onMount(() => {
     </label>
     <label class="flex-1 min-w-max">
       Value
-      <textarea name="value" value={key.value} class="input" />
+      <textarea name="value" value={key.value} class="input"></textarea>
     </label>
     <button type="submit">Save</button>
   </form>

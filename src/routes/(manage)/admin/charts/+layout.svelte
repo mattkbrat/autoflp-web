@@ -1,5 +1,5 @@
 <script lang="ts">
-import { page } from "$app/stores";
+import Tabs from "$lib/components/tabs/Tabs.svelte";
 
 const { children } = $props();
 
@@ -7,31 +7,18 @@ const pageMap = {
 	"Expected Payments": "expected-payments",
 	"Salesman Payments": "salesman-payments",
 };
-
-const selected = $derived(
-	$page.url.pathname.split("/").pop() === pageMap["Expected Payments"]
-		? "exp"
-		: "sales",
-);
 </script>
 
-<nav class="flex gap-4 print:hidden text-lg">
-  <a
-    class:underline={selected === "exp"}
-    class="hover:text-surface-300"
-    href={`/admin/charts/${pageMap["Expected Payments"]}`}
-  >
-    Expected Payments
-  </a>
-
-  <a
-    class:underline={selected === "sales"}
-    href={`/admin/charts/${pageMap["Salesman Payments"]}`}
-    class="hover:text-surface-300"
-    data-sveltekit-reload
-  >
-    Salesman Payments
-  </a>
-</nav>
-
-{@render children()}
+<Tabs
+  title={"Charts"}
+  tabs={Object.entries(pageMap).map(([k, v]) => {
+    return {
+      id: v,
+      text: k,
+    };
+  })}
+  asLinks
+  rootUrl="/admin/charts"
+>
+  {@render children()}
+</Tabs>
