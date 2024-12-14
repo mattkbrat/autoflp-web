@@ -15,7 +15,6 @@ import {
 } from "$lib/format";
 import type { BillingAccounts } from "$lib/server/database/deal";
 import type { Schedule } from "$lib/server/deal";
-import { isBefore } from "date-fns";
 import type { BillingTemplate } from "./maps";
 
 type BillingDataElement = {
@@ -23,33 +22,27 @@ type BillingDataElement = {
 	deal: NonNullable<BillingAccounts[number]>;
 };
 
-const today = new Date();
-
 const fillBill = (
 	{
 		schedule: {
-			schedule: { totalDiff, pmt, nextDueDate, schedule },
+			schedule: {
+				totalDiff,
+				pmt,
+				nextDueDate,
+				schedule,
+				monthsDelinquent: monthsDiff,
+			},
 		},
 		deal,
 	}: BillingDataElement,
 	index = 1 | 2 | 3,
 ) => {
 	if (!deal) return {};
+	const monthsDelinquent = monthsDiff * -1;
 	const inventory = "inventory" in deal ? deal.inventory : deal;
 	const history = schedule.filter((r) => r.paid);
 
 	const totalDelinquent = totalDiff < 0 ? totalDiff * -1 : 0;
-
-	const monthsDelinquent = Math.floor(totalDelinquent / pmt);
-
-	const introText =
-		monthsDelinquent === 0
-			? "Your account is in good standing"
-			: `${
-					monthsDelinquent === 1
-						? "You are 1 month late"
-						: `You are ${monthsDelinquent} months delinquent`
-				}\n( ${formatCurrency(totalDelinquent)} )`;
 
 	const accountStatus = getCustomerStatus(monthsDelinquent);
 	const { contact } = deal.account;
@@ -74,12 +67,21 @@ const fillBill = (
 			["", "", "", ""] as [string, string, string, string],
 		);
 
+	const introText =
+		monthsDelinquent === 0
+			? "Your account is in good standing"
+			: `${
+					monthsDelinquent === 1
+						? "You are 1 month late"
+						: `You are ${monthsDelinquent} months delinquent`
+				}\n( ${formatCurrency(totalDelinquent)} )`;
+
 	const data = {
 		0: BUSINESS_NAME.toUpperCase(),
 		1: STREET.toUpperCase(),
 		2: BUSINESS_CITY_STATE_ZIP.toUpperCase(),
 		3: name.toUpperCase(),
-		4: address.street.toUpperCase(),
+		4: address.street?.toUpperCase(),
 		5: address.cityStateZip.toUpperCase(),
 		6: formattedInv.toUpperCase(),
 		7: `Account status: ${accountStatus}\n`,

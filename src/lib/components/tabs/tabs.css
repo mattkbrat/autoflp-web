@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .tabs {
+    font-family: "lucida grande", sans-serif;
+    @apply outline-2 outline-gray-100/25 outline px-4 pb-2 grid gap-y-4 rounded;
+  }
+
+  [role="tablist"] {
+    @apply min-w-full border-b-2 border-b-gray-100/25;
+  }
+
+  [role="tab"] {
+    @apply px-2 py-1;
+  }
+
+  [role="tab"],
+  [role="tab"]:focus,
+  [role="tab"]:hover {
+    @apply cursor-pointer inline-block relative z-20;
+    @apply transition-colors;
+    @apply font-bold overflow-clip text-left;
+  }
+
+  [role="tab"]:focus,
+  [role="tab"]:hover,
+  [role="tab"][aria-selected="true"] {
+    @apply border-solid border-b-white border-b-[1px];
+  }
+
+  [role="tab"][aria-selected="false"] {
+    @apply border-b-gray-200;
+  }
+
+  [role="tabpanel"].is-hidden {
+    @apply hidden;
+  }
+}

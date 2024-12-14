@@ -1,5 +1,6 @@
 <script lang="ts">
 import { page } from "$app/stores";
+import Tabs from "$lib/components/tabs/Tabs.svelte";
 import { title } from "$lib/stores";
 import { onMount } from "svelte";
 
@@ -33,4 +34,14 @@ onMount(() => {
   </a>
 </nav>
 
-{@render children()}
+<Tabs
+  title={"Inventory"}
+  tabs={[
+    { text: "inventory", id: "" },
+    { text: "print", id: "print?state=1" },
+  ]}
+  asLinks
+  rootUrl="/inventory"
+>
+  {@render children()}
+</Tabs>

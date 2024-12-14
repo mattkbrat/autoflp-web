@@ -7,6 +7,7 @@ import { getDetailedDeal, updatePartialDeal } from "$lib/server/database/deal";
 import type { PageServerLoad } from "./$types";
 import { getPaymentSchedule } from "$lib/finance/payment-history";
 import { addMonths } from "date-fns";
+import { generateMergedBilling } from "$lib/server/deal";
 export const load: PageServerLoad = async ({ params }) => {
 	const payments = await getPayments(params.deal);
 	const deal = await getDetailedDeal({ id: params.deal });
@@ -89,5 +90,14 @@ export const actions = {
 		return updatePartialDeal(dealId, { state: state === 0 ? 1 : 0 }).then(
 			(deal) => deal?.state,
 		);
+	},
+
+	getBill: async ({ request }) => {
+		const data = await request.formData();
+		const dealId = data.get("deal") as string;
+
+		const bill = await generateMergedBilling("desc", undefined, [dealId]);
+
+		return { bill, generated: new Date() };
 	},
 } satisfies Actions;

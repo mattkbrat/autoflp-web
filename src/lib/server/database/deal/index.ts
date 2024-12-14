@@ -6,14 +6,12 @@ import type { FinanceCalcResult } from "$lib/finance/calc";
 import type { Trades } from "$lib/server/deal";
 import type { getPayments } from "./getPayments";
 import { dealFieldsToDeal } from "./dealFieldsToDeal";
-import {
-	sendDealNotification,
-	sendInventoryNotification,
-} from "$lib/server/notify";
+import { sendDealNotification } from "$lib/server/notify";
 export * from "./dealCharge";
 export * from "./getDeals";
 export * from "./getSalesmanPayments";
 export * from "./get-expected-with-salesmen";
+export * from "./closeUnbillableDeals";
 
 export const closeDeals = async (deals: string[]) => {
 	return prisma.deal.updateMany({

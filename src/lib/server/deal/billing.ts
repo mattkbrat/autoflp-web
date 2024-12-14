@@ -1,6 +1,10 @@
 import type { AsyncReturnType } from "$lib/types";
 import { writeFileSync } from "node:fs";
-import { getBilling, type BillingAccounts } from "../database/deal";
+import {
+	closeUnbillableDeals,
+	getBilling,
+	type BillingAccounts,
+} from "../database/deal";
 import type { GenerateFormParams } from "../form";
 import { fillBilling, type Schedules } from "../form/builder/BILLING";
 import { mergePdfs } from "../form/merge";
@@ -91,9 +95,12 @@ const devCutoff = dev ? 40 : -1;
 export const generateMergedBilling = async (
 	sort: SortOrder = "desc",
 	cutoff = devCutoff,
+	dealIds?: string[],
 ) => {
 	cleanup();
-	const billing = await getBilling();
+	const billing = await getBilling(dealIds);
+	await closeUnbillableDeals(billing);
+
 	const all = await getGroupedBillableAccounts(sort, billing);
 	const groups = cutoff !== -1 ? all.slice(0, cutoff) : all;
 	const data = groups.map((group) => {
@@ -131,9 +138,10 @@ export const generateMergedBilling = async (
 export const generateBilling = async (
 	sort: SortOrder = "desc",
 	cutoff = devCutoff,
+	dealIds?: string[],
 ) => {
 	cleanup();
-	const billing = await getBilling();
+	const billing = await getBilling(dealIds);
 	const all = await getGroupedBillableAccounts(sort, billing);
 	const groups = cutoff !== -1 ? all.slice(0, cutoff) : all;
 	const generated: string[] = [];
