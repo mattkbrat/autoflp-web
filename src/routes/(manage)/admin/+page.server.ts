@@ -31,8 +31,10 @@ export const load: PageServerLoad = async ({ url }) => {
 };
 
 export const actions = {
-	printBilling: async () => {
-		const data = await generateMergedBilling("desc");
+	printBilling: async ({ request }) => {
+		const formData = await request.formData();
+		const ids = formData.getAll("id").filter((r) => typeof r === "string");
+		const data = await generateMergedBilling("desc", undefined, ids);
 
 		return { built: data };
 	},
