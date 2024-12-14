@@ -1,6 +1,10 @@
 import type { AsyncReturnType } from "$lib/types";
 import { writeFileSync } from "node:fs";
-import { getBilling, type BillingAccounts } from "../database/deal";
+import {
+	closeUnbillableDeals,
+	getBilling,
+	type BillingAccounts,
+} from "../database/deal";
 import type { GenerateFormParams } from "../form";
 import { fillBilling, type Schedules } from "../form/builder/BILLING";
 import { mergePdfs } from "../form/merge";
@@ -94,6 +98,8 @@ export const generateMergedBilling = async (
 ) => {
 	cleanup();
 	const billing = await getBilling();
+	await closeUnbillableDeals(billing);
+
 	const all = await getGroupedBillableAccounts(sort, billing);
 	const groups = cutoff !== -1 ? all.slice(0, cutoff) : all;
 	const data = groups.map((group) => {

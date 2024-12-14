@@ -273,6 +273,11 @@ export const getBilling = async () => {
 			],
 		},
 		include: {
+			creditor: {
+				select: {
+					businessName: true,
+				},
+			},
 			account: {
 				select: {
 					contact: true,
