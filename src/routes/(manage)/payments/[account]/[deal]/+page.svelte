@@ -1,6 +1,6 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
-import { el, waitForElm } from "$lib/element";
+import { waitForElm } from "$lib/element";
 import {
 	formatCurrency,
 	formatInventory,
@@ -10,10 +10,12 @@ import {
 import { browser } from "$app/environment";
 import { differenceInDays, formatDate } from "date-fns";
 import { title } from "$lib/stores/title.js";
+import { getZip } from "$lib";
 
-const { data } = $props();
+const { data, form } = $props();
 
 const selected = $derived(data.deal);
+let printedForms = $state(0);
 
 const salesmen = $derived(
 	selected
@@ -31,6 +33,13 @@ $effect(() => {
 		if (!el) return;
 		today = now.toISOString().split("T")[0];
 		el.value = today;
+	});
+});
+
+$effect(() => {
+	if (!form?.bill?.length || form.generated === printedForms) return;
+	getZip([form.bill], { type: "billing" }).then(() => {
+		printedForms = form.generated;
 	});
 });
 
@@ -245,20 +254,8 @@ $effect(() => {
             class="contents"
             action="?/record"
             use:enhance={() => {
-              return async ({ result, update }) => {
-                await update();
-                if (
-                  "data" in result &&
-                  result.data &&
-                  "inserted" in result.data
-                ) {
-                  setTimeout(() => {
-                    const element = el<HTMLInputElement>`pmt-date-input`;
-                    if (element) {
-                      element.value = today;
-                    }
-                  }, 200);
-                }
+              return async ({ update }) => {
+                await update({ reset: false });
               };
             }}
           >
@@ -352,6 +349,13 @@ $effect(() => {
                 Remove Selected
               </button>
             </div>
+            <button
+              type="submit"
+              class="btn flex !h-fit gap-y-1 preset-outlined-success-200-800 col-span-full"
+              formaction="?/getBill"
+            >
+              Get Bill
+            </button>
           </form>
           <section
             class="flex flex-row flex-wrap text-surface-50 col-span-full"
