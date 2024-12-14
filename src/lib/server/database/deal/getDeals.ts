@@ -248,12 +248,17 @@ export const getOpenInventoryDeals = async (
 	});
 };
 
-export const getBilling = async () => {
+export const getBilling = async (dealIds?: string[]) => {
 	return prisma.deal.findMany({
 		where: {
 			AND: [
 				{
-					state: 1,
+					id: {
+						in: dealIds,
+					},
+				},
+				{
+					state: dealIds ? undefined : 1,
 				},
 				{
 					pmt: {

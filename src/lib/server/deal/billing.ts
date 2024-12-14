@@ -95,9 +95,10 @@ const devCutoff = dev ? 40 : -1;
 export const generateMergedBilling = async (
 	sort: SortOrder = "desc",
 	cutoff = devCutoff,
+	dealIds?: string[],
 ) => {
 	cleanup();
-	const billing = await getBilling();
+	const billing = await getBilling(dealIds);
 	await closeUnbillableDeals(billing);
 
 	const all = await getGroupedBillableAccounts(sort, billing);
@@ -137,9 +138,10 @@ export const generateMergedBilling = async (
 export const generateBilling = async (
 	sort: SortOrder = "desc",
 	cutoff = devCutoff,
+	dealIds?: string[],
 ) => {
 	cleanup();
-	const billing = await getBilling();
+	const billing = await getBilling(dealIds);
 	const all = await getGroupedBillableAccounts(sort, billing);
 	const groups = cutoff !== -1 ? all.slice(0, cutoff) : all;
 	const generated: string[] = [];
