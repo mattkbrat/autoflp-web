@@ -4,39 +4,12 @@ import { getZip } from "$lib";
 import { title } from "$lib/stores";
 import { onMount } from "svelte";
 
-const { data } = $props();
-
-const keys = $derived([...data.keys, { value: "", key: "", id: "" }]);
-
 onMount(() => {
 	title.set("Admin");
 });
 </script>
 
 <div class="flex flex-col flex-wrap space-y-4"></div>
-{#each keys as key}
-  <form
-    class="flex flex-col gap-4 outline outline-4 outline-surface-200 outline-offset-4"
-    action="?/submit"
-    method="post"
-    use:enhance={() => {
-      return async ({ update }) => {
-        await update();
-      };
-    }}
-  >
-    <input type="hidden" name="id" value={key.id} class="input" />
-    <label class="flex-w min-w-max">
-      Key
-      <input name="key" value={key.key} class="input" />
-    </label>
-    <label class="flex-1 min-w-max">
-      Value
-      <textarea name="value" value={key.value} class="input"></textarea>
-    </label>
-    <button type="submit">Save</button>
-  </form>
-{/each}
 
 <form
   action="?/printBilling"

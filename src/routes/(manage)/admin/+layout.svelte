@@ -6,7 +6,7 @@ const { children } = $props();
 
 <Tabs
   title={"Admin"}
-  tabs={[{ text: "admin", id: "" }, "charts"]}
+  tabs={[{ text: "admin", id: "" }, "kv", "charts"]}
   asLinks
   rootUrl="/admin"
 >
