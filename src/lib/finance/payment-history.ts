@@ -7,7 +7,6 @@ import {
 	isBefore,
 	isSameMonth,
 	isSunday,
-	setDay,
 } from "date-fns";
 import type { AmortizationParams } from "./amortization";
 import { roundToPenny } from "./roundToPenny";
@@ -147,9 +146,7 @@ export const getPaymentSchedule = (
 		: schedule.findLast((s) => s.monthType !== "after" && s.paid);
 
 	const nextDueDateMonth =
-		startAfterNow || !lastPaid
-			? p.startDate
-			: setDay(addMonths(lastPaid.date, 1), p.startDate.getDate());
+		startAfterNow || !lastPaid ? p.startDate : addMonths(lastPaid.date, 1);
 
 	const currOwed = p.balance - totalPaid;
 	const expectedMonthsPaid = Math.min(
@@ -169,6 +166,10 @@ export const getPaymentSchedule = (
 
 	const monthsDelinquent = totalDiff / p.pmt;
 
+	const nextDueDate = isSunday(nextDueDateMonth)
+		? addDays(nextDueDateMonth, 1)
+		: nextDueDateMonth;
+
 	return {
 		schedule,
 		remaining: Math.max(currentMonth?.owed || 0, 0),
@@ -182,8 +183,9 @@ export const getPaymentSchedule = (
 		monthsDelinquent: Math.round(monthsDelinquent),
 		startDate: p.startDate,
 		totalExpected,
-		nextDueDate: isSunday(nextDueDateMonth)
-			? addDays(nextDueDateMonth, 1)
-			: nextDueDateMonth,
+		nextDueDate:
+			totalDiff > 0
+				? addMonths(nextDueDate, Math.round(totalDiff / p.pmt))
+				: nextDueDate,
 	};
 };
