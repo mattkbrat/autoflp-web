@@ -1,7 +1,6 @@
 import type { Payment } from "@prisma/client";
 import { prisma } from ".";
 import { sendPaymentNotification } from "../notify";
-import { formatCurrency } from "$lib/format";
 
 export const getPaymentsByDeal = async (deal: string) => {
 	return prisma.payment.findMany({ where: { dealId: deal } });
@@ -16,35 +15,26 @@ const notify = async (dealId: string, amount: string) => {
 };
 
 export const recordPayment = async (payment: Payment) => {
-	const exists = await prisma.payment.findUnique({
+	const exists = await prisma.payment.findFirst({
 		where: {
-			dealId_date_amount: {
-				dealId: payment.dealId,
-				date: payment.date,
-				amount: payment.amount,
-			},
+			dealId: payment.dealId,
+			date: payment.date,
 		},
 	});
 
-	if (exists) {
-		return prisma.payment
-			.update({
-				where: {
-					id: exists.id,
-				},
-				data: {
-					amount: formatCurrency(
-						Number(exists.amount) + Number(payment.amount),
-					),
-				},
-			})
-			.then((p) => {
-				notify(p.dealId, p.amount);
-				return p;
-			});
-	}
-	return prisma.payment.create({ data: payment }).then((p) => {
-		notify(p.dealId, p.amount);
+	return (
+		exists
+			? prisma.payment.update({
+					where: {
+						id: exists.id,
+					},
+					data: {
+						amount: (Number(exists.amount) + Number(payment.amount)).toString(),
+					},
+				})
+			: prisma.payment.create({ data: payment })
+	).then((p) => {
+		notify(p.dealId, payment.amount);
 
 		return p;
 	});
