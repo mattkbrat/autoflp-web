@@ -14,6 +14,7 @@ import { cleanup } from "../form/cleanupBillingDir";
 import { dev } from "$app/environment";
 import { generate } from "../form/generate";
 import { getPaymentSchedule } from "$lib/finance/payment-history";
+import { addMonths } from "date-fns";
 
 type SortOrder = "asc" | "desc";
 
@@ -31,7 +32,7 @@ const getSchedules = (
 					pmt: Number(a.pmt),
 					term: Number(a.term),
 					balance: Number(a.lien),
-					startDate: new Date(a.date),
+					startDate: addMonths(new Date(a.date), 1),
 					finance: Number(a.finance),
 				},
 				a.payments || [],
@@ -129,6 +130,9 @@ export const generateMergedBilling = async (
 	const fromRoot = join("documents", "billing-merged.pdf");
 	const outputPath = join(AUTOFLP_DATA_DIR, fromRoot);
 
+	if (!doc) {
+		throw new Error("No document to save");
+	}
 	return doc.save().then((bytes) => {
 		writeFileSync(outputPath, bytes);
 		return fromRoot;
