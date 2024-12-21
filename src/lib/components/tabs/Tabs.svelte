@@ -6,14 +6,28 @@ import type { OnClick, TabComponentProps } from "./tabs.ts";
 
 const { title, tabs, children, ...r }: TabComponentProps = $props();
 
-const urlSplit = $derived(
-	"useHash" in r ? [$page.url.hash] : $page.url.href.split("/"),
+const url = $derived(
+	$page.url.hash ? $page.url.href.split($page.url.hash)[0] : $page.url.href,
 );
+const urlSplit = $derived(url.split("/"));
 const thisTab = $derived(
-	tabs.findLast((t) => urlSplit.includes(typeof t === "string" ? t : t.id)),
+	"useHash" in r && r.useHash
+		? $page.url.hash.slice(1)
+		: tabs.findLast((t) => urlSplit.includes(typeof t === "string" ? t : t.id)),
 );
+
 const index = $derived(
-	"index" in r ? r.index.index : tabs.indexOf(thisTab || tabs[0]),
+	"index" in r
+		? r.index.index
+		: tabs.findIndex((t) =>
+				typeof t !== "string"
+					? t.id === thisTab ||
+						(thisTab &&
+							typeof thisTab !== "string" &&
+							"text" in thisTab &&
+							t.text === thisTab.text)
+					: t === thisTab || t === tabs[0],
+			),
 );
 
 const query = $page.url.search;
@@ -38,6 +52,9 @@ const handleTabChange = ({
 const tabsListId = typeof title === "string" ? title : title.id;
 </script>
 
+<!-- <pre> -->
+<!--   {JSON.stringify({ thisTab, index, tabs })} -->
+<!-- </pre> -->
 <section class="tabs children">
   <h3 class="sr-only" id={tabsListId}>
     {typeof title === "string" ? title : title.text}
@@ -47,13 +64,14 @@ const tabsListId = typeof title === "string" ? title : title.id;
       {@const isBasic = typeof tab === "string"}
       {@const tabId = isBasic ? tab : tab.id}
       {@const panelId = `tabPanel-${n}`}
+      {@const href = `${"rootUrl" in r && r.rootUrl}${"useHash" in r && r.useHash ? "#" : "/"}${typeof tab === "string" ? tab : tab.id}`}
       {#if "asLinks" in r}
         <a
           role="tab"
           id={tabId}
           aria-selected={index === n}
           aria-controls={panelId}
-          href={`${"rootUrl" in r && r.rootUrl}/${typeof tab === "string" ? tab : tab.id}`}
+          {href}
         >
           <span class="focus">{isBasic ? tab : tab.text}</span>
         </a>
