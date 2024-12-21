@@ -21,9 +21,7 @@ export default {
 			"../**/*.{html,js,svelte,ts}",
 		),
 	],
-	theme: {
-		extend: {},
-	},
+	theme: {},
 	plugins: [
 		forms,
 		typography,

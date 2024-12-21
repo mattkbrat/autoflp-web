@@ -357,7 +357,7 @@ onMount(() => {
     />
 
     <ul
-      class={`bg-slate-800 max-h-[25dvh] overflow-y-auto absolute top-12 grid gap-x-4`}
+      class={"bg-slate-800 max-h-[50dvh] overflow-y-auto absolute top-12 grid gap-x-4"}
       style={`grid-template-columns: repeat(${cols}, minmax(auto,1fr)); z-index: 20`}
       class:hidden={!isListOpen}
       role="listbox"
