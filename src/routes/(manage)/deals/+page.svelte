@@ -3,7 +3,12 @@ import { enhance } from "$app/forms";
 import CreditorSelect from "$lib/components/CreditorSelect.svelte";
 import { defaultDeal } from "$lib/finance";
 import { calcFinance } from "$lib/finance/calc";
-import { formatCurrency, formatDate } from "$lib/format";
+import {
+	formatCurrency,
+	formatDate,
+	formatInventory,
+	fullNameFromPerson,
+} from "$lib/format";
 import type { ParsedNHTA } from "$lib/server/inventory";
 import { allAccounts, allCreditors, allInventory } from "$lib/stores";
 import {
@@ -16,6 +21,7 @@ import {
 import { getZip } from "$lib/index";
 import InventoryCombobox from "$lib/components/InventoryCombobox.svelte";
 import AccCombobox from "$lib/components/AccountCombobox.svelte";
+import {} from "os";
 
 const deal = $state(defaultDeal);
 const { form } = $props();
@@ -69,6 +75,7 @@ $effect(() => {
 });
 
 const inventory = $derived($allInventory.find((i) => i.vin === $inventoryID));
+const account = $derived($allAccounts.find((a) => a.id === deal.account));
 
 const handleGetZip = async (forms: string[]) => {
 	if (!forms.length) {
@@ -106,6 +113,8 @@ $effect(() => {
 });
 
 const finance = $derived(calcFinance(deal));
+
+const isCredit = $derived(finance.type === "credit");
 
 $effect(() => {
 	if (deal.term !== 0 || deal.priceDown === finance.unpaidCashBalance) return;
@@ -167,13 +176,11 @@ $effect(() => {
       Goto Payments Page
     </a>
   </div>
-{:else}
-  <span> No forms </span>
 {/if}
 <form
   action="?/submit"
   method="post"
-  class="flex flex-col flex-wrap space-y-4"
+  class="flex flex-col flex-wrap space-y-4 print:hidden"
   id="inventory-form"
   use:enhance={() => {
     return async ({ update }) => {
@@ -453,92 +460,133 @@ $effect(() => {
 
 <hr />
 
-<fieldset id="deal-details" class="flex flex-row flex-wrap gap-4">
-  <legend>
-    Calced {finance.type}
-  </legend>
-  <label class:hidden={finance.type === "cash"} class="flex-1 min-w-max">
-    Monthly Pay
-    <input
-      disabled
-      value={finance.type === "credit"
-        ? formatCurrency(finance.monthlyPayment)
-        : 0}
-      class="input"
-    />
-  </label>
-  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
-    Last Payment, Due
-    <input
-      disabled
-      value={finance.type === "credit"
-        ? formatDate(finance.lastPaymentDueDate)
-        : 0}
-      class="input"
-    />
-  </label>
-  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
-    Last Payment
-    <input
-      disabled
-      value={finance.type === "credit"
-        ? formatCurrency(finance.lastPayment)
-        : 0}
-      class="input"
-    />
-  </label>
-  <label class="flex-1 min-w-max max-w-[33%]">
-    Total Tax ($)
-    <input
-      disabled
-      value={formatCurrency(finance.totalTaxDollar)}
-      class="input"
-    />
-  </label>
-  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
-    Total Loan
-    <input
-      disabled
-      value={finance.type === "credit"
-        ? formatCurrency(finance.financeAmount)
-        : 0}
-      class="input"
-    />
-  </label>
-  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
-    Total of {deal.term} Loan Payments
-    <input
-      disabled
-      value={finance.type === "credit" ? formatCurrency(finance.totalLoan) : 0}
-      class="input"
-    />
-  </label>
-  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
-    Total Loan Interest
-    <input
-      disabled
-      value={finance.type === "credit"
-        ? formatCurrency(finance.deferredPayment)
-        : 0}
-      class="input"
-    />
-  </label>
-  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
-    Finance Amount
-    <input
-      disabled
-      value={finance.type === "credit"
-        ? formatCurrency(finance.financeAmount)
-        : 0}
-      class="input"
-    />
-  </label>
-  <label class="flex-1 min-w-max" class:hidden={finance.type === "cash"}>
-    Total Cost (price, interest, tax, fees)
-    <input
-      disabled
-      value={finance.type === "credit" ? formatCurrency(finance.totalCost) : 0}
-      class="input"
-    />
-  </label>
-</fieldset>
+{#snippet deal_stat({
+  label,
+  sublabel,
+  value,
+  render,
+}: {
+  label: string;
+  sublabel?: string;
+  value: string | number | undefined;
+  render?: boolean;
+})}
+  <!-- border-surface-200-800/25 -->
+  {#if render !== false}
+    <div
+      class="grid px-2 items-start border-x-[1px] border-warning-200-800 flex-1 min-w-64"
+    >
+      <span class="font-bold underline underline-offset-2">{label}</span>
+      {#if sublabel}
+        <span class="text-sm">{sublabel}</span>
+      {/if}
+      <span class="content-center inset-2">{value}</span>
+    </div>
+  {/if}
+{/snippet}
+
+<section id="deal-details" class="flex flex-wrap gap-4">
+  <h2 class="underline text-lg col-span-full uppercase w-full">
+    {finance.type} Deal
+  </h2>
+  {@render deal_stat({
+    label: "Account",
+    value: account
+      ? fullNameFromPerson({ person: account?.contact, withCell: true })
+      : "",
+  })}
+  {@render deal_stat({
+    label: "Inventory",
+    value: account ? (inventory ? formatInventory(inventory) : "") : "",
+  })}
+  {@render deal_stat({
+    label: "Cosigner",
+    value: deal.cosigner,
+    render: !!deal.cosigner,
+  })}
+  {@render deal_stat({
+    label: "Trade Value",
+    value: formatCurrency(finance.tradeValue),
+    render: finance.tradeValue > 0,
+  })}
+  {@render deal_stat({
+    label: finance.tradeValue > 0 ? "Selling Trade Diff." : "Selling Price",
+    value: formatCurrency(finance.sellingTradeDifferential),
+  })}
+  {@render deal_stat({
+    label: deal.term === 0 ? "Down Payment" : "Unpaid Cash Balance",
+    value: formatCurrency(finance.unpaidCashBalance),
+  })}
+  {@render deal_stat({
+    label: "Creditor",
+    value: creditor?.businessName.toUpperCase(),
+    // value: creditor ? fullNameFromPerson({ person: creditor?.contact }) : "",
+    render: !!creditor,
+  })}
+  {@render deal_stat({
+    label: "Creditor APR %",
+    value: creditor?.apr,
+    // value: creditor ? fullNameFromPerson({ person: creditor?.contact }) : "",
+    render: !!creditor,
+  })}
+  {@render deal_stat({
+    label: "First Payment, Due",
+    value:
+      finance.type === "credit" ? formatDate(finance.firstPaymentDueDate) : 0,
+    render: isCredit,
+  })}
+  {@render deal_stat({
+    label: "Monthly Payment",
+    value:
+      finance.type === "credit" ? formatCurrency(finance.monthlyPayment) : 0,
+    render: isCredit,
+  })}
+  {@render deal_stat({
+    label: "Last Payment, Due",
+    value:
+      finance.type === "credit" ? formatDate(finance.lastPaymentDueDate) : 0,
+    render: isCredit,
+  })}
+  {@render deal_stat({
+    label: "Last Payment",
+    value: finance.type === "credit" ? formatCurrency(finance.lastPayment) : 0,
+    render: isCredit,
+  })}
+  {@render deal_stat({
+    label: "Total Tax ($)",
+    value: formatCurrency(finance.totalTaxDollar),
+  })}
+  {@render deal_stat({
+    label: "Cash Balance w/ Tax",
+    value: formatCurrency(finance?.cashBalanceWithTax),
+  })}
+  {@render deal_stat({
+    label: "Total Loan",
+    value:
+      finance.type === "credit" ? formatCurrency(finance.financeAmount) : 0,
+    render: isCredit,
+  })}
+  {@render deal_stat({
+    label: `Total of ${deal.term} Loan Payments`,
+    value: finance.type === "credit" ? formatCurrency(finance.totalLoan) : 0,
+    render: isCredit,
+  })}
+  {@render deal_stat({
+    label: "Total Loan Interest",
+    value:
+      finance.type === "credit" ? formatCurrency(finance.deferredPayment) : 0,
+    render: isCredit,
+  })}
+  {@render deal_stat({
+    label: "Finance Amount",
+    value:
+      finance.type === "credit" ? formatCurrency(finance.financeAmount) : 0,
+    render: isCredit,
+  })}
+  {@render deal_stat({
+    label: "Total Cost",
+    sublabel: "(price, interest, tax, fees)",
+    value: finance.type === "credit" ? formatCurrency(finance.totalCost) : 0,
+    render: isCredit,
+  })}
+</section>
