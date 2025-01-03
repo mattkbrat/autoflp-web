@@ -108,6 +108,10 @@ $effect(() => {
 const finance = $derived(calcFinance(deal));
 
 $effect(() => {
+	if (deal.term !== 0 || deal.priceDown === finance.unpaidCashBalance) return;
+	deal.priceDown = finance.unpaidCashBalance;
+});
+$effect(() => {
 	if (deal.dealType === "cash" && deal.term !== 0) {
 		deal.term = 0;
 	} else if (deal.dealType === "credit" && deal.term === 0) {
@@ -304,7 +308,7 @@ $effect(() => {
         bind:value={deal.priceDown}
         name={"priceDown"}
         type="number"
-        step={10}
+        step={isCredit ? 10 : 0.01}
         min={0}
         class="input"
       />
