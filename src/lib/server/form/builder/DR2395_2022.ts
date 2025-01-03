@@ -73,13 +73,17 @@ export const DR2395_2022 = (deal: NonNullable<DetailedDeal>) => {
 			creditorAddress?.full || ""
 		}`.trim(),
 		"Lien Amount": deal.lien ? formatCurrency(+deal.lien) : undefined,
-		"Second Lienholder Name and Address": deal.cosigner || "",
+		// "Second Lienholder Name and Address": deal.cosigner || "",
 		//"Lien Amount_2": "",
 		//"Indicate Alternate Address Here if The Title Should be Sent to a Different Lienholder Address": "",
 		//"Indicate Alternate Address Here if The Title Should be Sent to a Different Lienholder Address_2": "",
 		Date: date,
-		"Printed name of OwnerAgent as it appears on Identification:":
+		"Printed name of OwnerAgent as it appears on Identification:": [
 			personFullName,
+			deal.cosigner,
+		]
+			.filter(Boolean)
+			.join("; "),
 		//"Colorado DL": "",
 		//"Colorado ID": "",
 		//Other: "",
