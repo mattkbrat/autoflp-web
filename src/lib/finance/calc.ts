@@ -52,7 +52,10 @@ export const calcFinance = (
 		(sellingTradeDiff * totalTaxPercent) / 100.0,
 	);
 
-	const unpaidCashBalance = sellingTradeDiff - p.priceDown + totalTaxDollar;
+	const unpaidCashBalance =
+		p.term > 0
+			? sellingTradeDiff - p.priceDown + totalTaxDollar
+			: sellingTradeDiff + totalTaxDollar;
 
 	const financeAmount = unpaidCashBalance + p.filingFees;
 
