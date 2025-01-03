@@ -4,6 +4,7 @@ export type FullNameParams = {
 	person: Partial<Person | DealPerson>;
 	format?: "firstLast" | "lastFirst";
 	titleCase?: boolean;
+	withCell?: boolean;
 };
 
 import { fullNameFromPerson } from "./fullNameFromPerson";

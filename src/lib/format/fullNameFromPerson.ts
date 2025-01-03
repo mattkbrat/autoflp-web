@@ -4,6 +4,7 @@ export function fullNameFromPerson({
 	person,
 	format = "lastFirst",
 	titleCase = true,
+	withCell = false,
 }: FullNameParams) {
 	const {
 		nameSuffix: suffix,
@@ -11,6 +12,7 @@ export function fullNameFromPerson({
 		firstName,
 		middleInitial,
 		namePrefix: prefix,
+		phonePrimary: cell,
 	} = person;
 
 	let name = "";
@@ -30,9 +32,20 @@ export function fullNameFromPerson({
 			.filter(Boolean)
 			.join(", ");
 	} else {
-		name = [prefix, firstName, middleInitial, lastName, suffix]
+		name = [
+			prefix,
+			firstName,
+			middleInitial,
+			lastName,
+			suffix,
+			withCell ? cell : undefined,
+		]
 			.filter(Boolean)
 			.join(" ");
+	}
+
+	if (withCell) {
+		name = `${name} - ${cell || "NO PHONE PRIMARY"}`.trim();
 	}
 
 	if (titleCase) {
