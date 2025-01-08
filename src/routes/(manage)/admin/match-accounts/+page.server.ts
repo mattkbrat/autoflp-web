@@ -79,8 +79,8 @@ export const actions = {
 			});
 		}
 
-    // Merge accounts.
-    // Find matching deals for non-primary accounts then update to use primary.
+		// Merge accounts.
+		// Find matching deals for non-primary accounts then update to use primary.
 		if (contactLinkIds.length > 1) {
 			if (!primary) {
 				return fail(400, {

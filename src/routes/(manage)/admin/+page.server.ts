@@ -5,8 +5,7 @@ import { getDetailedDeals } from "$lib/server/database/deal";
 import { formatInventory, fullNameFromPerson } from "$lib/format";
 import type { MappedDeals } from "./types";
 import type { Inventory } from "@prisma/client";
-import { prisma } from "$lib/server/database";
-import { randomUUID } from "node:crypto";
+import { editSalesmen } from "$lib/server/database/account";
 
 export const load: PageServerLoad = async ({ url }) => {
 	const p = url.searchParams;
@@ -70,38 +69,6 @@ export const actions = {
 			{} as { [deal: string]: string[] },
 		);
 
-		await prisma.$transaction(async (tx) => {
-			for (const [dealId, inventory] of Object.entries(updates)) {
-				const deal = await tx.deal.findUnique({
-					where: {
-						id: dealId,
-					},
-					select: {
-						inventoryId: true,
-					},
-				});
-
-				if (!deal) {
-					console.error("no deal by id", deal);
-					continue;
-				}
-
-				await tx.inventorySalesman.deleteMany({
-					where: {
-						vin: deal.inventoryId,
-					},
-				});
-
-				for (const id of inventory) {
-					await tx.inventorySalesman.create({
-						data: {
-							id: randomUUID(),
-							vin: deal.inventoryId,
-							salesmanId: id,
-						},
-					});
-				}
-			}
-		});
+		await editSalesmen(updates);
 	},
 } satisfies Actions;
