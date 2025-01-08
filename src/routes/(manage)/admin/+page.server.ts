@@ -1,33 +1,47 @@
 import type { Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 import { generateMergedBilling } from "$lib/server/deal";
-import {
-	getExpectedWithSalesmen,
-	getSalesmanPayments,
-} from "$lib/server/database/deal";
-import { addMonths } from "date-fns";
+import { getDetailedDeals } from "$lib/server/database/deal";
+import { formatInventory, fullNameFromPerson } from "$lib/format";
+import type { MappedDeals } from "./types";
+import type { Inventory } from "@prisma/client";
+import { editSalesmen } from "$lib/server/database/account";
 
 export const load: PageServerLoad = async ({ url }) => {
-	const yearFilter = url.searchParams.get("year");
+	const p = url.searchParams;
+	const includeAll = p.get("all") === "true";
+	const page = p.get("page");
 
-	const startDateFilter = yearFilter
-		? new Date(Number(yearFilter) - 1, 12, 1)
-		: undefined;
+	const deals = await getDetailedDeals(
+		!includeAll
+			? {
+					state: 1,
+				}
+			: undefined,
+		page
+			? {
+					items: 100,
+					start: Number(page || 0),
+				}
+			: undefined,
+	);
 
-	const payments = await getSalesmanPayments({
-		date: {
-			gte: (startDateFilter ? startDateFilter : addMonths(new Date(), -36))
-				.toISOString()
-				.split("T")[0],
-			lte: startDateFilter
-				? addMonths(startDateFilter, 12).toISOString().split("T")[0]
-				: undefined,
-		},
-	});
+	const dealRows = deals.reduce((acc, opt) => {
+		acc.push({
+			id: opt.id,
+			date: opt.date,
+			state: opt.state as 0 | 1,
+			contact: fullNameFromPerson({
+				person: opt.account.contact,
+			}).toLowerCase(),
+			salesmen: opt.inventory.inventory_salesman.map((s) => s.salesmanId),
+			inventory: formatInventory(opt.inventory as Inventory).toLowerCase(),
+			pmt: opt.pmt ? Number(opt.pmt) : 0,
+		});
+		return acc;
+	}, [] as MappedDeals);
 
-	const expectedWithSalesmen = await getExpectedWithSalesmen();
-
-	return { payments, expected: expectedWithSalesmen };
+	return { deals: dealRows };
 };
 
 export const actions = {
@@ -37,5 +51,24 @@ export const actions = {
 		const data = await generateMergedBilling("desc", undefined, ids);
 
 		return { built: data };
+	},
+	updateSalesmen: async ({ request }) => {
+		const formData = await request.formData();
+		const keys = (formData.get("deals") as string).split(",");
+		const updates = keys.reduce(
+			(acc, k) => {
+				if (k in acc) {
+					return acc;
+				}
+
+				const salesmen = formData.getAll(k) as string[];
+				acc[k] = salesmen || [];
+
+				return acc;
+			},
+			{} as { [deal: string]: string[] },
+		);
+
+		await editSalesmen(updates);
 	},
 } satisfies Actions;

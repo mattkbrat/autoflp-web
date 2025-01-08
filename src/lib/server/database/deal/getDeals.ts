@@ -4,7 +4,8 @@ import type { AsyncReturnType } from "$lib/types";
 import { fullNameFromPerson } from "$lib/format";
 import { endOfMonth, startOfMonth } from "date-fns";
 import type { DateFilter } from "./get-expected-with-salesmen";
-type DealQuery = Prisma.DealFindUniqueArgs["where"];
+type DealUniqueQuery = Prisma.DealFindUniqueArgs["where"];
+type DealQuery = Prisma.DealFindManyArgs["where"];
 
 export const getMonthlyOpenDeals = async (q?: DateFilter) => {
 	const dateFilter = q?.gte
@@ -153,11 +154,11 @@ export const getDeals = async (account?: string, state?: number) => {
 	});
 };
 
-export const getDeal = async (query: DealQuery) => {
+export const getDeal = async (query: DealUniqueQuery) => {
 	return prisma.deal.findUnique({ where: query });
 };
 
-export const getDetailedDeal = async (query: DealQuery) => {
+export const getDetailedDeal = async (query: DealUniqueQuery) => {
 	return prisma.deal.findUnique({
 		where: query,
 		include: {
@@ -180,6 +181,53 @@ export const getDetailedDeal = async (query: DealQuery) => {
 									},
 								},
 							},
+						},
+					},
+				},
+			},
+			creditor: {
+				include: {
+					contact: true,
+				},
+			},
+			dealCharges: {
+				select: {
+					charge: true,
+				},
+			},
+			dealTrades: {
+				select: {
+					value: true,
+					vin: true,
+					inventory: true,
+				},
+			},
+		},
+	});
+};
+
+export const getDetailedDeals = async (
+	query?: DealQuery,
+	pagination?: { start: number; items: number },
+) => {
+	return prisma.deal.findMany({
+		where: query,
+		skip: pagination ? pagination.start * pagination.items : undefined,
+		take: pagination ? pagination.items : undefined,
+		orderBy: {
+			date: "desc",
+		},
+		include: {
+			account: {
+				include: {
+					contact: true,
+				},
+			},
+			inventory: {
+				include: {
+					inventory_salesman: {
+						select: {
+							salesmanId: true,
 						},
 					},
 				},
