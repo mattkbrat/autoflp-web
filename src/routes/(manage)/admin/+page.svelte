@@ -1,79 +1,158 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import { getZip } from "$lib";
-import { title } from "$lib/stores";
+import { title, allSalesmen } from "$lib/stores";
 import { onMount } from "svelte";
 
-import { deals } from "$lib/stores";
-import { formatInventory, fullNameFromPerson } from "$lib/format";
 import { selectAll } from "$lib/element";
+import { page } from "$app/stores";
+import { goto } from "$app/navigation";
+import { formatDate } from "date-fns";
+import type { MappedDeals } from "./types";
 
 onMount(() => {
 	title.set("Admin");
 });
-
-type MappedDeals = {
-	id: string;
-	contact: string;
-	inventory: string;
-	pmt: number;
-}[];
 
 let filter = $state("");
 
 let dealIds = $state([] as string[]);
 let orderedAccounts = $state([] as MappedDeals);
 
-type OrderBy = "pmt" | "inventory" | "account" | null;
-let orderBy: OrderBy = $state(null);
+let salesmenUpdateButton: HTMLButtonElement | null = $state(null);
+const pageNum = $derived($page.url.searchParams.get("page"));
+const hasAll = $derived($page.url.searchParams.get("all") === "true");
 
-const dealRows = $derived(
-	$deals.reduce((acc, opt) => {
-		if (!opt.state) return acc;
-		acc.push({
-			id: opt.id,
-			contact: fullNameFromPerson({
-				person: opt.account.contact,
-			}).toLowerCase(),
-			inventory: formatInventory(opt.inventory).toLowerCase(),
-			pmt: opt.pmt ? Number(opt.pmt) : 0,
-		});
-		return acc;
-	}, [] as MappedDeals),
-);
+let salesmanUpdates: { [deal: string]: string[] } = $state({});
+const showSalesmenUpdateButton = $derived(Object.keys(salesmanUpdates).length);
+
+type OrderBy = "pmt" | "inventory" | "account" | "salesman" | "date" | null;
+let orderBy: {
+	col: OrderBy;
+	dir: "asc" | "desc";
+} = $state({
+	col: null,
+	dir: "asc",
+});
+
+const { data } = $props();
 
 $effect(() => {
-	dealIds = dealRows.map((d) => d.id);
+	dealIds = data.deals.reduce((acc, d) => {
+		if (d.state !== 1) {
+			return acc;
+		}
+		acc.push(d.id);
+		return acc;
+	}, [] as string[]);
 });
 
 const filteredAccounts = $derived(
 	!filter
-		? dealRows
-		: dealRows.filter((r) => {
-				return r.contact.startsWith(filter) || r.inventory.startsWith(filter);
+		? data.deals
+		: data.deals.filter((r) => {
+				return (
+					r.contact.startsWith(filter) ||
+					r.inventory.startsWith(filter) ||
+					r.salesmen.some((s) => s.toLowerCase().includes(filter))
+				);
 			}),
 );
 
-$effect(() => {
+const sort = (col: OrderBy) => {
+	const dir =
+		orderBy.col === col ? (orderBy.dir === "asc" ? "desc" : "asc") : "asc";
+	const flipOrderBy = dir === "desc";
+	console.log(col, flipOrderBy, orderBy);
 	orderedAccounts = filteredAccounts.sort((a, b) => {
-		if (!orderBy) {
+		if (!col) {
 			return (
 				a.contact.localeCompare(b.contact) ||
 				a.inventory.localeCompare(b.inventory)
 			);
 		}
-		return orderBy === "pmt"
-			? b.pmt - a.pmt
-			: orderBy === "inventory"
-				? a.inventory.localeCompare(b.inventory)
-				: a.contact.localeCompare(b.contact);
-	});
-});
+		if (col === "pmt") {
+			return flipOrderBy ? b.pmt - a.pmt : a.pmt - b.pmt;
+		}
 
-const changeOrder = (order: OrderBy) => {
-	if (orderBy === order) return;
-	orderBy = order;
+		if (col === "inventory") {
+			return flipOrderBy
+				? a.inventory.localeCompare(b.inventory)
+				: b.inventory.localeCompare(a.inventory);
+		}
+
+		if (col === "date") {
+			return flipOrderBy
+				? new Date(a.date) - new Date(b.date)
+				: new Date(b.date) - new Date(a.date);
+		}
+
+		if (col === "salesman") {
+			const aS = a.salesmen[0];
+			const bS = b.salesmen[0];
+			return flipOrderBy ? aS?.localeCompare(bS) : bS.localeCompare(aS);
+		}
+		return flipOrderBy
+			? a.contact.localeCompare(b.contact)
+			: b.contact.localeCompare(a.contact);
+	});
+
+	if (orderBy.col === col) {
+		orderBy.dir = dir;
+	} else {
+		orderBy.col = col;
+		orderBy.dir = dir;
+	}
 };
+
+const navPage = (t: "dec" | "inc") => {
+	const newUrl = new URL($page.url);
+	const workingSearch = newUrl.searchParams;
+	const searchPage = workingSearch.get("page");
+	const currPage = Number.isNaN(Number(searchPage)) ? 0 : Number(searchPage);
+	const nextPage = t === "dec" ? currPage - 1 : currPage + 1;
+	workingSearch.set("page", (nextPage < 0 ? 0 : nextPage).toString());
+
+	goto(`?${workingSearch.toString()}`);
+};
+const navToAll = () => {
+	const newUrl = new URL($page.url);
+	const workingSearch = newUrl.searchParams;
+	if (workingSearch.get("all") === "true") {
+		workingSearch.delete("all");
+	} else {
+		workingSearch.append("all", "true");
+	}
+
+	if (workingSearch.get("all")) {
+		workingSearch.set("page", "0");
+	} else {
+		workingSearch.delete("page");
+	}
+
+	goto(`?${workingSearch.toString()}`);
+};
+
+const handleSalesmanUpdate = (
+	deal: string,
+	salesman: string,
+	salesmen: string[],
+	checked: boolean,
+) => {
+	let existing =
+		deal in salesmanUpdates ? salesmanUpdates[deal].slice() : salesmen;
+	if (!checked) {
+		existing = existing.filter((e) => e !== salesman);
+	} else {
+		existing.push(salesman);
+	}
+
+	salesmanUpdates[deal] = existing.filter((i) => typeof i !== "undefined");
+};
+
+onMount(() => {
+	sort(null);
+});
 </script>
 
 <div class="flex flex-col flex-wrap space-y-4"></div>
@@ -82,6 +161,34 @@ const changeOrder = (order: OrderBy) => {
   <span class=""> Filter </span>
   <input bind:value={filter} class="flex-1" />
 </label>
+
+<form
+  action="?/updateSalesmen"
+  method="post"
+  hidden
+  use:enhance={() => {
+    return async ({ update }) => {
+      update({ reset: false });
+      salesmanUpdates = {};
+    };
+  }}
+>
+  <input name="deals" value={Object.keys(salesmanUpdates).join(",")} />
+  {#each Object.entries(salesmanUpdates) as [k, v]}
+    <select name={k} multiple value={v} hidden>
+      {#each $allSalesmen as salesman}
+        <option value={salesman.contact.id}>{salesman.contact.id}</option>
+      {/each}
+    </select>
+  {/each}
+  <button
+    bind:this={salesmenUpdateButton}
+    type="submit"
+    class="btn btn-lg preset-outlined-tertiary-200-800 w-1/4"
+  >
+    Update salesmen
+  </button>
+</form>
 
 <form
   action="?/printBilling"
@@ -103,12 +210,34 @@ const changeOrder = (order: OrderBy) => {
   <div class="flex gap-x-2">
     <button
       type="button"
-      onclick={() => selectAll("billing-table")}
-      class="btn-lg preset-outlined-tertiary-200-800 w-1/4">Select All</button
+      onclick={() => selectAll("billing-table", { exclude: ["salesman"] })}
+      class="btn btn-lg preset-outlined-tertiary-200-800 w-1/4"
+      >Select All</button
     >
-    <button class="btn-lg preset-filled-primary-200-800 flex-1" type="submit"
-      >Print Billing</button
+    <button
+      class="btn btn-lg preset-filled-primary-200-800 flex-1"
+      type="submit">Print Billing</button
     >
+    <button
+      type="button"
+      class="btn btn-lg preset-tonal-tertiary min-w-20"
+      onclick={() => {
+        navToAll();
+      }}
+    >
+      Get All
+    </button>
+    {#if showSalesmenUpdateButton}
+      <button
+        type="button"
+        class="btn btn-lg preset-outlined-tertiary-200-800 w-1/4"
+        onclick={() => {
+          salesmenUpdateButton?.click();
+        }}
+      >
+        Update salesmen
+      </button>
+    {/if}
   </div>
   <table class="table" id="billing-table">
     <thead>
@@ -117,7 +246,7 @@ const changeOrder = (order: OrderBy) => {
           <button
             type="button"
             onclick={() => {
-              changeOrder(null);
+              sort(null);
             }}
           >
             Include
@@ -127,7 +256,17 @@ const changeOrder = (order: OrderBy) => {
           <button
             type="button"
             onclick={() => {
-              changeOrder("account");
+              sort("date");
+            }}
+          >
+            Date
+          </button>
+        </th>
+        <th>
+          <button
+            type="button"
+            onclick={() => {
+              sort("account");
             }}
           >
             Contact
@@ -137,7 +276,7 @@ const changeOrder = (order: OrderBy) => {
           <button
             type="button"
             onclick={() => {
-              changeOrder("inventory");
+              sort("inventory");
             }}
           >
             Vehicle
@@ -147,7 +286,17 @@ const changeOrder = (order: OrderBy) => {
           <button
             type="button"
             onclick={() => {
-              changeOrder("pmt");
+              sort("salesman");
+            }}
+          >
+            Salesman
+          </button>
+        </th>
+        <th>
+          <button
+            type="button"
+            onclick={() => {
+              sort("pmt");
             }}
           >
             Pmt
@@ -156,7 +305,7 @@ const changeOrder = (order: OrderBy) => {
       </tr>
     </thead>
     <tbody>
-      {#each orderedAccounts as opt}
+      {#each hasAll ? data.deals : orderedAccounts as opt}
         <tr>
           <td class="uppercase">
             <input
@@ -178,6 +327,9 @@ const changeOrder = (order: OrderBy) => {
             />
           </td>
           <td class="uppercase">
+            {formatDate(opt.date, "MM-dd-yy")}
+          </td>
+          <td class="uppercase">
             <label for={opt.id}>
               {opt.contact}
             </label>
@@ -186,10 +338,60 @@ const changeOrder = (order: OrderBy) => {
             {opt.inventory}
           </td>
           <td>
+            <ul>
+              {#each $allSalesmen as salesman}
+                <ul>
+                  <label>
+                    <input
+                      name={"salesman"}
+                      value={salesman.id}
+                      type="checkbox"
+                      checked={opt.salesmen.includes(salesman.contact.id)}
+                      onchange={(e) => {
+                        const { checked } = e.target || { checked: false };
+                        handleSalesmanUpdate(
+                          opt.id,
+                          salesman.contact.id,
+                          opt.salesmen,
+                          checked,
+                        );
+                      }}
+                    />
+                    {salesman.name}
+                  </label>
+                </ul>
+              {/each}
+            </ul>
+          </td>
+          <td>
             {opt.pmt}
           </td>
         </tr>
       {/each}
     </tbody>
   </table>
+  {#if hasAll}
+    <div class="flex">
+      {#if pageNum && pageNum !== "0"}
+        <button
+          type="button"
+          class="btn preset-tonal-secondary flex-1"
+          onclick={() => {
+            navPage("dec");
+          }}
+        >
+          Prev Page
+        </button>
+      {/if}
+      <button
+        type="button"
+        class="btn preset-tonal-tertiary flex-1"
+        onclick={() => {
+          navPage("inc");
+        }}
+      >
+        Next Page
+      </button>
+    </div>
+  {/if}
 </form>
