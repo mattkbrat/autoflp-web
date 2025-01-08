@@ -6,14 +6,30 @@ export const getElement = <T>(elementId: string) =>
 export const el = <T extends HTMLElement>(args: TemplateStringsArray) =>
 	getElement<T>(args.toString());
 
-export const selectAll = (inputGroup: string) => {
+export const selectAll = (
+	inputGroup: string,
+	p?: {
+		exclude?: string[];
+		include?: string[];
+	},
+) => {
 	const form = document.getElementById(inputGroup);
 	if (!form) {
 		console.log("no form");
 		return;
 	}
 	const checkboxes = Array.from(form.getElementsByTagName("input")).filter(
-		(i) => i.type === "checkbox",
+		(i) => {
+			if (i.type !== "checkbox") return false;
+			if (!p) return true;
+			if (p.exclude) {
+				return !p.exclude.includes(i.name);
+			}
+			if (p.include) {
+				return p.include.includes(i.name);
+			}
+			return true;
+		},
 	);
 	console.log(checkboxes);
 	const someUnchecked = checkboxes.some((c) => !c.checked);
