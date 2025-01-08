@@ -84,7 +84,7 @@ onMount(() => {
   title={"Admin"}
   tabs={salesmen.map((salesman) => {
     return {
-      id: `#${encodeURIComponent(salesman)}`,
+      id: encodeURIComponent(salesman),
       text: salesman,
     };
   })}
