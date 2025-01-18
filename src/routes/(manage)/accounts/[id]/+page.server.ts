@@ -70,7 +70,9 @@ export const actions = {
 			currentStanding: null,
 		};
 
-		const upsertedAccount = await upsertAccount(accountObject);
+		const upsertedAccount = await upsertAccount(accountObject).catch(
+			(e) => new Error(e.message),
+		);
 
 		if (upsertedAccount instanceof Error) {
 			return fail(400, {
