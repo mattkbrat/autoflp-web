@@ -6,6 +6,7 @@ export function fullNameFromPerson({
 	titleCase = true,
 	withCell = false,
 }: FullNameParams) {
+	if (!person) return "";
 	const {
 		nameSuffix: suffix,
 		lastName,
