@@ -78,9 +78,24 @@ $effect(() => {
     <div class={`flex flex-row flex-wrap gap-4`}>
       <div class={`flex flex-row flex-wrap gap-4 flex-1`}>
         {#each fieldRow as key}
+          {@const dbKey = typeof key === "string" ? key : key.key}
+          {@const required =
+            dbKey === "address_1" ||
+            dbKey === "phonePrimary" ||
+            dbKey === "lastName" ||
+            dbKey === "firstName" ||
+            dbKey === "licenseNumber" ||
+            dbKey === "city" ||
+            dbKey === "stateProvince" ||
+            dbKey === "zipPostal"}
           <label class="flex-1 min-w-max uppercase">
             {#if typeof key !== "string"}
-              {key.label || key.key}
+              <span>
+                {key.label || key.key}
+                {#if required}
+                  <span class="text-red-200"> * </span>
+                {/if}
+              </span>
               <input
                 value={selected[key.key] || ""}
                 onchange={(e) => {
@@ -90,6 +105,7 @@ $effect(() => {
                 name={key.key}
                 type={key.type}
                 step={key.type === "number" ? 10 : undefined}
+                {required}
                 class="uppercase input"
               />
             {:else}
