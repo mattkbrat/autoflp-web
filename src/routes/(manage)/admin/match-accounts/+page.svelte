@@ -1,6 +1,7 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import { fullNameFromPerson } from "$lib/format/fullNameFromPerson";
+import { toast } from "$lib/stores";
 
 const { data, form } = $props();
 
@@ -43,7 +44,13 @@ const updateMergeList = ({ contact, id }: MergeAccount, selected: boolean) => {
 	changes.merge.ids = newAccounts;
 };
 $effect(() => {
-	if (!form || !form.success || form.timestamp === lastSubmitted) {
+	if (!form || form.timestamp === lastSubmitted) return;
+	if (!form.success) {
+		toast({
+			title: "Failed to merge accounts",
+			status: "error",
+			description: form?.message,
+		});
 		return;
 	}
 

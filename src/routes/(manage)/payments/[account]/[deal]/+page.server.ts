@@ -39,8 +39,14 @@ export const actions = {
 		const amount = data.get("pmt") as string;
 		const date = data.get("date") as string;
 		const payoff = Number(data.get("payoff"));
-		if (!amount || !date) {
+		if (!date) {
 			return fail(400, { message: "must provide amount and date" });
+		}
+
+		if (!amount || Number.isNaN(Number(amount)) || Number(amount) <= 0) {
+			return fail(400, {
+				message: "must provide a numerical amount greater than 0",
+			});
 		}
 		const isPayoff =
 			payoff <= Number(amount) || Number(balance) - Number(amount) <= 1;
@@ -61,7 +67,7 @@ export const actions = {
 		}
 		const { dealId: _, ...inserted } = payment;
 
-		return { inserted };
+		return { inserted, success: true, action: "Recorded payment" };
 	},
 
 	delete: async ({ request }) => {
@@ -77,7 +83,7 @@ export const actions = {
 
 		await deletePayment(payments as string[]);
 
-		return {};
+		return { success: true, action: "deleted" };
 	},
 
 	toggleState: async ({ request }) => {
@@ -87,9 +93,24 @@ export const actions = {
 		const state = Number(data.get("state") as string);
 		if (state !== 0 && state !== 1)
 			return fail(400, { state, message: "state must be 1 or 0" });
-		return updatePartialDeal(dealId, { state: state === 0 ? 1 : 0 }).then(
-			(deal) => deal?.state,
-		);
+
+		const newState = state === 0 ? 1 : 0;
+		const updated = await updatePartialDeal(dealId, { state: newState })
+			.then((deal) => deal?.state)
+			.catch((e) => {
+				return e.message;
+			});
+
+		if (typeof updated !== "string") {
+			return {
+				success: true,
+				action: newState === 0 ? "Closed deal" : "Opened deal",
+			};
+		}
+		return {
+			success: false,
+			message: updated,
+		};
 	},
 
 	getBill: async ({ request }) => {
@@ -98,6 +119,6 @@ export const actions = {
 
 		const bill = await generateMergedBilling("desc", undefined, [dealId]);
 
-		return { bill, generated: new Date() };
+		return { bill, generated: new Date(), success: true, action: "get-bill" };
 	},
 } satisfies Actions;

@@ -3,14 +3,28 @@ import { enhance } from "$app/forms";
 import { goto } from "$app/navigation";
 import { fieldMap } from "$lib/accounts";
 import { fullNameFromPerson } from "$lib/format/fullNameFromPerson.js";
-import { allAccounts, handleSelect, title } from "$lib/stores";
+import { allAccounts, handleSelect, title, toast } from "$lib/stores";
 import type { SelectedAccount } from "$lib/types";
 
 let { data, form } = $props();
 let selected: SelectedAccount = $state({});
 
 $effect(() => {
-	if (!form?.data?.account) return;
+	if (!form) return;
+	if (!form.data?.account) {
+		toast({
+			title: "Failed to record account",
+			status: "error",
+			description: form?.message || "",
+		});
+		return;
+	}
+
+	toast({
+		title: "Recorded account",
+		status: "success",
+		json: JSON.stringify(form.data, null, 2),
+	});
 	allAccounts.update((curr) => {
 		const index = curr.findIndex((a) => a.id === form.data.account.id);
 		const {

@@ -9,7 +9,13 @@ import { formatDate, formatInventory, formatSalesmen } from "$lib/format";
 import { handleInvNav } from "$lib/navState";
 import type { Inventory, InventoryField } from "$lib/server/database/inventory";
 import type { ParsedNHTA } from "$lib/server/inventory";
-import { allInventory, handleSelect, selectedStates, title } from "$lib/stores";
+import {
+	allInventory,
+	handleSelect,
+	selectedStates,
+	title,
+	toast,
+} from "$lib/stores";
 import type { FormFields } from "$lib/types/forms";
 import { onMount } from "svelte";
 
@@ -21,7 +27,7 @@ let printedForms = $state(0);
 
 let lastUpdated = $state("");
 
-let { data, form } = $props();
+const { data, form } = $props();
 
 let selected = $state({} as Partial<Inventory>);
 let hasCleared = $state(false);
@@ -115,24 +121,6 @@ const handleSearched = async (result: unknown) => {
 	}, 100);
 };
 
-// const syncSelect = (vin: string) => {
-// 	const selectEl = el<HTMLSelectElement>`inventory-select`;
-// 	if (!selectEl) return;
-// 	const currentIndex = selectEl.selectedIndex;
-// 	if (vin === "new") {
-// 		if (currentIndex !== 0) {
-// 			selectEl.selectedIndex = 0;
-// 		}
-// 		return;
-// 	}
-// 	const items = Array.from(selectEl.children) as HTMLOptionElement[];
-// 	const indexOf = items.findIndex((el) => el.value === vin);
-// 	if (indexOf === -1 || indexOf === currentIndex) {
-// 		return;
-// 	}
-// 	selectEl.selectedIndex = indexOf;
-// };
-
 $effect(() => {
 	if (!selected.vin || selected.vin.length < 17 || selected.make) {
 		return;
@@ -206,8 +194,21 @@ const toggleState = (oldState: number) => {
 };
 
 $effect(() => {
-	if (!form?.data || form.data.id === lastUpdated) return;
+	if (!form || form.data?.id === lastUpdated) return;
+	if (!form?.data) {
+		toast({
+			title: "Inventory update failed",
+			description: form.message,
+		});
+		return;
+	}
 	const { vin, id } = form.data;
+
+	toast({
+		title: "Recorded inventory",
+		json: JSON.stringify(form.data, null, 2),
+		status: "success",
+	});
 	if (id) {
 		selected.id = id;
 	}
