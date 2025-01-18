@@ -9,10 +9,11 @@ import {
 } from "$lib/format";
 import { browser } from "$app/environment";
 import { differenceInDays, formatDate } from "date-fns";
-import { title } from "$lib/stores/title.js";
+import { title, toast } from "$lib/stores";
 import { getZip } from "$lib";
+import type { ActionData, PageData } from "./$types";
 
-const { data, form } = $props();
+const { data, form }: { data: PageData; form: ActionData } = $props();
 
 const selected = $derived(data.deal);
 let printedForms = $state(0);
@@ -33,6 +34,28 @@ $effect(() => {
 		if (!el) return;
 		today = now.toISOString().split("T")[0];
 		el.value = today;
+	});
+});
+
+$effect(() => {
+	if (!form) return;
+
+	if (form.success) {
+		toast({
+			title: form.action || "success",
+			description: form.message,
+			json:
+				form.action === "get-bill" ? undefined : JSON.stringify(form, null, 2),
+			status: "success",
+		});
+		return;
+	}
+
+	toast({
+		title: "Failed to record payment",
+		description: form.message,
+		json: JSON.stringify(form),
+		status: "error",
 	});
 });
 
@@ -254,7 +277,7 @@ $effect(() => {
             class="contents"
             action="?/record"
             use:enhance={() => {
-              return async ({ update }) => {
+              return async ({ update, result }) => {
                 await update({ reset: false });
               };
             }}

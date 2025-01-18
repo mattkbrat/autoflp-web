@@ -2,4 +2,5 @@ export * from "./accounts";
 export * from "./deals";
 export * from "./inventory";
 export * from "./selected";
-export * from "./title";
+export * from "./document";
+export * from "./toast";

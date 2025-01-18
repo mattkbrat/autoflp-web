@@ -10,7 +10,7 @@ import {
 	fullNameFromPerson,
 } from "$lib/format";
 import type { ParsedNHTA } from "$lib/server/inventory";
-import { allAccounts, allCreditors, allInventory } from "$lib/stores";
+import { allAccounts, allCreditors, allInventory, toast } from "$lib/stores";
 import {
 	accountID,
 	creditorID,
@@ -21,7 +21,6 @@ import {
 import { getZip } from "$lib/index";
 import InventoryCombobox from "$lib/components/InventoryCombobox.svelte";
 import AccCombobox from "$lib/components/AccountCombobox.svelte";
-import {} from "os";
 
 const deal = $state(defaultDeal);
 const { form } = $props();
@@ -151,7 +150,23 @@ const handleSearched = async (result: unknown) => {
 };
 
 $effect(() => {
-	if (!form?.data) return;
+	if (!form) return;
+
+	if (!form.data) {
+		toast({
+			title: "Failed to record deal",
+			description: form.message,
+			json: JSON.stringify(form, null, 2),
+		});
+
+		return;
+	}
+
+	toast({
+		title: "Recorded deal",
+		description: "",
+		status: "success",
+	});
 	const { id: resultId, forms: dealForms } = form.data;
 	deal.id = typeof resultId === "string" ? resultId : "";
 	handleGetZip(dealForms).then(() => {
@@ -485,7 +500,10 @@ $effect(() => {
   {/if}
 {/snippet}
 
-<section id="deal-details" class="flex flex-wrap gap-4">
+<section
+  id="deal-details"
+  class="flex flex-wrap gap-4 bg-surface-800 outline p-[1px]"
+>
   <h2 class="underline text-lg col-span-full uppercase w-full">
     {finance.type} Deal
   </h2>

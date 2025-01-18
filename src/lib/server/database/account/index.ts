@@ -22,6 +22,7 @@ export const contactSelect = {
 		id: true,
 		lastName: true,
 		firstName: true,
+		middleInitial: true,
 		phonePrimary: true,
 	},
 };
