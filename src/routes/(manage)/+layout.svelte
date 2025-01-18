@@ -1,5 +1,6 @@
 <script lang="ts">
 import Head from "$lib/components/Head.svelte";
+import Toast from "$lib/components/Toast.svelte";
 import { allAccounts, allInventory, deals } from "$lib/stores";
 import { onMount } from "svelte";
 
@@ -12,10 +13,10 @@ onMount(() => {
 });
 </script>
 
+<Toast />
 <div class="flex flex-col gap-4 flex-1">
   {@render children()}
 </div>
-
 <section class="hidden print:block mt-auto">
   <Head />
   <div class="grid grid-cols-3 border-t-2 border-black w-full mt-auto">
