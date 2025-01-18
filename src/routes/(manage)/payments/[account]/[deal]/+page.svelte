@@ -38,12 +38,11 @@ $effect(() => {
 });
 
 $effect(() => {
-	console.log(form);
 	if (!form) return;
 
 	if (form.success) {
 		toast({
-			title: form.action,
+			title: form.action || "success",
 			description: form.message,
 			json:
 				form.action === "get-bill" ? undefined : JSON.stringify(form, null, 2),
@@ -52,7 +51,6 @@ $effect(() => {
 		return;
 	}
 
-	console.log(form.message);
 	toast({
 		title: "Failed to record payment",
 		description: form.message,
