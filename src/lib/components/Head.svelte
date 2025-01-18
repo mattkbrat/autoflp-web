@@ -1,6 +1,6 @@
 <script lang="ts">
 import { dev } from "$app/environment";
-import { title } from "$lib/stores/title";
+import { title } from "$lib/stores";
 
 const text = $derived(
 	[$title, "AUTOFLP", dev ? "DEV" : ""].filter(Boolean).join(" - "),

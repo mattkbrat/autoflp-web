@@ -9,7 +9,7 @@ import {
 } from "$lib/format";
 import { browser } from "$app/environment";
 import { differenceInDays, formatDate } from "date-fns";
-import { title } from "$lib/stores/title.js";
+import { title } from "$lib/stores";
 import { getZip } from "$lib";
 
 const { data, form } = $props();
