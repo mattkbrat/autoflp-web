@@ -319,7 +319,7 @@ $effect(() => {
         bind:value={deal.priceSelling}
         name={"priceSelling"}
         type="number"
-        step={10}
+        step={1}
         min={0}
         class="input"
       />
@@ -342,7 +342,7 @@ $effect(() => {
         max={deal.priceDown}
         name={"downOwed"}
         type="number"
-        step={10}
+        step={1}
         min={0}
         class="input"
       />
@@ -353,7 +353,7 @@ $effect(() => {
         bind:value={deal.priceTrade}
         name={"priceTrade"}
         type="number"
-        step={10}
+        step={1}
         min={0}
         class="input"
       />
@@ -396,7 +396,7 @@ $effect(() => {
           bind:value={trade.value}
           class="input"
           type="number"
-          step={10}
+          step={1}
           min={0}
         />
       </label>
