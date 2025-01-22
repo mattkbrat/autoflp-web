@@ -80,7 +80,7 @@ export const actions = {
 				deal: detailed,
 				form: form.key,
 				finance: deal.finance,
-			}).then((form) => form?.output);
+			}).then((form) => (form instanceof Uint8Array ? form : form?.output));
 
 			if (!built) continue;
 			builtForms.push(built);

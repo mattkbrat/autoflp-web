@@ -37,6 +37,7 @@ export const formatCurrency = (
 };
 
 export const dateFormatStandard = "MM/dd/yyyy";
+export const dateFormatStandardShortYear = "MM/dd/yy";
 
 export const formatDate = (date: string | Date, formatStr = "E, LLL d, y") => {
 	if (!date) return;
