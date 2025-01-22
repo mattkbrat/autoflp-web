@@ -1,4 +1,3 @@
-
 import { writable } from "svelte/store";
 export type ToastProps = {
 	id: number;

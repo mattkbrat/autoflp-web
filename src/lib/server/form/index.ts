@@ -1,4 +1,5 @@
 import type { StringObj } from "$lib/types";
+import type { Form } from "$lib/types/forms";
 import os from "node:os";
 export const homeDir = os.homedir();
 
@@ -14,7 +15,7 @@ export type CheckDocsDirParams = {
 };
 
 export type GenerateFormParams = {
-	form: string;
+	form: Form;
 	output?: string;
 	data: string[] | Partial<StringObj>;
 	id?: string;
