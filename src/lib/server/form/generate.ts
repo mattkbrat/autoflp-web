@@ -6,6 +6,7 @@ import { PDFDocument } from "pdf-lib";
 import { checkDocsDir } from "./checkDocsDir";
 import { randomUUID } from "node:crypto";
 import { dev } from "$app/environment";
+import { formTitleMap } from "$lib/types/forms";
 
 const getOutputName = ({
 	output,
@@ -14,9 +15,12 @@ const getOutputName = ({
 }: Pick<GenerateFormParams, "output" | "form" | "id">) => {
 	const withoutFilename = form.split(".pdf")[0];
 	if (form !== "billing") {
+		const formTitle = formTitleMap[form].replaceAll(" ", "-");
 		return join(
 			output || ".",
-			`${withoutFilename}_${(id || randomUUID()).split("-").slice(-1)}.pdf`,
+			`${formTitle}_${withoutFilename}_${(id || randomUUID())
+				.split("-")
+				.slice(-1)}.pdf`,
 		);
 	}
 
