@@ -47,3 +47,12 @@ export {
 	get as getBillingData,
 	type Template as BillingTemplate,
 } from "./getBillingTemplate";
+
+export {
+	get as getDR2444_091523,
+	type Template as DR2444_091523Template,
+} from "./getDR2444_091523";
+export {
+	get as getDR2421_091523,
+	type Template as DR2421_091523Template,
+} from "./getDR2421_091523";

@@ -14,6 +14,8 @@ const formOptions = [
 	"DR0024_2021", // Sales Tax Receipt
 	"Security",
 	"Sales Tax Statement",
+	"DR2421_091523", // One and the Same
+	"DR2444_091523", // Statement of Fact
 ] as const;
 
 export type Form = (typeof formOptions)[number];
@@ -66,7 +68,7 @@ export const forms: { key: Form; title: string; type?: FormType[] }[] = [
 	{
 		key: "One And The Same",
 		title: "One and the Same",
-		type: ["deal"],
+		type: [], // DR2421 - Deprecated as of 09-15-2023
 	},
 	{
 		key: "Receipt",
@@ -87,7 +89,25 @@ export const forms: { key: Form; title: string; type?: FormType[] }[] = [
 		title: "Sales Tax Statement",
 		type: ["deal"],
 	},
+	{
+		key: "DR2421_091523",
+		title: "Statement of One and the Same",
+		type: ["deal"],
+	},
+	{
+		key: "DR2444_091523",
+		title: "Statement of Fact",
+		type: ["deal"],
+	},
 ];
+
+export const formTitleMap = forms.reduce(
+	(acc, curr) => {
+		acc[curr.key] = curr.title;
+		return acc;
+	},
+	{} as { [key in Form]: string },
+);
 
 export const dealForms = forms.filter((f) => f.type?.includes("deal"));
 export const inventoryForms = forms.filter((f) =>

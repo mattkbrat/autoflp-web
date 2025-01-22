@@ -1,6 +1,6 @@
 import { dev } from "$app/environment";
 import type { FinanceCalcResult } from "$lib/finance/calc";
-import { formatDate, fullNameFromPerson } from "$lib/format";
+import { fullNameFromPerson } from "$lib/format";
 import type { DetailedDeal } from "$lib/server/database/deal";
 import type { Form } from "$lib/types/forms";
 import type { Inventory } from "@prisma/client";
@@ -16,6 +16,9 @@ import { fillSalesTax0024Data } from "./SALES_TAX_RECEIPT";
 import { fillSalesTaxStatement } from "./SALES_TAX_STATEMENT";
 import { fillSecurityData } from "./SECURITY";
 import { fillStatementOfFact } from "./STATEMENT_OF_FACT";
+import { formatDate } from "date-fns";
+import { fillStatementOfFact091523 } from "./DR2444_091523";
+import { fillOneAndTheSameData091523 } from "./DR2421_091523";
 
 type FormBuilderBaseParams = {
 	form: Form;
@@ -88,6 +91,12 @@ export const builder = async (p: DealFormParams | InventoryFormParams) => {
 				break;
 			case "Security":
 				obj = fillSecurityData(p) || [];
+				break;
+			case "DR2444_091523":
+				obj = fillStatementOfFact091523(p.deal) || [];
+				break;
+			case "DR2421_091523":
+				obj = fillOneAndTheSameData091523(p.deal) || [];
 				break;
 			default:
 				obj = [];
