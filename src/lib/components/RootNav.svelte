@@ -31,7 +31,7 @@ $: routes = [
 </script>
 
 <ul
-  class="flex flex-row flex-wrap gap-4 lg:flex-nowrap lg:overflow-auto lg:flex-col lg:my-auto lg:flex-1 lg:border-r-2 h-full"
+  class="flex flex-row flex-wrap lg:flex-nowrap lg:overflow-auto lg:flex-col lg:my-auto lg:flex-1 lg:border-r-2 h-full"
 >
   {#each routes as route}
     {@const isSelected = $page.url.pathname.includes(route.route)}
