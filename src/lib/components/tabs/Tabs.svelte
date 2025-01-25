@@ -1,18 +1,18 @@
 <script lang="ts">
 import "./tabs.css";
 import { goto } from "$app/navigation";
-import { page } from "$app/stores";
+import { page } from "$app/state";
 import type { OnClick, TabComponentProps } from "./tabs.ts";
 
 const { title, tabs, children, ...r }: TabComponentProps = $props();
 
 const url = $derived(
-	$page.url.hash ? $page.url.href.split($page.url.hash)[0] : $page.url.href,
+	page.url.hash ? page.url.href.split(page.url.hash)[0] : page.url.href,
 );
 const urlSplit = $derived(url.split("/"));
 const thisTab = $derived(
 	"useHash" in r && r.useHash
-		? $page.url.hash.slice(1)
+		? page.url.hash.slice(1)
 		: tabs.findLast((t) => urlSplit.includes(typeof t === "string" ? t : t.id)),
 );
 
@@ -30,7 +30,7 @@ const index = $derived(
 			),
 );
 
-const query = $page.url.search;
+const query = page.url.search;
 const handleTabChange = ({
 	tab,
 	onClick,
@@ -52,10 +52,11 @@ const handleTabChange = ({
 const tabsListId = typeof title === "string" ? title : title.id;
 </script>
 
-<!-- <pre> -->
-<!--   {JSON.stringify({ thisTab, index, tabs })} -->
-<!-- </pre> -->
-<section class="tabs children">
+<section
+  class="tabs children"
+  class:!outline-none={!children}
+  class:!py-0={!children}
+>
   <h3 class="sr-only" id={tabsListId}>
     {typeof title === "string" ? title : title.text}
   </h3>
@@ -100,6 +101,6 @@ const tabsListId = typeof title === "string" ? title : title.id;
     aria-labelledby={`tab-${index}`}
     class="children"
   >
-    {@render children()}
+    {@render children?.()}
   </div>
 </section>
