@@ -6,7 +6,7 @@ type ZipFilenameParams =
 	| {
 			type: "deal";
 			person: Partial<FullNameParams["person"]>;
-			deal: DealFields;
+			deal: { date: Date; vin: string };
 	  }
 	| {
 			type: "inventory";

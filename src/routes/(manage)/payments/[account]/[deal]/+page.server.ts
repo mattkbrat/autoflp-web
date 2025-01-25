@@ -8,6 +8,9 @@ import type { PageServerLoad } from "./$types";
 import { getPaymentSchedule } from "$lib/finance/payment-history";
 import { addMonths } from "date-fns";
 import { generateMergedBilling } from "$lib/server/deal";
+import { dealForms } from "$lib/types/forms";
+import { builder } from "$lib/server/form/builder";
+import { calcFinance } from "$lib/finance/calc";
 export const load: PageServerLoad = async ({ params }) => {
 	const payments = await getPayments(params.deal);
 	const deal = await getDetailedDeal({ id: params.deal });
@@ -26,7 +29,9 @@ export const load: PageServerLoad = async ({ params }) => {
 		: null;
 	return {
 		payments,
-		schedule,
+		schedule: schedule
+			? Object.assign(schedule, { schedule: schedule?.schedule.toReversed() })
+			: null,
 		deal,
 	};
 };
@@ -120,5 +125,64 @@ export const actions = {
 		const bill = await generateMergedBilling("desc", undefined, [dealId]);
 
 		return { bill, generated: new Date(), success: true, action: "get-bill" };
+	},
+	getForms: async ({ request }) => {
+		const data = await request.formData();
+		const dealId = data.get("deal") as string;
+		const detailed = await getDetailedDeal({ id: dealId });
+
+		if (!detailed) {
+			console.error("Could not feetch detiled deal");
+			return fail(500, { message: "something went wrong" });
+		}
+
+		const builtForms: string[] = [];
+
+		const charges = detailed.dealCharges.reduce(
+			(acc, dc) => acc + Number(dc.charge?.amount || 0),
+			0,
+		);
+		const totalTrade = detailed.dealTrades.reduce(
+			(acc, i) => acc + Number(i.value),
+			0,
+		);
+
+		for await (const form of dealForms) {
+			const built = await builder({
+				deal: detailed,
+				form: form.key,
+				finance: calcFinance({
+					dealType: Number(detailed.term) === 0 ? "cash" : "credit",
+					id: detailed.id,
+					vin: detailed.inventory.vin,
+					account: detailed.account.id,
+					taxCity: Number(detailed.taxCity),
+					taxCounty: Number(detailed.taxCounty),
+					taxRtd: Number(detailed.taxRtd),
+					taxState: Number(detailed.taxState),
+					priceSelling: Number(detailed.cash),
+					creditor: detailed.creditorId || "",
+					trades: detailed.dealTrades.map((i) => i.vin),
+					priceDown: Number(detailed.down),
+					downOwed: Number(detailed.down_owed),
+					priceTrade: totalTrade,
+					filingFees: charges,
+					apr: Number(detailed.apr),
+					term: Number(detailed.term),
+					date: new Date(detailed.date),
+					cosigner: detailed.cosigner || "",
+					finance: null,
+				}),
+			}).then((form) => (form instanceof Uint8Array ? form : form?.output));
+
+			if (!built) continue;
+			builtForms.push(built);
+		}
+
+		return {
+			forms: builtForms || [],
+			generated: new Date(),
+			success: true,
+		};
 	},
 } satisfies Actions;

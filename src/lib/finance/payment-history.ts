@@ -189,3 +189,5 @@ export const getPaymentSchedule = (
 				: nextDueDate,
 	};
 };
+
+export type PaymentsSchedule = ReturnType<typeof getPaymentSchedule>;

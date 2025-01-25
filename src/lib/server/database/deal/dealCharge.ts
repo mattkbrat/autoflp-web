@@ -7,6 +7,13 @@ export const getDefaultCharges = async (creditor: string) => {
 		where: {
 			creditorId: creditor,
 		},
+		include: {
+			charge: {
+				select: {
+					id: true,
+				},
+			},
+		},
 	});
 };
 
@@ -15,12 +22,16 @@ export const applyDefaultCharges = async (deal: Deal) => {
 		console.warn("Can not apply charges without a creditor", deal.id);
 		return;
 	}
-	const charges = await getDefaultCharges(deal.creditorId);
+	const creditor = await prisma.creditor.findUnique({
+		where: { id: deal.creditorId },
+	});
+	if (!creditor) throw new Error("Unkown crditor");
+	const charges = await getDefaultCharges(creditor.businessName);
 
 	const dealCharges: Omit<DealCharge, "note">[] = charges.map((charge) => {
 		return {
 			id: randomUUID(),
-			chargeId: charge.id,
+			chargeId: charge.charge.id,
 			dealId: deal.id,
 			date: deal.date,
 		};

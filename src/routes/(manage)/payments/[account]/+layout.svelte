@@ -11,6 +11,8 @@ $effect(() => {
 });
 </script>
 
-<AccountDealTabs />
+<div>
+  <AccountDealTabs />
 
-{@render children()}
+  {@render children()}
+</div>

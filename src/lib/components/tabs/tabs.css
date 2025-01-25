@@ -19,7 +19,7 @@
   [role="tab"],
   [role="tab"]:focus,
   [role="tab"]:hover {
-    @apply cursor-pointer inline-block relative z-20;
+    @apply cursor-pointer inline-block relative z-10;
     @apply transition-colors;
     @apply font-bold overflow-clip text-left;
   }

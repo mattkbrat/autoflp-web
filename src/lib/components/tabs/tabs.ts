@@ -22,5 +22,5 @@ export type TabProps = {
 	title: Content;
 };
 
-export type TabComponentProps = (TabProps & { children: Snippet }) &
+export type TabComponentProps = (TabProps & { children?: Snippet }) &
 	(WithLinkTabProps | WithButonTabProps);
