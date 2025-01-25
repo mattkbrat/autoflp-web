@@ -26,7 +26,9 @@ export const load: PageServerLoad = async ({ params }) => {
 		: null;
 	return {
 		payments,
-		schedule,
+		schedule: schedule
+			? Object.assign(schedule, { schedule: schedule?.schedule.toReversed() })
+			: null,
 		deal,
 	};
 };
