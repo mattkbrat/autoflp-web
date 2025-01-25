@@ -10,7 +10,7 @@ export type DealFields = {
 	taxRtd: number;
 	taxState: number;
 	priceSelling: number;
-	creditor: "";
+	creditor: string;
 	trades: string[];
 	priceDown: number;
 	downOwed: number;

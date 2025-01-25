@@ -21,30 +21,42 @@ let printedForms = $state(0);
 $effect(() => {
 	if (!form) return;
 
-	if (form.success) {
+	if (!form.success) {
 		toast({
-			title: form.action || "success",
+			title: "Failed to record payment",
 			description: form.message,
-			json:
-				form.action === "get-bill" ? undefined : JSON.stringify(form, null, 2),
-			status: "success",
+			json: JSON.stringify(form),
+			status: "error",
 		});
 		return;
 	}
 
+	if ("generated" in form) {
+		const ms = form?.generated?.getTime();
+		if (ms === printedForms) return;
+		if (form.generated instanceof Date) {
+			if (!form?.bill?.length) return;
+			getZip([form.bill], { type: "billing" }).then(() => {
+				printedForms = ms;
+			});
+		} else if (form.forms && selected) {
+			getZip(form.forms, {
+				deal: { date: new Date(selected.date), vin: selected.inventory.vin },
+				person: selected?.account.contact,
+				type: "deal",
+			}).then(() => {
+				printedForms = ms;
+			});
+		}
+		toast({ title: "Downloading forms", description: "", status: "info" });
+		return;
+	}
 	toast({
-		title: "Failed to record payment",
+		title: form.action || "success",
 		description: form.message,
-		json: JSON.stringify(form),
-		status: "error",
-	});
-});
-
-$effect(() => {
-	const ms = form?.generated?.getTime();
-	if (!form?.bill?.length || !ms || ms === printedForms) return;
-	getZip([form.bill], { type: "billing" }).then(() => {
-		printedForms = ms;
+		json:
+			form.action === "get-bill" ? undefined : JSON.stringify(form, null, 2),
+		status: "success",
 	});
 });
 

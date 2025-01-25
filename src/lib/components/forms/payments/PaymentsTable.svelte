@@ -155,13 +155,22 @@ $effect(() => {
             Remove Selected
           </button>
         </div>
-        <button
-          type="submit"
-          class="btn flex !h-fit gap-y-1 preset-outlined-tertiary-200-800 col-span-full"
-          formaction="?/getBill"
-        >
-          Get Bill
-        </button>
+        <div class="flex flex-row gap-1 col-span-full">
+          <button
+            type="submit"
+            class="btn flex !h-fit gap-y-1 preset-outlined-tertiary-200-800 flex-1"
+            formaction="?/getBill"
+          >
+            Get Bill
+          </button>
+          <button
+            type="submit"
+            class="btn flex !h-fit gap-y-1 preset-outlined-tertiary-200-800 col-span-full"
+            formaction="?/getForms"
+          >
+            Get Forms
+          </button>
+        </div>
       </form>
     </section>
   </div>
