@@ -60,8 +60,6 @@ const creditor = $derived($allCreditors.find((c) => c.id === $creditorID));
 
 let lastCreditor = $state("");
 let forms: string[] = $state([]);
-let lastInventory = $state("");
-let lastFilled = $state("credit");
 
 $effect(() => {
 	if (!creditor || lastCreditor === creditor.id) {
@@ -76,6 +74,10 @@ $effect(() => {
 const inventory = $derived($allInventory.find((i) => i.vin === $inventoryID));
 const account = $derived($allAccounts.find((a) => a.id === deal.account));
 
+$effect(() => {
+	if (!inventory || deal.vin === inventory.vin) return;
+	updateDealType();
+});
 const handleGetZip = async (forms: string[]) => {
 	if (!forms.length) {
 		console.log("Cannot get 0 forms");
@@ -90,19 +92,8 @@ const handleGetZip = async (forms: string[]) => {
 };
 
 $effect(() => {
-	if (
-		!inventory ||
-		(deal.dealType === lastFilled && lastInventory === inventory.id)
-	) {
-		return;
-	}
-
-	deal.priceDown = Number(inventory.down || 0);
+	if (!inventory) return;
 	deal.vin = inventory.vin;
-	const sellingPrice = deal.term > 0 ? inventory.credit : inventory.cash;
-	deal.priceSelling = Number(sellingPrice || 0);
-	lastFilled = deal.dealType;
-	lastInventory = inventory.id;
 });
 
 $effect(() => {
@@ -174,6 +165,18 @@ $effect(() => {
 		form.data.forms = [];
 	});
 });
+
+function updateDealType(t?: "credit" | "cash") {
+	if (inventory) {
+		deal.priceSelling = Number(
+			t === "cash" ? inventory.cash : inventory.credit,
+		);
+	}
+
+	if (t) {
+		deal.dealType = t;
+	}
+}
 </script>
 
 {#if forms.length > 0}
@@ -192,6 +195,7 @@ $effect(() => {
     </a>
   </div>
 {/if}
+
 <form
   action="?/submit"
   method="post"
@@ -256,12 +260,10 @@ $effect(() => {
       type="button"
       class="btn-md preset-outlined-secondary-200-800 h-full"
       onclick={() => {
-        const newType = deal.dealType === "credit" ? "cash" : "credit";
-
-        deal.dealType = newType;
+        updateDealType(deal.dealType === "cash" ? "credit" : "cash");
       }}
     >
-      {deal.dealType === "cash" ? "Cash" : "Credit"}
+      <span> {deal.dealType === "cash" ? "Cash Deal" : "Credit Deal"}</span>
     </button>
   </fieldset>
   <fieldset id="taxes" class="flex flex-row flex-wrap gap-4">
