@@ -1,5 +1,8 @@
 {
 	"$schema": "https://biomejs.dev/schemas/1.7.3/schema.json",
+	"files": {
+		"include": ["package.json", "src/**"]
+	},
 	"organizeImports": {
 		"enabled": true
 	},
@@ -7,6 +10,15 @@
 		"enabled": true,
 		"rules": {
 			"recommended": true
+		}
+	},
+	"json": {
+		"formatter": {
+			"enabled": true
+		},
+		"parser": {
+			"allowTrailingCommas": false,
+			"allowComments": false
 		}
 	}
 }

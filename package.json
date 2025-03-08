@@ -20,7 +20,8 @@
 		"pull:autosales:dev": "dotenv -e .env.dev -- prisma db pull --schema prisma/autosales/schema.prisma",
 		"generate:client": "prisma generate --schema prisma/client/schema.prisma",
 		"generate:autosales": "prisma generate --schema prisma/autosales/schema.prisma",
-		"migrate:autosales": "dotenv -e .env.test -- prisma migrate dev --schema prisma/autosales/schema.prisma",
+		"migrate:client": "prisma migrate dev --schema prisma/client/schema.prisma --create-only",
+		"migrate:autosales": "prisma migrate dev --schema prisma/autosales/schema.prisma",
 		"generate": "pnpm run \"/generate:/\""
 	},
 	"devDependencies": {
