@@ -21,7 +21,16 @@ export const load: PageServerLoad = async ({ params }) => {
 };
 
 export const actions = {
-	update: async ({ request }) => {
+	update: async ({
+		request,
+	}): Promise<
+		| { status: "error"; title: string; message: string }
+		| {
+				data: { account: Account; contact: Person };
+				method: "insert";
+				handled: number;
+		  }
+	> => {
 		const data = await request.formData();
 
 		const account = data.get("account-id") as string;
@@ -51,11 +60,18 @@ export const actions = {
 			country: "United States",
 		};
 
-		const upsertedPerson = await upsertPerson(personObject);
-		if (upsertedPerson instanceof Error) {
-			return fail(400, {
-				message: `Could not update contact: ${upsertedPerson.message}`,
-			});
+		let upsertedPerson: Person;
+		try {
+			upsertedPerson = await upsertPerson(personObject);
+		} catch (e) {
+			return {
+				status: "error",
+				title: "Failed to update person",
+				message:
+					e instanceof Error
+						? e.message
+						: "failed to update person. Are the fields unique?",
+			};
 		}
 
 		const accountObject: Partial<Account> = {
@@ -69,20 +85,21 @@ export const actions = {
 			dateModified: new Date().toISOString(),
 			currentStanding: null,
 		};
-
-		const upsertedAccount = await upsertAccount(accountObject).catch(
-			(e) => new Error(e.message),
-		);
-
-		if (upsertedAccount instanceof Error) {
-			return fail(400, {
-				message: `Could not update contact: ${upsertedAccount.message}`,
-			});
+		let upsertedAccount: Account;
+		try {
+			upsertedAccount = await upsertAccount(accountObject);
+		} catch (e) {
+			return {
+				status: "error",
+				title: "Failed to update account",
+				message: e instanceof Error ? e.message : "Are the fields unique?",
+			};
 		}
 
 		console.info("upserted", upsertedAccount, upsertedPerson);
 
 		return {
+			handled: new Date().getTime(),
 			data: {
 				account: upsertedAccount,
 				contact: upsertedPerson,

@@ -6,11 +6,25 @@ import { fullNameFromPerson } from "$lib/format/fullNameFromPerson.js";
 import { allAccounts, handleSelect, title, toast } from "$lib/stores";
 import type { SelectedAccount } from "$lib/types";
 
+let formHandled = $state(0);
 let { data, form } = $props();
 let selected: SelectedAccount = $state({});
 
 $effect(() => {
-	if (!form) return;
+	if (
+		!form ||
+		("handled" in form && form.handled && form.handled <= formHandled)
+	)
+		return;
+
+	if ("status" in form && form.status === "error") {
+		toast({
+			title: form.title || "Failed to record account",
+			status: "error",
+			description: form?.message || "",
+		});
+		return;
+	}
 	if (!form.data?.account) {
 		toast({
 			title: "Failed to record account",
@@ -48,7 +62,7 @@ $effect(() => {
 
 		return curr;
 	});
-	form.data = null;
+	formHandled = form.handled;
 });
 
 $effect(() => {
