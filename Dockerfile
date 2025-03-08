@@ -3,7 +3,7 @@ FROM node:23.3-alpine3.19 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-RUN corepack enable
+RUN npm i -g pnpm 
 
 ENV DATABASE_URL="file:/autoflp.sqlite" 
 
@@ -25,8 +25,8 @@ FROM base AS runner
 WORKDIR /app
 
 RUN adduser -D nodeuser && \
-    mkdir -p /app && \
-    chown nodeuser:nodeuser /app
+  mkdir -p /app && \
+  chown nodeuser:nodeuser /app
 
 COPY --from=build --chown=nodeuser:nodeuser /app/build build/
 COPY --from=build --chown=nodeuser:nodeuser /app/node_modules node_modules/
