@@ -1,0 +1,12 @@
+services:
+  autoflp-web:
+    container_name: autoflp-web
+    ports:
+      - "3000:3000"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: $PWD/.env
+    volumes:
+      - "/tmp/autoflp:/tmp/autoflp:rw"
+      - "/home/matt/Documents/autoflp.sqlite:/autoflp.sqlite:rw"
