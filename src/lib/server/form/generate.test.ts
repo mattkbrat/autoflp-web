@@ -5,7 +5,7 @@ import type { GenerateFormParams } from ".";
 describe("generate form test", async () => {
 	it("can generate a form", async () => {
 		const p: GenerateFormParams = {
-			form: "billing",
+			form: "DR2395_03-25-2025",
 			data: [],
 			attachments: [],
 		};

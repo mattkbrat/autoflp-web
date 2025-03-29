@@ -16,6 +16,7 @@ const formOptions = [
 	"Sales Tax Statement",
 	"DR2421_091523", // One and the Same
 	"DR2444_091523", // Statement of Fact
+	"DR2395_03-25-2025", // Application For Title and/or Registration
 ] as const;
 
 export type Form = (typeof formOptions)[number];
@@ -26,6 +27,11 @@ export const forms: { key: Form; title: string; type?: FormType[] }[] = [
 	{
 		key: "DR2395_2022",
 		title: "Application For Title & Joint Tenancy",
+		type: ["deal"],
+	},
+	{
+		key: "DR2395_03-25-2025",
+		title: "Application For Title and-or Registration",
 		type: ["deal"],
 	},
 	{

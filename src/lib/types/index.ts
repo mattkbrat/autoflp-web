@@ -27,3 +27,5 @@ export type MissingVins = ((MissingCom | MissingLocal) & {
 export type SelectedAccount = Partial<
 	Omit<DetailedAccount, "contact"> & DetailedAccount["contact"]
 >;
+
+export type NullableProperties<T> = { [K in keyof T]: T[K] | null };

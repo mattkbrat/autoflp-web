@@ -56,3 +56,8 @@ export {
 	get as getDR2421_091523,
 	type Template as DR2421_091523Template,
 } from "./getDR2421_091523";
+
+export {
+	get as getDR2395_03252025,
+	type Template as DR2395_2025Template,
+} from "./getDR239503252025";
