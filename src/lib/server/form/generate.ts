@@ -37,7 +37,7 @@ export const generate = async ({
 	id,
 }: GenerateFormParams) => {
 	const dataObj: {
-		[key: string]: string;
+		[key: string]: string | undefined | null;
 	} = !Array.isArray(data) ? data : {};
 
 	const withoutFilename = form.split(".pdf")[0];
@@ -133,38 +133,37 @@ export const generate = async ({
 		type: "Text" | "Radio" | "Checkbox",
 	) => {
 		try {
+			if (type !== "Text" && !value) return true;
 			if (type === "Text") {
 				const formField = f.getTextField(key);
-				// formField.setText(value?.toUpperCase() || "");
 				formField.setText(
 					typeof value === "undefined" ? (dev ? key : "") : value.toUpperCase(),
 				);
 			} else if (type === "Radio") {
 				const formField = f.getRadioGroup(key);
-				formField.select(value || "");
-			} else if (type === "Checkbox" && value) {
+				formField.select(value);
+			} else if (type === "Checkbox") {
 				const formField = f.getCheckBox(key);
-				console.log("Checking checkbox", key);
 				formField.check();
 			}
 			return true;
 		} catch (e) {
-			return `${key}:${type}: ${e.message}`;
+			if (e?.message?.includes(" but it is actually of type ")) return;
+			console.log(
+				`${form}: ${key}\t${type})\t\t${e?.message || "Unkown error"}`,
+			);
 		}
 	};
 
 	fieldLoop: for (const field of fields) {
-		let errors: string[] = [];
 		if (field.isReadOnly()) continue;
 		const name = field.getName();
 		const data = dataObj[name];
 		for (const k of ["Text", "Radio", "Checkbox"] as const) {
 			const fillResult = fillField(name, data, k);
 			if (fillResult === true) continue fieldLoop;
-			errors.push(fillResult);
 		}
 		console.warn("Failed to fill field");
-		console.info(errors.join("\n"));
 	}
 
 	for await (const { mimeType, path, title } of attachments) {
