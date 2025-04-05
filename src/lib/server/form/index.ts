@@ -1,4 +1,4 @@
-import type { StringObj } from "$lib/types";
+import type { NullableProperties, StringObj } from "$lib/types";
 import type { Form } from "$lib/types/forms";
 import os from "node:os";
 export const homeDir = os.homedir();
@@ -17,7 +17,7 @@ export type CheckDocsDirParams = {
 export type GenerateFormParams = {
 	form: Form;
 	output?: string;
-	data: string[] | Partial<StringObj>;
+	data: string[] | NullableProperties<Partial<StringObj>>;
 	id?: string;
 	concat?: {
 		concat: true;

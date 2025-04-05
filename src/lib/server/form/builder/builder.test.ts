@@ -1,15 +1,19 @@
 import { getDetailedDeal } from "$lib/server/database/deal";
 import { describe, it, assert, expect, vi, test } from "vitest";
 import { builder } from ".";
-import { forms } from "$lib/types/forms";
+import { forms, type Form } from "$lib/types/forms";
 import { env } from "$env/dynamic/private";
 import { existsSync, statSync } from "node:fs";
 import { AUTOFLP_DATA_DIR } from "$lib/server";
 
+const wantedForm: null | Form = null;
+
 describe("Can generate forms from pre-created deal", async () => {
-	const expectedForms = forms.map((i) => {
-		return { form: i.key };
-	});
+	const expectedForms = forms
+		.filter((f) => (!wantedForm ? true : f.key === wantedForm))
+		.map((i) => {
+			return { form: i.key };
+		});
 
 	expect(existsSync(AUTOFLP_DATA_DIR)).toBeTruthy();
 

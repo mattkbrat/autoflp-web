@@ -19,6 +19,8 @@ import { fillStatementOfFact } from "./STATEMENT_OF_FACT";
 import { formatDate } from "date-fns";
 import { fillStatementOfFact091523 } from "./DR2444_091523";
 import { fillOneAndTheSameData091523 } from "./DR2421_091523";
+import { DR2395_2025 } from "./DR2395_2025";
+import { fillDR2383_032425 } from "./DR2383_032425";
 
 type FormBuilderBaseParams = {
 	form: Form;
@@ -65,6 +67,9 @@ export const builder = async (p: DealFormParams | InventoryFormParams) => {
 			case "DR2395_2022":
 				obj = DR2395_2022(p.deal);
 				break;
+			case "DR2395_03-25-2025":
+				obj = DR2395_2025(p.deal);
+				break;
 			case "Buyers Guide":
 				obj = fillBuyersGuideData(p.deal);
 				break;
@@ -98,6 +103,13 @@ export const builder = async (p: DealFormParams | InventoryFormParams) => {
 			case "DR2421_091523":
 				obj = fillOneAndTheSameData091523(p.deal) || [];
 				break;
+			case "DR2383_032425":
+				obj = fillDR2383_032425(p.deal) || [];
+				break;
+			// case "Application":
+			// case "billing":
+			// case "Inventory":
+			// case "Receipt":
 			default:
 				obj = [];
 				break;
