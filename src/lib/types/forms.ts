@@ -1,6 +1,7 @@
 const formOptions = [
 	//"Application for Title andor Registration 031522", //DR2395_2022
 	"DR2395_2022",
+	"DR2383_032425", // Joint Tenancy with Rights of Survivorship Acknowledgment of Intent
 	"Application",
 	"billing",
 	"Buyers Guide",
@@ -25,8 +26,8 @@ type FormType = "deal" | "inventory";
 
 export const forms: { key: Form; title: string; type?: FormType[] }[] = [
 	{
-		key: "DR2395_2022",
-		title: "Application For Title & Joint Tenancy",
+		key: "DR2383_032425",
+		title: "Joint Tenancy with Rights of Survivorship Acknowledgment of Intent",
 		type: ["deal"],
 	},
 	{

@@ -28,4 +28,4 @@ export type SelectedAccount = Partial<
 	Omit<DetailedAccount, "contact"> & DetailedAccount["contact"]
 >;
 
-export type NullableProperties<T> = { [K in keyof T]: T[K] | null };
+export type NullableProperties<T> = { [K in keyof T]: T[K] | null | undefined };
