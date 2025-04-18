@@ -7,7 +7,7 @@ import {
 	MenuItems,
 } from "@headlessui/react";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { redirect, usePathname } from "next/navigation";
+import { redirect, usePathname, useSearchParams } from "next/navigation";
 
 const authedNavItems = [
 	"Home",
@@ -19,21 +19,26 @@ const authedNavItems = [
 ];
 
 import clsx from "clsx";
+import Link from "next/link";
 
 export const Header = () => {
 	const { data: session } = useSession();
 	const path = usePathname();
+	const search = useSearchParams();
 	return (
 		<div className="wrapper flex flex-wrap rounded-t-2xl lg:gap-x-8">
 			<nav className="flex-1">
 				<ul className="flex flex-wrap justify-between gap-x-4 lg:gap-x-16">
 					<li className="">
-						<a className="grid max-w-64 lg:max-w-full" href="/">
+						<Link
+							href={`/?${search.toString()}`}
+							className="grid max-w-64 lg:max-w-full"
+						>
 							<span className="font-black text-2xl">AutoFLP</span>
-							<span className="text-wrap">
+							<span className="text-wrap text-normal text-sm">
 								Auto Dealer Management for Family Owned Businesses
 							</span>
-						</a>
+						</Link>
 					</li>
 					{session?.user && (
 						<li className="m-w-[40rem] hidden flex-1 place-self-end md:inline-block">
@@ -50,12 +55,12 @@ export const Header = () => {
 												"border-b-transparent": !isCurrent,
 											})}
 										>
-											<a
-												href={href}
+											<Link
+												href={`${href}?${search.toString()}`}
 												className={clsx("inline-block w-full text-center ")}
 											>
 												{route}
-											</a>
+											</Link>
 										</li>
 									);
 								})}
@@ -80,16 +85,14 @@ export const Header = () => {
 							>
 								{authedNavItems.map((route) => {
 									const href = `/${route.toLowerCase()}`;
-									const isCurrent =
-										path === href || (href === "/home" && path === "/");
 									return (
 										<MenuItem key={href}>
-											<a
-												href={href}
+											<Link
+												href={`${href}?${search.toString()}`}
 												className="group flex w-full items-center gap-2 rounded-lg bg-hover px-3 py-1.5"
 											>
-												{route}
-											</a>
+												{route} {href}
+											</Link>
 										</MenuItem>
 									);
 								})}
