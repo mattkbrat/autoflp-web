@@ -7,6 +7,18 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@utility text-normal {
+	@apply text-black dark:text-white;
+}
+
+@theme {
+	--color-anchor: ;
+}
+
+@utility text-anchor {
+	@apply text-orange-500 dark:text-orange-200;
+}
+
 @layer base {
 	*,
 	*::before,
@@ -50,14 +62,14 @@
 
 	a,
 	.a {
-		@apply text-orange-400;
+		@apply text-anchor;
 	}
 
 	a:hover,
 	a:focus,
 	.a:hover,
 	.a:focus {
-		@apply text-orange-500;
+		@apply text-orange-500/75;
 	}
 
 	.sidebar a {
@@ -65,11 +77,47 @@
 	}
 
 	.sidebar a:hover {
-		@apply text-orange-400;
+		@apply text-orange-500/50;
 	}
 
-	header {
-		@apply w-full bg-blue-200 text-center px-4 py-0;
+	.form {
+		@apply space-y-4 w-full;
+		> fieldset {
+			@apply mx-2 border-y-1 py-1;
+			> div:first-child {
+				@apply text-xl text-blue-400 font-bold;
+			}
+		}
+		fieldset {
+			@apply flex flex-col w-full space-y-2;
+			> div:first-child {
+				@apply underline;
+			}
+		}
+		label {
+			@apply grid gap-y-1;
+		}
+		input:focus,
+		textarea:focus {
+			@apply dark:bg-black outline-1 outline-offset-2;
+		}
+
+		input,
+		textarea {
+			@apply bg-white/75 dark:bg-black/75 p-2;
+		}
+		input {
+			@apply uppercase;
+		}
+		button {
+			@apply rounded-md outline-current outline-1 px-12 py-2 text-xl w-fit;
+		}
+		button.delete {
+			@apply dark:bg-red-900 bg-red-200;
+		}
+		button[type="submit"] {
+			@apply dark:bg-green-900 bg-green-200;
+		}
 	}
 }
 
@@ -79,7 +127,7 @@
 	}
 
 	.wrapper {
-		@apply bg-white/60 dark:bg-black/60 px-2;
+		@apply bg-white/60 dark:bg-black/60 px-2 place-self-center max-w-[1920px] w-full;
 	}
 
 	.main {
@@ -115,8 +163,14 @@
 
 	.cb_opts > .opt {
 		@apply flex cursor-default items-center gap-2 rounded-lg py-1.5 px-3 select-none  z-10;
-		@apply data-[focus]:bg-black/10 dark:data-[focus]:bg-white/10;
+		@apply bg-white dark:bg-black;
+		@apply data-[focus]:outline-1;
 	}
+
+	.cb_opts > .opt[aria-selected="true"] {
+		@apply font-extrabold outline-4;
+	}
+
 	.custom_grid {
 		display: grid;
 		gap: 0.5rem;

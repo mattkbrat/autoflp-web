@@ -9,7 +9,7 @@ export default async function AdminLayout({
 	if (!session) redirect("/unauthorized");
 
 	return (
-		<div className="wrapper flex h-full flex-1 flex-wrap content-start rounded-b-2xl pt-4">
+		<div className="wrapper flex h-full flex-1 flex-col flex-wrap content-start rounded-b-2xl pt-4">
 			{children}
 		</div>
 	);

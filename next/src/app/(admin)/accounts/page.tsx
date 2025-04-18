@@ -1,10 +1,11 @@
 import { PersonCombobox } from "~/app/_components/Combobox/Person";
+import { AccountView } from "../_components/AccountView";
 
 const HomePage = async () => {
 	return (
 		<>
-			<h2>Home</h2>
 			<PersonCombobox />
+			<AccountView />
 		</>
 	);
 };
