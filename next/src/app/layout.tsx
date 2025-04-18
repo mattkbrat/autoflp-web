@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 
 import dynamic from "next/dynamic";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TRPCReactProvider } from "~/trpc/react";
 const Header = dynamic(() =>
 	import("./_components/Header").then((r) => r.Header),
@@ -25,12 +26,14 @@ export default function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	return (
-		<html lang="en" className={`${geist.variable}`}>
+		<html lang="en" className={`${geist.variable} dark`}>
 			<body className="main flex min-h-svh flex-col">
 				<SessionProvider>
 					<TRPCReactProvider>
-						<Header />
-						{children}
+						<NuqsAdapter>
+							<Header />
+							{children}
+						</NuqsAdapter>
 					</TRPCReactProvider>
 				</SessionProvider>
 			</body>
