@@ -10,6 +10,8 @@ import {
 	uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
+export * from "./relations";
+
 export const charge = sqliteTable("charge", {
 	id: text().primaryKey().notNull(),
 	name: text().notNull(),
