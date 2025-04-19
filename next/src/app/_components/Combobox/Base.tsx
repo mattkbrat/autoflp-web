@@ -1,5 +1,4 @@
 import {
-	Button,
 	Combobox,
 	ComboboxButton,
 	ComboboxInput,
@@ -9,7 +8,7 @@ import {
 	Label,
 } from "@headlessui/react";
 import { useQueryState } from "nuqs";
-import { useEffect, useState } from "react";
+import { type ReactNode, useState } from "react";
 
 export function BaseCombobox<T>({
 	param,
@@ -17,12 +16,22 @@ export function BaseCombobox<T>({
 	label,
 	filterQuery = null,
 	displayFunction,
+	optionFunction,
 }: {
 	param: keyof (typeof options)[number];
 	label: string;
 	options: T[];
 	filterQuery?: ((el: (typeof options)[number]) => string | undefined) | null;
 	displayFunction: (el: (typeof options)[number] | null) => string;
+	optionFunction?:
+		| {
+				type: "text";
+				function: (el: (typeof options)[number]) => string;
+		  }
+		| {
+				type: "node";
+				function: (el: (typeof options)[number]) => ReactNode;
+		  };
 }) {
 	const [state, setState] = useQueryState(label.toLowerCase());
 	const [query, setQuery] = useState("");
@@ -45,9 +54,10 @@ export function BaseCombobox<T>({
 
 	const htmlFor = `${label}_cb`;
 
+	const optsIsNode = optionFunction?.type === "node";
 	return (
 		<>
-			<Field className="space-y-2">
+			<Field className="cb space-y-2">
 				<Label htmlFor={htmlFor}>{label}</Label>
 				<Combobox
 					value={selected}
@@ -66,11 +76,11 @@ export function BaseCombobox<T>({
 					<div className="relative w-max">
 						<ComboboxInput
 							id={htmlFor}
-							className={"cb_input"}
+							className={"w-max flex-1"}
 							displayValue={displayFunction}
 							onChange={(event) => setQuery(event.target.value)}
 						/>
-						<ComboboxButton className="group cb_button">
+						<ComboboxButton className="group">
 							<span className="icon">v</span>
 						</ComboboxButton>
 					</div>
@@ -83,11 +93,17 @@ export function BaseCombobox<T>({
 						{filtered.map((option) => {
 							const key = option[param]?.toString();
 							if (!key) return;
-							const display = displayFunction?.(option) || key;
+							const display = optionFunction?.function(option)
+								? optionFunction.function(option)
+								: displayFunction?.(option) || key;
 							return (
 								<ComboboxOption key={key} value={option} className="group opt">
+									{!optsIsNode ? (
+										<span>{display}</span>
+									) : (
+										optionFunction.function(option)
+									)}
 									{/* <CheckIcon className="invisible size-4 fill-white group-data-[selected]:visible" /> */}
-									<div className="text-sm/6">{display}</div>
 								</ComboboxOption>
 							);
 						})}

@@ -1,4 +1,5 @@
 "use client";
+import { fullNameFromPerson } from "~/client/format";
 import { api } from "~/trpc/react";
 import { BaseCombobox } from "./Base";
 
@@ -15,6 +16,15 @@ export function PersonCombobox() {
 						? `${p.person.lastName}, ${p.person.firstName}`.toUpperCase()
 						: p?.id || ""
 				}
+				optionFunction={{
+					type: "node",
+					function: (p) => (
+						<div className={"grid uppercase"}>
+							<span>{fullNameFromPerson({ person: p.person })}</span>
+							<span className="text-xs">{p.licenceNumber}</span>
+						</div>
+					),
+				}}
 			/>
 		)
 	);
