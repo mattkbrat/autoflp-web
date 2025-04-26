@@ -5,11 +5,17 @@
 		"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* @custom-variant dark (&:where(.dark, .dark *)); */
 
 @utility text-normal {
 	@apply text-black dark:text-white;
 }
+
+/* @media print { */
+/* 	* { */
+/* 		color-scheme: light; */
+/* 	} */
+/* } */
 
 @theme {
 	--color-anchor: ;
@@ -19,6 +25,18 @@
 	@apply text-orange-500 dark:text-orange-200;
 }
 
+@utility bg-table-row {
+	@apply even:bg-gray-200 odd:bg-white dark:even:bg-gray-800 dark:odd:bg-black;
+}
+
+@utility bg-surface {
+	@apply bg-white/75 dark:bg-black/75;
+}
+
+@utility text-emphasis {
+	@apply text-blue-800 dark:text-blue-200;
+}
+
 @layer base {
 	*,
 	*::before,
@@ -26,9 +44,13 @@
 		box-sizing: border-box;
 	}
 
+	button {
+		@apply print:hidden;
+	}
+
 	html {
 		@apply text-[16px] min-h-svh;
-		@apply bg-gradient-to-br from-slate-300 to-blue-300 dark:from-slate-900 dark:to-blue-900;
+		@apply bg-gradient-to-br from-slate-300 to-blue-300 dark:from-slate-900 dark:to-blue-900 print:from-transparent print:to-transparent;
 		@apply text-black dark:text-white;
 
 		@apply transition-colors duration-700;
@@ -80,12 +102,17 @@
 		@apply text-orange-500/50;
 	}
 
+	.button,
+	.form button {
+		@apply rounded-md outline-current outline-1 h-fit py-2 px-4 text-xl w-fit;
+	}
+
 	.form {
 		@apply space-y-4 w-full;
 		> fieldset {
-			@apply mx-2 border-y-1 py-1;
+			@apply mx-2 border-y-[1px] border-dashed py-1;
 			> div:first-child {
-				@apply text-xl text-blue-400 font-bold;
+				@apply text-xl font-bold text-emphasis;
 			}
 		}
 		fieldset {
@@ -101,22 +128,48 @@
 		textarea:focus {
 			@apply dark:bg-black outline-1 outline-offset-2;
 		}
+		[required] {
+			background-image: radial-gradient(#f00 15%, transparent 16%),
+				radial-gradient(#f00 15%, transparent 16%);
+			background-size: 2em 2em;
+			background-position: right top;
+			background-repeat: no-repeat;
+		}
 
 		input,
 		textarea {
-			@apply bg-white/75 dark:bg-black/75 p-2;
+			@apply bg-surface p-2;
 		}
 		input {
 			@apply uppercase;
 		}
 		button {
-			@apply rounded-md outline-current outline-1 px-12 py-2 text-xl w-fit;
+			@apply px-12;
 		}
 		button.delete {
 			@apply dark:bg-red-900 bg-red-200;
 		}
 		button[type="submit"] {
 			@apply dark:bg-green-900 bg-green-200;
+		}
+	}
+
+	.table {
+		@apply print:text-xs w-full;
+		td {
+			@apply p-1;
+		}
+		thead {
+			@apply table-header-group uppercase dark:bg-gray-900 bg-gray-50 border-b-2 text-left;
+		}
+		tbody tr {
+			@apply uppercase bg-table-row;
+			th {
+				@apply even:bg-gray-200 odd:bg-white dark:bg-gray-800 dark:odd:bg-black;
+				span {
+					@apply text-gray-400/75;
+				}
+			}
 		}
 	}
 }
@@ -140,35 +193,37 @@
 		@apply lg:w-1/3 lg:mr-auto;
 	}
 
-	.cb_input {
-		@apply min-w-max w-full rounded-lg border-none  py-1.5 pr-8 pl-3 text-sm/6;
-		@apply focus:outline-none data-[focus]:outline-2 data-[focus]:-outline-offset-2;
-		@apply data-[focus]:outline-black/25  dark:data-[focus]:outline-white/25;
+	.cb {
+		@apply print:hidden;
+		input {
+			@apply min-w-max w-full rounded-lg border-none  py-1.5 pr-8 pl-3;
+			@apply focus:outline-none data-[focus]:outline-2 data-[focus]:-outline-offset-2;
+			@apply data-[focus]:outline-black/25  dark:data-[focus]:outline-white/25;
+			@apply bg-white dark:bg-black;
+		}
+		button {
+			@apply absolute inset-y-0 right-0 px-2.5;
+			.icon {
+				@apply size-4 fill-white/60 group-data-[hover]:fill-white;
+			}
+		}
+	}
+	div[aria-selected="true"] {
+		@apply font-extrabold border-2 border-white;
+	}
+	div[data-headlessui-state="active focus"] {
+		@apply text-emphasis;
+	}
+	div[role="option"] {
+		@apply flex cursor-default items-center gap-2 rounded-lg py-1.5 px-3 select-none  z-10;
 		@apply bg-white dark:bg-black;
-	}
-
-	.cb_button {
-		@apply absolute inset-y-0 right-0 px-2.5;
-	}
-
-	.cb_button > .icon {
-		@apply size-4 fill-white/60 group-data-[hover]:fill-white;
+		@apply data-[focus]:outline-1 text-xl;
 	}
 
 	.cb_opts {
-		@apply w-[var(--input-width)] rounded-xl border  p-1 [--anchor-gap:var(--spacing-1)] empty:invisible;
+		@apply w-fit !max-w-[75dvw] rounded-xl border  p-1 [--anchor-gap:var(--spacing-1)] empty:invisible;
 		@apply transition duration-100 ease-in data-[leave]:data-[closed]:opacity-0;
-		@apply border-black/5 bg-black/5 dark:border-white/5 dark:bg-white/5;
-	}
-
-	.cb_opts > .opt {
-		@apply flex cursor-default items-center gap-2 rounded-lg py-1.5 px-3 select-none  z-10;
-		@apply bg-white dark:bg-black;
-		@apply data-[focus]:outline-1;
-	}
-
-	.cb_opts > .opt[aria-selected="true"] {
-		@apply font-extrabold outline-4;
+		@apply border-black/5 bg-white dark:border-white/5 dark:bg-black;
 	}
 
 	.custom_grid {

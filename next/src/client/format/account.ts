@@ -1,4 +1,8 @@
-import type { Person } from "~/server/db/queries/account/get";
+import type { BasicContact, Person } from "~/server/db/queries/account/get";
+import type {
+	ExtendedInventory,
+	Salesman,
+} from "~/server/db/queries/inventory/get";
 
 export type FullNameParams = {
 	person: Partial<Person>;
@@ -76,3 +80,17 @@ export function fullNameFromPerson({
 
 	return name;
 }
+
+export const formatSalesmen = (
+	salesmen: BasicContact[],
+	formatType: "firstName" | "contact" | "firstInitial",
+) => {
+	return salesmen
+		?.flatMap((is) => {
+			if (formatType === "contact") return fullNameFromPerson({ person: is });
+			const firstName = is.firstName;
+			if (formatType === "firstName") return firstName;
+			return firstName.slice(0, 1);
+		})
+		.join(formatType === "contact" ? "; " : " & ");
+};

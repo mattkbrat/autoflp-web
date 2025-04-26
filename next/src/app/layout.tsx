@@ -10,6 +10,7 @@ const Header = dynamic(() =>
 	import("./_components/Header").then((r) => r.Header),
 );
 import { SessionProvider } from "next-auth/react";
+import { BrandMark } from "./_components/BrandMark";
 
 export const metadata: Metadata = {
 	title: "Create T3 App",
@@ -27,7 +28,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
 	return (
 		<html lang="en" className={`${geist.variable} dark`}>
-			<body className="main flex min-h-svh flex-col">
+			<body className="main flex min-h-[100dvh] flex-col justify-between">
 				<SessionProvider>
 					<TRPCReactProvider>
 						<NuqsAdapter>

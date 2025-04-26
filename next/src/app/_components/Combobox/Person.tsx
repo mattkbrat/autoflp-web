@@ -19,8 +19,9 @@ export function PersonCombobox() {
 				optionFunction={{
 					type: "node",
 					function: (p) => (
-						<div className={"grid uppercase"}>
+						<div className={"grid w-full grid-cols-[1fr_auto] uppercase"}>
 							<span>{fullNameFromPerson({ person: p.person })}</span>
+							<span className="row-span-2 self-center">{p.person?.phone}</span>
 							<span className="text-xs">{p.licenceNumber}</span>
 						</div>
 					),
