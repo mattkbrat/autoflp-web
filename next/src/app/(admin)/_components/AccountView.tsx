@@ -37,8 +37,8 @@ export const AccountView = () => {
 
 			createMutation.mutateAsync(data).then((result) => {
 				if (!result) return;
-				if (state === result.account) return;
 				all.refetch();
+				accountQuery.refetch();
 				setState(result.account);
 			});
 		} catch (e) {

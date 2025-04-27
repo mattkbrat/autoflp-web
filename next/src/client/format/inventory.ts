@@ -14,10 +14,10 @@ export const formatInventory = (
 	const { make, model, year, color, vin } = inventory;
 
 	const inv = [
-		year,
+		typeof year === "string" ? `'${year?.split(".0")[0]?.slice(-2)}` : year,
 		make,
 		model,
-		vin,
+		vin?.slice(-4),
 		color,
 		// @TODO
 		// includeSalesman && inventory.inventory_salesman

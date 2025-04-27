@@ -3,8 +3,9 @@ import { createSelectSchema, type CreateSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
 import type { AsyncReturnType } from "~/types/utility";
 import { db } from "../..";
-import { account, person } from "../../schema";
+import { account, deal, person } from "../../schema";
 import { lower, strftime } from "../../util/sql";
+import type { State } from "~/utils/zod/state";
 
 export const accountSelect = createSelectSchema(account);
 export type Account = z.infer<typeof accountSelect>;
@@ -25,20 +26,34 @@ export type BasicContact = {
 }
 
 // @TODO: We should be able to use query here, but the ordeer by does does not exist in properties for person join.
-export const getAllAccounts = async () =>
-  db
-    .select({
-      id: account.id,
-      licenceNumber: account.licenseNumber,
-      person: {
-        lastName: person.lastName,
-        firstName: person.firstName,
-        phone: person.phonePrimary,
-      },
-    })
-    .from(account)
-    .leftJoin(person, eq(person.id, account.contact))
+export const getAllAccounts = async (state?: State) => {
+
+  const accounts =
+    db
+      .selectDistinct({
+        id: account.id,
+        licenceNumber: account.licenseNumber,
+        person: {
+          lastName: person.lastName,
+          firstName: person.firstName,
+          phone: person.phonePrimary,
+        },
+      })
+      .from(account)
+      .leftJoin(person, eq(person.id, account.contact));
+
+  if (Number.isFinite(state)) {
+    accounts.innerJoin(deal, eq(deal.account, account.id))
+
+    accounts.where(
+      eq(deal.state, state as 0 | 1)
+    )
+  }
+
+
+  return accounts
     .orderBy(asc(lower(person.lastName)), asc(lower(person.firstName)));
+}
 
 export const getAccountWithPerson = async (accountId: string) =>
   db

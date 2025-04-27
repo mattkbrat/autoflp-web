@@ -8,24 +8,13 @@ import {
 	TabPanel,
 	TabPanels,
 } from "@headlessui/react";
-import clsx from "clsx";
 import { parseAsString, useQueryState } from "nuqs";
 import { Fragment, useDeferredValue, useEffect } from "react";
+import { className } from "../../utils/tab-class";
+import { StateButton } from "../StateButton";
 import { InventoryCombobox } from "./Combobox";
 import { Form } from "./Form";
-import { StateButton } from "./StateButton";
 import { InventoryTable } from "./Table";
-
-const className = ({
-	hover,
-	selected,
-}: { hover: boolean; selected: boolean }) => {
-	return clsx(
-		"border-b-2 border-b-transparent px-8 outline-0",
-		hover && "border-b-white",
-		selected && "border-b-white font-bold",
-	);
-};
 
 export const View = () => {
 	const [view, setView] = useQueryState("view", parseAsString);

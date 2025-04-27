@@ -1,10 +1,11 @@
 "use client";
 import { fullNameFromPerson } from "~/client/format";
 import { api } from "~/trpc/react";
+import type { State } from "~/utils/zod/state";
 import { BaseCombobox } from "./Base";
 
-export function PersonCombobox() {
-	const accounts = api.account.get.all.useQuery();
+export function PersonCombobox({ state }: { state?: State }) {
+	const accounts = api.account.get.all.useQuery(state);
 	return (
 		accounts.data && (
 			<BaseCombobox

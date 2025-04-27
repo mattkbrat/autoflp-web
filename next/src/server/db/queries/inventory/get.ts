@@ -6,6 +6,7 @@ import { inventory, inventorySalesman, person, salesman } from "../../schema";
 import { int, lower } from "../../util/sql";
 import type { AsyncReturnType } from "~/types/utility";
 import { basicContact } from "../account/get";
+import { state } from "~/utils/zod/state";
 
 export const inventorySelect = createSelectSchema(inventory);
 export type Inventory = z.infer<typeof inventorySelect>;
@@ -14,7 +15,7 @@ export const salesmanSelect = createSelectSchema(salesman);
 export type Salesman = z.infer<typeof salesmanSelect>;
 
 export const inventoryFilter = z.object({
-  state: z.literal(0).or(z.literal(1)).or(z.null()),
+  state,
 });
 
 export type InventoryFilter = z.infer<typeof inventoryFilter>;

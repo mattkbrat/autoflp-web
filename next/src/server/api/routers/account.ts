@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
@@ -11,10 +10,13 @@ import {
 	getAccountWithPerson,
 	getAllAccounts,
 } from "~/server/db/queries/account/get";
+import { state } from "~/utils/zod/state";
 
 export const accountRouter = createTRPCRouter({
 	get: {
-		all: protectedProcedure.query(getAllAccounts),
+		all: protectedProcedure
+			.input(state.optional())
+			.query(({ input }) => getAllAccounts(input)),
 		byId: protectedProcedure
 			.input(z.string().or(z.null()))
 			.query(async ({ input: accountId }) => {
