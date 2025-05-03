@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@theme {
+	--font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
+		"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+
+	html {
+		@apply text-[16px] min-h-svh;
+		@apply bg-gradient-to-br from-slate-300 to-blue-300 dark:from-slate-900 dark:to-blue-900;
+		@apply text-black dark:text-white;
+
+		@apply transition-colors duration-700;
+	}
+
+	button {
+		@apply cursor-pointer;
+	}
+
+	body {
+		@apply m-0 pb-2 text-lg;
+		font-family: "Sen", sans-serif;
+	}
+
+	h1,
+	h3 {
+		@apply font-black leading-3;
+	}
+
+	h1 {
+		@apply text-xl m-0;
+	}
+
+	h2 {
+		@apply uppercase m-0;
+	}
+
+	h3 {
+		@apply text-lg;
+	}
+
+	a,
+	.a {
+		@apply text-orange-400;
+	}
+
+	a:hover,
+	a:focus,
+	.a:hover,
+	.a:focus {
+		@apply text-orange-500;
+	}
+
+	.sidebar a {
+		@apply text-orange-200;
+	}
+
+	.sidebar a:hover {
+		@apply text-orange-400;
+	}
+
+	header {
+		@apply w-full bg-blue-200 text-center px-4 py-0;
+	}
+}
+
+@layer components {
+	.bg-hover {
+		@apply data-[focus]:bg-black/10 dark:data-[focus]:bg-white/10;
+	}
+
+	.wrapper {
+		@apply bg-white/60 dark:bg-black/60 px-2;
+	}
+
+	.main {
+		@apply px-8 py-4 ml-auto space-y-2;
+	}
+
+	.sidebar {
+		background: #92dff1;
+		padding: 2em;
+		@apply lg:w-1/3 lg:mr-auto;
+	}
+
+	.cb_input {
+		@apply min-w-max w-full rounded-lg border-none  py-1.5 pr-8 pl-3 text-sm/6;
+		@apply focus:outline-none data-[focus]:outline-2 data-[focus]:-outline-offset-2;
+		@apply data-[focus]:outline-black/25  dark:data-[focus]:outline-white/25;
+		@apply bg-white dark:bg-black;
+	}
+
+	.cb_button {
+		@apply absolute inset-y-0 right-0 px-2.5;
+	}
+
+	.cb_button > .icon {
+		@apply size-4 fill-white/60 group-data-[hover]:fill-white;
+	}
+
+	.cb_opts {
+		@apply w-[var(--input-width)] rounded-xl border  p-1 [--anchor-gap:var(--spacing-1)] empty:invisible;
+		@apply transition duration-100 ease-in data-[leave]:data-[closed]:opacity-0;
+		@apply border-black/5 bg-black/5 dark:border-white/5 dark:bg-white/5;
+	}
+
+	.cb_opts > .opt {
+		@apply flex cursor-default items-center gap-2 rounded-lg py-1.5 px-3 select-none  z-10;
+		@apply data-[focus]:bg-black/10 dark:data-[focus]:bg-white/10;
+	}
+	.custom_grid {
+		display: grid;
+		gap: 0.5rem;
+		grid-template-columns: repeat(auto-fit, minmax(min(5rem, 100%), 1fr));
+		/* grid-auto-rows: 120px auto auto; */
+		container-type: inline-size;
+	}
+}

@@ -16,3 +16,4 @@ vite.config.ts.timestamp-*
 test-results
 
 *.pdf
+*.sqlite
