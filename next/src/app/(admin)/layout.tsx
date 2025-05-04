@@ -1,13 +1,13 @@
-import { redirect } from "next/navigation";
+import { unauthorized } from "next/navigation";
 import { auth } from "~/server/auth";
 import { BusinessMark } from "../_components/BusinessMark";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default async function AdminLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	const session = await auth();
-
-	if (!session) redirect("/unauthorized");
+	if (!session?.user) unauthorized();
 
 	return (
 		<>
