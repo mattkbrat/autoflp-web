@@ -11,16 +11,6 @@
 	@apply text-black dark:text-white;
 }
 
-/* @media print { */
-/* 	* { */
-/* 		color-scheme: light; */
-/* 	} */
-/* } */
-
-@theme {
-	--color-anchor: ;
-}
-
 @utility text-anchor {
 	@apply text-orange-500 dark:text-orange-200;
 }
@@ -44,12 +34,15 @@
 		box-sizing: border-box;
 	}
 
+	.react-datepicker__day {
+		@apply !p-0;
+	}
 	button {
 		@apply print:hidden;
 	}
 
 	html {
-		@apply text-[16px] min-h-svh;
+		@apply text-[14px] lg:text-[16px] min-h-svh;
 		@apply bg-gradient-to-br from-slate-300 to-blue-300 dark:from-slate-900 dark:to-blue-900 print:from-transparent print:to-transparent;
 		@apply text-black dark:text-white;
 
@@ -61,7 +54,7 @@
 	}
 
 	body {
-		@apply m-0 pb-2 text-lg;
+		@apply m-0 pb-2 lg:text-lg;
 		font-family: "Sen", sans-serif;
 	}
 
@@ -105,6 +98,15 @@
 	.button,
 	.form button {
 		@apply rounded-md outline-current outline-1 h-fit py-2 px-4 text-xl w-fit;
+		@apply outline-blue-900 dark:outline-blue-200;
+	}
+	input:not([type="checkbox"]),
+	textarea {
+		@apply outline-1 outline-offset-2 outline-gray-300 dark:outline-gray-700;
+	}
+	input:focus,
+	textarea:focus {
+		@apply outline-blue-800 dark:outline-blue-200;
 	}
 
 	.form {
@@ -124,10 +126,7 @@
 		label {
 			@apply grid gap-y-1;
 		}
-		input:focus,
-		textarea:focus {
-			@apply dark:bg-black outline-1 outline-offset-2;
-		}
+
 		[required] {
 			background-image: radial-gradient(#f00 15%, transparent 16%),
 				radial-gradient(#f00 15%, transparent 16%);
@@ -147,10 +146,10 @@
 			@apply px-12;
 		}
 		button.delete {
-			@apply dark:bg-red-900 bg-red-200;
+			@apply bg-red-200 dark:bg-red-900;
 		}
 		button[type="submit"] {
-			@apply dark:bg-green-900 bg-green-200;
+			@apply bg-green-200 dark:bg-green-900;
 		}
 	}
 
@@ -216,7 +215,7 @@
 	}
 	div[role="option"] {
 		@apply flex cursor-default items-center gap-2 rounded-lg py-1.5 px-3 select-none  z-10;
-		@apply bg-white dark:bg-black;
+		@apply bg-white dark:!bg-black text-black dark:!text-white;
 		@apply data-[focus]:outline-1 text-xl;
 	}
 

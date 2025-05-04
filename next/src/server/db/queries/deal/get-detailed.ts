@@ -18,7 +18,8 @@ export const getDetailedDeal = async (query: string) => {
       date: true,
       apr: true,
       pmt: true,
-      term: true
+      term: true,
+      state: true,
     },
     with: {
       account: {

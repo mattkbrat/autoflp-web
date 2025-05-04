@@ -1,12 +1,33 @@
 import { Button } from "@headlessui/react";
 import clsx from "clsx";
+import { parseAsBoolean, useQueryState } from "nuqs";
 import { Fragment, useMemo, useState } from "react";
 import { formatCurrency } from "~/client/format";
 import type { PaymentsSchedule } from "~/lib/finance/payment-history";
-export const History = ({ schedule }: { schedule: PaymentsSchedule }) => {
-	const [missing, setMissing] = useState(false);
-	const [future, setFuture] = useState(false);
+import { api } from "~/trpc/react";
+export const History = ({
+	schedule,
+	account,
+	deal,
+	refetch,
+}: {
+	schedule: PaymentsSchedule;
+	account: string;
+	deal: string;
+	refetch: () => void;
+}) => {
+	const [missing, setMissing] = useQueryState(
+		"show-missing",
+		parseAsBoolean.withDefault(false),
+	);
+	const [future, setFuture] = useQueryState(
+		"show-future",
+		parseAsBoolean.withDefault(false),
+	);
 	const [expanded, setExpanded] = useState<string[]>([]);
+
+	const deleteHandler = api.deal.delete.payment.useMutation();
+
 	const filteredSchedule = useMemo(
 		() =>
 			schedule.schedule?.filter((r) => {
@@ -18,13 +39,13 @@ export const History = ({ schedule }: { schedule: PaymentsSchedule }) => {
 	);
 
 	return (
-		<section className="min-w-max flex-1">
-			<div className="btn-group flex justify-between gap-2 print:hidden">
-				<h2 className="self-center text-lg tracking-wide underline underline-offset-2">
+		<section className="max-w-full flex-1 overflow-auto">
+			<div className="flex flex-wrap justify-between gap-2 print:hidden">
+				<h2 className="self-center tracking-wide underline underline-offset-2 lg:text-lg">
 					Payment History
 				</h2>
-				<div>
-					<label className="flex items-center gap-x-2">
+				<div className="flex gap-x-2 print:hidden">
+					<label className="flex select-none items-center gap-x-2">
 						<input
 							type="checkbox"
 							id="showMissingPayments"
@@ -36,7 +57,7 @@ export const History = ({ schedule }: { schedule: PaymentsSchedule }) => {
 						/>
 						Missing Payments
 					</label>
-					<label className="flex items-center gap-x-2">
+					<label className="flex select-none items-center gap-x-2">
 						<input
 							type="checkbox"
 							id="showFuturePayments"
@@ -48,7 +69,10 @@ export const History = ({ schedule }: { schedule: PaymentsSchedule }) => {
 						/>
 						Future Payments
 					</label>
+				</div>
+				<div>
 					<Button
+						className={"button text-sm"}
 						onClick={() => {
 							setExpanded(
 								expanded.length === schedule.schedule.length
@@ -64,6 +88,7 @@ export const History = ({ schedule }: { schedule: PaymentsSchedule }) => {
 			<table className="table">
 				<thead className="text-center">
 					<tr>
+						<th className="print:hidden" />
 						<th>Date</th>
 						<th>B. Bal</th>
 						<th>Paid</th>
@@ -77,37 +102,78 @@ export const History = ({ schedule }: { schedule: PaymentsSchedule }) => {
 					{filteredSchedule.toReversed().map((row) => {
 						const dateAfter = row.monthType === "after";
 						const isCurrentMonth = row.monthType === "current";
-						const isExpanded = expanded.includes(row.dateFmt);
+						const isExpanded =
+							row.payments.length > 1 && expanded.includes(row.dateFmt);
 						return (
 							<Fragment key={row.dateFmt}>
 								<tr
 									className={clsx({
-										"!bg-gray-400 dark:!bg-gray-800 border-4": isCurrentMonth,
+										"border-4 ": isCurrentMonth,
 										"dark:text-gray-200": !dateAfter && !isCurrentMonth,
 									})}
 								>
-									<td className="inline-flex w-full ">
-										{row.paid ? (
-											<Button
-												className={"button p-1 "}
-												type="button"
-												onClick={() => {
-													if (!isExpanded) {
-														const newExpanded = [...expanded];
-														newExpanded.push(row.dateFmt);
-														setExpanded(newExpanded);
-														return;
-													}
-													setExpanded(
-														expanded.filter((r) => r !== row.dateFmt),
-													);
-												}}
-											>
-												{isExpanded ? "-" : "+"}
-											</Button>
+									<td className="space-x-4 print:hidden">
+										{row.payments.length ? (
+											<>
+												{row.payments.length > 1 ? (
+													<Button
+														className={" button p-1"}
+														type="button"
+														onClick={() => {
+															if (!isExpanded) {
+																const newExpanded = [...expanded];
+																newExpanded.push(row.dateFmt);
+																setExpanded(newExpanded);
+																return;
+															}
+															setExpanded(
+																expanded.filter((r) => r !== row.dateFmt),
+															);
+														}}
+													>
+														{isExpanded ? "-" : "+"}
+													</Button>
+												) : (
+													""
+												)}
+												<Button
+													onClick={() => {
+														if (
+															!confirm(
+																`Remove ${row.payments.length} ${
+																	row.payments.length > 1
+																		? "payments"
+																		: "payment"
+																} in the month of ${row.dateFmt}, totaling ${formatCurrency(row.totalPaid)}, from ${account}`,
+															)
+														) {
+															return;
+														}
+														deleteHandler
+															.mutateAsync({
+																month: row.date.getMonth() + 1,
+																year: row.date.getFullYear(),
+																deal,
+															})
+															.then(() => {
+																refetch();
+															});
+													}}
+												>
+													Delete
+												</Button>
+											</>
 										) : (
 											""
 										)}
+									</td>
+									<td
+										className="inline-flex w-full"
+										title={
+											row.payments.map((r) => r.date.toString()).join(", ") ||
+											row.date?.toString()
+										}
+									>
 										<span className="ml-auto">{row.dateFmt}</span>
 									</td>
 									<td>{formatCurrency(row.start)}</td>
@@ -121,8 +187,31 @@ export const History = ({ schedule }: { schedule: PaymentsSchedule }) => {
 									row.payments.map(
 										(payment) =>
 											payment.date && (
-												<tr key={payment.id} className="text-base">
+												<tr key={payment.id}>
+													<td className="print:hidden">
+														<Button
+															onClick={() => {
+																if (
+																	!confirm(
+																		`Remove payment of date ${payment.date} and amount ${payment.amount} from ${account}`,
+																	)
+																) {
+																	return;
+																}
+																deleteHandler
+																	.mutateAsync({
+																		id: payment.id,
+																	})
+																	.then(() => {
+																		refetch();
+																	});
+															}}
+														>
+															Delete
+														</Button>
+													</td>
 													<td>{payment.date}</td>
+													<td />
 													<td>{formatCurrency(payment.amount)}</td>
 													<td colSpan={10} />
 												</tr>
