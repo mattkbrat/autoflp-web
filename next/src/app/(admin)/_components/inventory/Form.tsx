@@ -201,12 +201,10 @@ export const Form = () => {
 									/>
 								</Label>
 							</Field>
-							<Field className={"flex-1"}>
-								<Label>
-									Date
-									<Input type="date" {...register("datePurchased")} />
-								</Label>
-							</Field>
+							<label>
+								Date purchased
+								<input type="date" {...register("datePurchased")} />
+							</label>
 						</div>
 					</Fieldset>
 					<Fieldset>
@@ -344,7 +342,7 @@ export const Form = () => {
 					)}
 				</form>
 			</FormProvider>
-			<div className="grid w-60 content-start gap-y-4 bg-surface p-2">
+			<div className="grid content-start gap-y-4 bg-surface p-2 md:w-60">
 				{invSearch.data && (
 					<>
 						<Button

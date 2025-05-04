@@ -64,7 +64,7 @@ export const InventoryTable = () => {
 			</tbody>
 			<tfoot>
 				<tr>
-					<td colSpan={4}>
+					<td colSpan={10}>
 						<span className="text-red-300">*</span> Does not include APR %. Cash
 						sales can be discounted up to 25% of listed price.
 					</td>

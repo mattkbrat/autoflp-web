@@ -7,9 +7,11 @@ import {
 	Label,
 	Legend,
 } from "@headlessui/react";
+import { formatDate } from "date-fns";
 import { useQueryState } from "nuqs";
-import { useEffect, useRef } from "react";
-import { type FieldValues, useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import DatePicker from "react-datepicker";
+import { Controller, type FieldValues, useForm } from "react-hook-form";
 import type { NewAccount } from "~/server/db/queries/account/create";
 import type { DeleteAccount } from "~/server/db/queries/account/delete";
 import { api } from "~/trpc/react";
@@ -22,7 +24,10 @@ export const AccountView = () => {
 	const all = api.account.get.all.useQuery();
 	const accountQuery = api.account.get.byId.useQuery(state);
 
-	const { register, handleSubmit, setValue, resetField, watch } =
+	const [dob, setDob] = useState<Date | null>(new Date());
+	const [exp, setExp] = useState<Date | null>(new Date());
+
+	const { register, handleSubmit, setValue, resetField, watch, control } =
 		useForm<NewAccount>();
 
 	const lastName = watch("person.lastName");
@@ -49,6 +54,8 @@ export const AccountView = () => {
 		setState(null);
 		resetField("account");
 		resetField("person");
+		setDob(null);
+		setExp(new Date());
 	};
 
 	const onDelete = async (data: DeleteAccount) => {
@@ -72,6 +79,12 @@ export const AccountView = () => {
 				licenseExpiration: account.expirationDate,
 			}),
 		);
+		if (typeof account.birthDate === "string") {
+			setDob(new Date(account.birthDate));
+		}
+		if (typeof account.expirationDate === "string") {
+			setExp(new Date(account.expirationDate));
+		}
 		if (person) {
 			setValue("person", person);
 		}
@@ -84,27 +97,53 @@ export const AccountView = () => {
 				<div className="flex flex-wrap gap-x-2">
 					<Field className={"flex-1"}>
 						<Label>
-							Date of Birth
-							<Input
-								type="date"
-								{...register("account.dateOfBirth")}
-								required
-							/>
-						</Label>
-					</Field>
-					<Field className={"flex-1"}>
-						<Label>
 							License Number
 							<Input {...register("account.licenseNumber")} required />
 						</Label>
 					</Field>
 					<Field className={"flex-1"}>
 						<Label>
+							Date of birth
+							<Controller
+								control={control}
+								name={"account.dateOfBirth"}
+								render={({ field }) => {
+									return (
+										<DatePicker
+											className="w-full"
+											selected={dob}
+											showYearDropdown
+											onChange={(v: Date | null) => {
+												setDob(v);
+												field.onChange(v?.toISOString());
+											}}
+										/>
+									);
+								}}
+							/>
+						</Label>
+					</Field>
+					<Field className={"flex-1"}>
+						<Label>
 							License Expiration
-							<Input
-								type="date"
-								{...register("account.licenseExpiration")}
-								required
+							<Controller
+								control={control}
+								name={"account.licenseExpiration"}
+								render={({ field }) => {
+									return (
+										<DatePicker
+											selected={exp}
+											className="w-full"
+											showMonthDropdown
+											showYearDropdown
+											scrollableYearDropdown
+											onChange={(v: Date | null) => {
+												setExp(v);
+												field.onChange(v?.toISOString());
+											}}
+										/>
+									);
+								}}
 							/>
 						</Label>
 					</Field>
