@@ -6,17 +6,10 @@ import type { DR2383_032425_Template, getDR2383_032425 } from "./maps";
 export const fillDR2383_032425 = (deal: NonNullable<DetailedDeal>) => {
 	const personFullName = fullNameFromPerson({ person: deal.account.contact });
 
-	const vinSplit = deal.inventory.vin.split("");
-	if (vinSplit.length !== 17) {
-		console.log("Invalid vin lenth", deal.inventory.vin, vinSplit.length);
-		for (let i = vinSplit.length; i < 18; i++) {
-			vinSplit[i] = "X";
-		}
-	}
-
 	const { year, make, model, vin } = deal.inventory;
 
 	const date = formatDate(deal.date, dateFormatStandard);
+
 	const obj: DR2383_032425_Template = {
 		"Vehicle Year 5": year,
 		"Vehicle Make 7": make,
