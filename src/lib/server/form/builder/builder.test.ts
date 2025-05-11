@@ -6,7 +6,7 @@ import { env } from "$env/dynamic/private";
 import { existsSync, statSync } from "node:fs";
 import { AUTOFLP_DATA_DIR } from "$lib/server";
 
-const wantedForm: null | Form = null;
+const wantedForm: null | Form = "DR2395_03-25-2025";
 
 describe("Can generate forms from pre-created deal", async () => {
 	const expectedForms = forms

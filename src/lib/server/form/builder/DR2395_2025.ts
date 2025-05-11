@@ -88,7 +88,7 @@ export const DR2395_2025 = (deal: NonNullable<DetailedDeal>) => {
 		"Lien Amount": formatCurrency(deal.lien),
 		"Vehicle Identification Number": deal.inventory.vin,
 		"Signature - Owner or Agent": "",
-		"Date of Signature": deal.date,
+		"Date of Signature": date,
 		"Printed Name of Owner or agent": legalNames,
 		C1: "",
 		C2: "",
