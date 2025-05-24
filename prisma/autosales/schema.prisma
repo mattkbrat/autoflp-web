@@ -9,7 +9,7 @@ datasource db {
 }
 
 model Image {
-  id              Int              @id(map: "image_pk") @default(autoincrement())
+  id              BigInt           @id(map: "image_pk") @default(autoincrement())
   source          String           @default("r2")
   url             String           @unique(map: "image_url_uindex")
   title           String           @default("")
@@ -195,7 +195,7 @@ model CreditApplication {
 model InventoryImage {
   id          Int       @id(map: "inventory_image_pk") @default(autoincrement())
   inventoryId Int       @map("inventory")
-  imageId     Int       @map("image")
+  imageId     BigInt    @map("image")
   order       Int       @default(1)
   image       Image     @relation("inventory_image_imageToimage", fields: [imageId], references: [id], onDelete: Cascade, map: "inventory_image_image_id_fk")
   inventory   Inventory @relation("inventory_image_inventoryToinventory", fields: [inventoryId], references: [id], onDelete: Cascade, map: "inventory_image_inventory_id_fk")
@@ -218,7 +218,7 @@ model Session {
 model UserImage {
   id                Int                @id(map: "user_image_pk") @default(autoincrement())
   user              String
-  imageId           Int                @map("image")
+  imageId           BigInt              @map("image")
   creditApp         Int?               @map("credit_app")
   uploaded          DateTime?          @default(now()) @db.Timestamp(6)
   creditApplication CreditApplication? @relation(fields: [creditApp], references: [id], onDelete: Cascade, map: "user_image___fk")
