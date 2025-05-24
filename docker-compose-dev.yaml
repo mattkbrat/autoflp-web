@@ -9,4 +9,4 @@ services:
     env_file: $PWD/.env
     volumes:
       - "/tmp/autoflp:/tmp/autoflp:rw"
-      - "/home/matt/Documents/autoflp.sqlite:/autoflp.sqlite:rw"
+      - "$HOME/Documents/database.sqlite3:/autoflp.sqlite:rw"
