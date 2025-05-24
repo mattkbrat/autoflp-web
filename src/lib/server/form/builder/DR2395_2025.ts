@@ -30,14 +30,6 @@ export const DR2395_2025 = (deal: NonNullable<DetailedDeal>) => {
 			})
 		: "";
 
-	const vinSplit = deal.inventory.vin.split("");
-	if (vinSplit.length !== 17) {
-		console.log("Invalid vin lenth", deal.inventory.vin, vinSplit.length);
-		for (let i = vinSplit.length; i < 18; i++) {
-			vinSplit[i] = "X";
-		}
-	}
-
 	const legalNames = [personFullName, deal.cosigner].filter(Boolean).join("; ");
 
 	const date = formatDate(deal.date, dateFormatStandard);
@@ -74,14 +66,12 @@ export const DR2395_2025 = (deal: NonNullable<DetailedDeal>) => {
 		RadioButton14: "",
 		RadioButton15: "",
 		RadioButton16: "",
-		"Legal Names from ID for Owner, Entity, or Lessor":
-			deal.creditor?.businessName || BUSINESS_NAME,
-		"Address of Owner, Entity or Lessor":
-			creditorAddress?.full || BUSINESS_ADDRESS,
-		"Legal Names from ID for Lessee": legalNames,
+		"Legal Names from ID for Owner, Entity, or Lessor": legalNames,
+		"Address of Owner, Entity or Lessor": personAddress.full,
+		"Legal Names from ID for Lessee": "",
 		RadioButton17: "",
 		RadioButton18: "",
-		"Physical Address of Lessee": personAddress.full,
+		"Physical Address of Lessee": "",
 		"Owner or Lessee Mailing Address": "",
 		"First Lienholder Name": BUSINESS_NAME,
 		"Address or E L T e-Number": BUSINESS_ADDRESS,
