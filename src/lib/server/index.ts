@@ -1,5 +1,1 @@
-import { dev } from "$app/environment";
-
-export const AUTOFLP_DATA_DIR = dev
-	? "/home/matt/Documents/autoflp"
-	: "/tmp/autoflp";
+import { dev } from "$app/environment";import path, { join } from "node:path";import { homedir } from "node:os";export const AUTOFLP_DATA_DIR = dev	? join(homedir(), "Documents", "autoflp")	: "/tmp/autoflp";
