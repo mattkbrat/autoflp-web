@@ -1,256 +1,5 @@
 <script lang="ts">
-import { enhance } from "$app/forms";
-import { goto } from "$app/navigation";
-import { page } from "$app/stores";
-import { getZip } from "$lib";
-import SalesmenSelect from "$lib/components/SalesmenSelect.svelte";
-import { el } from "$lib/element";
-import { formatDate, formatInventory, formatSalesmen } from "$lib/format";
-import { handleInvNav } from "$lib/navState";
-import type { Inventory, InventoryField } from "$lib/server/database/inventory";
-import type { ParsedNHTA } from "$lib/server/inventory";
-import {
-	allInventory,
-	handleSelect,
-	selectedStates,
-	title,
-	toast,
-} from "$lib/stores";
-import type { FormFields } from "$lib/types/forms";
-import { onMount } from "svelte";
-
-const thisYear = new Date().getFullYear();
-
-let shouldFocus = $state(false);
-let hasLoaded = $state(false);
-let printedForms = $state(0);
-
-let lastUpdated = $state("");
-
-const { data, form } = $props();
-
-let selected = $state({} as Partial<Inventory>);
-let hasCleared = $state(false);
-let searched = $state("");
-let searchedInfo: { [key: string]: string } | null = $state(null);
-
-const formatted = $derived(selected ? formatInventory(selected) : "");
-
-$effect(() => {
-	if (!selected) return;
-
-	title.set(formatted);
-});
-
-$effect(() => {
-	if (!data.inventory?.vin || selected.id === data.inventory.id || !hasLoaded) {
-		return;
-	}
-
-	selected = data.inventory;
-	searchedInfo = null;
-	hasCleared = false;
-	setTimeout(() => {
-		const input = el`inventory-form-vin`;
-		if (input) {
-			input.focus();
-		}
-
-		shouldFocus = false;
-	}, 200);
-});
-
-const fieldMap: FormFields<InventoryField> = [
-	[
-		{ key: "purchasePrice", type: "number", label: "Purchase Price" },
-		{ key: "datePurchased", type: "date", label: "Date Purchased" },
-	],
-	["vin", "year", "fuel"],
-	[
-		"make",
-		"model",
-		"body",
-		"mileage",
-
-		{ key: "cwt", type: "number" },
-		"color",
-	],
-	[
-		{ key: "cash", type: "number" },
-		{ key: "credit", type: "number" },
-		{ key: "down", type: "number" },
-	],
-];
-
-$effect(() => {
-	if (!selected?.year || !hasLoaded || selected.mileage === "exempt") return;
-	const label = el<HTMLLabelElement>`inventory-form-mileage`;
-	if (label) {
-		const input = label.firstElementChild as HTMLInputElement;
-		if (input) {
-			const isExempt =
-				thisYear - Number(selected.year) >= 20 || Number(selected.year) < 2010;
-			const alreadyExempt = input.value.toLowerCase().startsWith("e");
-			selected.mileage = isExempt ? "EXEMPT" : alreadyExempt ? "" : input.value;
-		}
-	}
-});
-
-const handleSearched = async (result: unknown) => {
-	if (typeof result !== "object" || !result || !("data" in result)) return;
-	const parsed = result.data as ParsedNHTA;
-	if (!parsed) return;
-	const { wanted, info } = parsed;
-
-	selected = {
-		...selected,
-		year: wanted["Model Year"] || 0 || "0",
-		make: wanted.Make,
-		model: wanted.Model,
-		cwt: wanted["Gross Vehicle Weight Rating To"],
-		fuel: wanted["Fuel Type - Primary"].toLowerCase().startsWith("gas")
-			? "gas"
-			: wanted["Fuel Type - Primary"],
-		body: wanted["Body Class"],
-	};
-
-	searchedInfo = info;
-
-	setTimeout(() => {
-		el<HTMLInputElement>`inventory-form-color`?.focus();
-	}, 100);
-};
-
-$effect(() => {
-	if (!selected.vin || selected.vin.length < 17 || selected.make) {
-		return;
-	}
-	const vin = selected.vin.toLowerCase();
-	const exists =
-		$page.params.vin.toLowerCase() === vin
-			? -1
-			: $allInventory.findIndex((i) => i.vin.toLowerCase() === vin);
-
-	if (exists !== -1) {
-		handleInvNav({
-			url: $page.url,
-			vin: $allInventory[exists].vin,
-			invalidate: true,
-		});
-	}
-	if (selected.vin === searched) {
-		return;
-	}
-	searched = vin;
-	setTimeout(() => {
-		el<HTMLButtonElement>`search-submit`?.click();
-	}, 1000);
-});
-
-const updateAllInventory = (
-	vin: string,
-	value: (typeof $allInventory)[number] | null,
-	remove = false,
-) => {
-	const lowerVin = vin.toLowerCase();
-	const indexOf = $allInventory.findIndex(
-		(i) => i.vin.toLowerCase() === lowerVin,
-	);
-
-	const isNew = Number.isNaN(indexOf) || indexOf === -1;
-
-	if (remove && isNew) {
-		console.warn("Cannot remove non-existing inventory");
-		return;
-	}
-
-	if (isNew && !value) {
-		console.warn("Cannot add null inventory");
-		return;
-	}
-
-	allInventory.update((inv) => {
-		if (remove) {
-			inv.splice(indexOf, 1);
-		} else if (isNew && value) {
-			inv.push(value);
-		} else if (value) {
-			inv[Number(indexOf)] = value;
-		} else {
-			console.trace("don't know what to do with this");
-		}
-		return inv;
-	});
-
-	handleInvNav({ url: $page.url, vin: remove ? "new" : selected.vin });
-};
-
-const toggleState = (oldState: number) => {
-	selected.state = oldState === 0 ? 1 : 0;
-
-	setTimeout(() => {
-		el<HTMLButtonElement>`inv-submit-button`?.click();
-	}, 150);
-};
-
-$effect(() => {
-	if (!form || form.data?.id === lastUpdated) return;
-	if (!form?.data) {
-		toast({
-			title: "Inventory update failed",
-			description: form.message,
-		});
-		return;
-	}
-	const { vin, id } = form.data;
-
-	toast({
-		title: "Recorded inventory",
-		json: JSON.stringify(form.data, null, 2),
-		status: "success",
-	});
-	if (id) {
-		selected.id = id;
-	}
-	if (vin) {
-		updateAllInventory(vin, data.inventory);
-	}
-
-	lastUpdated = form.data.id;
-});
-
-$effect(() => {
-	if (!form?.delete) return;
-	updateAllInventory(form?.delete, null, true);
-});
-
-$effect(() => {
-	if (!form?.data) return;
-	selected = form.data;
-});
-
-$effect(() => {
-	if (!form?.forms?.length || form.formsName === printedForms) return;
-	getZip(form.forms, { type: "inventory", inventory: selected }).then(() => {
-		printedForms = form.formsName;
-	});
-});
-
-onMount(() => {
-	if (!data.inventory?.vin) {
-		if ($selectedStates.inventoryID) {
-			handleInvNav({
-				url: $page.url,
-				vin: $selectedStates.inventoryID,
-			});
-		} else {
-			selected = {};
-			searchedInfo = null;
-		}
-	}
-	hasLoaded = true;
-});
-</script>
+import { enhance } from "$app/forms";import { goto } from "$app/navigation";import { page } from "$app/stores";import { getZip } from "$lib";import SalesmenSelect from "$lib/components/SalesmenSelect.svelte";import { el } from "$lib/element";import { formatDate, formatInventory, formatSalesmen } from "$lib/format";import { handleInvNav } from "$lib/navState";import type { Inventory, InventoryField } from "$lib/server/database/inventory";import type { ParsedNHTA } from "$lib/server/inventory";import {	allInventory,	handleSelect,	selectedStates,	title,	toast,} from "$lib/stores";import type { FormFields } from "$lib/types/forms";import { onMount } from "svelte";const thisYear = new Date().getFullYear();let shouldFocus = $state(false);let hasLoaded = $state(false);let printedForms = $state(0);let lastUpdated = $state("");const { data, form } = $props();let selected = $state({} as Partial<Inventory>);let hasCleared = $state(false);let searched = $state("");let searchedInfo: { [key: string]: string } | null = $state(null);const formatted = $derived(selected ? formatInventory(selected) : "");$effect(() => {	if (!selected) return;	title.set(formatted);});$effect(() => {	if (!data.inventory?.vin || selected.id === data.inventory.id || !hasLoaded) {		return;	}	selected = data.inventory;	searchedInfo = null;	hasCleared = false;	setTimeout(() => {		const input = el`inventory-form-vin`;		if (input) {			input.focus();		}		shouldFocus = false;	}, 200);});const fieldMap: FormFields<InventoryField> = [	[		{ key: "purchasePrice", type: "number", label: "Purchase Price" },		{ key: "datePurchased", type: "date", label: "Date Purchased" },	],	["vin", "year", "fuel"],	[		"make",		"model",		"body",		"mileage",		{ key: "cwt", type: "number" },		"color",	],	[		{ key: "cash", type: "number" },		{ key: "credit", type: "number" },		{ key: "down", type: "number" },	],];$effect(() => {	if (!selected?.year || !hasLoaded || selected.mileage === "exempt") return;	const label = el<HTMLLabelElement>`inventory-form-mileage`;	if (label) {		const input = label.firstElementChild as HTMLInputElement;		if (input) {			const isExempt =				thisYear - Number(selected.year) >= 20 || Number(selected.year) < 2010;			const alreadyExempt = input.value.toLowerCase().startsWith("e");			selected.mileage = isExempt ? "EXEMPT" : alreadyExempt ? "" : input.value;		}	}});const handleSearched = async (result: unknown) => {	if (typeof result !== "object" || !result || !("data" in result)) return;	const parsed = result.data as ParsedNHTA;	if (!parsed) return;	const { wanted, info } = parsed;	selected = {		...selected,		year: wanted["Model Year"] || 0 || "0",		make: wanted.Make,		model: wanted.Model,		cwt: wanted["Gross Vehicle Weight Rating To"],		fuel: wanted["Fuel Type - Primary"].toLowerCase().startsWith("gas")			? "gas"			: wanted["Fuel Type - Primary"],		body: wanted["Body Class"],	};	searchedInfo = info;	setTimeout(() => {		el<HTMLInputElement>`inventory-form-color`?.focus();	}, 100);};$effect(() => {	if (!selected.vin || selected.vin.length < 17 || selected.make) {		return;	}	const vin = selected.vin.toLowerCase();	const exists =		$page.params.vin.toLowerCase() === vin			? -1			: $allInventory.findIndex((i) => i.vin.toLowerCase() === vin);	if (exists !== -1) {		handleInvNav({			url: $page.url,			vin: $allInventory[exists].vin,			invalidate: true,		});	}	if (selected.vin === searched) {		return;	}	searched = vin;	setTimeout(() => {		el<HTMLButtonElement>`search-submit`?.click();	}, 1000);});const updateAllInventory = (	vin: string,	value: (typeof $allInventory)[number] | null,	remove = false,) => {	const lowerVin = vin.toLowerCase();	const indexOf = $allInventory.findIndex(		(i) => i.vin.toLowerCase() === lowerVin,	);	const isNew = Number.isNaN(indexOf) || indexOf === -1;	if (remove && isNew) {		console.warn("Cannot remove non-existing inventory");		return;	}	if (isNew && !value) {		console.warn("Cannot add null inventory");		return;	}	allInventory.update((inv) => {		if (remove) {			inv.splice(indexOf, 1);		} else if (isNew && value) {			inv.push(value);		} else if (value) {			inv[Number(indexOf)] = value;		} else {			console.trace("don't know what to do with this");		}		return inv;	});	handleInvNav({ url: $page.url, vin: remove ? "new" : selected.vin });};const toggleState = (oldState: number) => {	selected.state = oldState === 0 ? 1 : 0;	setTimeout(() => {		el<HTMLButtonElement>`inv-submit-button`?.click();	}, 150);};$effect(() => {	if (!form || form.data?.id === lastUpdated) return;	if (!form?.data) {		toast({			title: "Inventory update failed",			description: form.message,		});		return;	}	const { vin, id } = form.data;	toast({		title: "Recorded inventory",		json: JSON.stringify(form.data, null, 2),		status: "success",	});	if (id) {		selected.id = id;	}	if (vin) {		updateAllInventory(vin, data.inventory);	}	lastUpdated = form.data.id;});$effect(() => {	if (!form?.delete) return;	updateAllInventory(form?.delete, null, true);});$effect(() => {	if (!form?.data) return;	selected = form.data;});$effect(() => {	if (!form?.forms?.length || form.formsName === printedForms) return;	getZip(form.forms, { type: "inventory", inventory: selected }).then(() => {		printedForms = form.formsName;	});});onMount(() => {	if (!data.inventory?.vin) {		if ($selectedStates.inventoryID) {			handleInvNav({				url: $page.url,				vin: $selectedStates.inventoryID,			});		} else {			selected = {};			searchedInfo = null;		}	}	hasLoaded = true;});</script>
 
 <form
   action="?/update"

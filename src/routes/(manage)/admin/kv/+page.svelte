@@ -1,9 +1,5 @@
 <script lang="ts">
-import { enhance } from "$app/forms";
-
-const { data } = $props();
-const keys = $derived([...data.keys, { value: "", key: "", id: "" }]);
-</script>
+import { enhance } from "$app/forms";const { data } = $props();const keys = $derived([...data.keys, { value: "", key: "", id: "" }]);</script>
 
 {#each keys as key}
   <form

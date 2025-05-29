@@ -1,6 +1,5 @@
 <script lang="ts">
-const { inventory, fullName, salesmen } = $props();
-</script>
+const { inventory, fullName, salesmen } = $props();</script>
 
 <h2 class="flex flex-col uppercase items-center bg-black/20 py-2 relative">
   <span class="text-lg tracking-tight">

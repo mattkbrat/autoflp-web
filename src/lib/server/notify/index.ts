@@ -1,1 +1,1 @@
-export * from "./pushover";
+export * from "./pushover";

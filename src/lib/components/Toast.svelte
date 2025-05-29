@@ -1,8 +1,5 @@
 <script lang="ts">
-import { removeToast, toastStore } from "$lib/stores";
-
-const hasToasts = $derived($toastStore.length > 0);
-</script>
+import { removeToast, toastStore } from "$lib/stores";const hasToasts = $derived($toastStore.length > 0);</script>
 
 <div
   id="toast-container"

@@ -1,24 +1,5 @@
 <script lang="ts">
-import "../app.postcss";
-
-// Highlight JS
-import hljs from "highlight.js/lib/core";
-import css from "highlight.js/lib/languages/css";
-import javascript from "highlight.js/lib/languages/javascript";
-import typescript from "highlight.js/lib/languages/typescript";
-import xml from "highlight.js/lib/languages/xml"; // for HTML
-import "highlight.js/styles/github-dark.css";
-
-hljs.registerLanguage("xml", xml); // for HTML
-hljs.registerLanguage("css", css);
-hljs.registerLanguage("javascript", javascript);
-hljs.registerLanguage("typescript", typescript);
-
-import RootNav from "$lib/components/RootNav.svelte";
-import TitleStrip from "$lib/components/TitleStrip.svelte";
-
-const { children } = $props();
-</script>
+import "../app.postcss";// Highlight JSimport hljs from "highlight.js/lib/core";import css from "highlight.js/lib/languages/css";import javascript from "highlight.js/lib/languages/javascript";import typescript from "highlight.js/lib/languages/typescript";import xml from "highlight.js/lib/languages/xml"; // for HTMLimport "highlight.js/styles/github-dark.css";hljs.registerLanguage("xml", xml); // for HTMLhljs.registerLanguage("css", css);hljs.registerLanguage("javascript", javascript);hljs.registerLanguage("typescript", typescript);import RootNav from "$lib/components/RootNav.svelte";import TitleStrip from "$lib/components/TitleStrip.svelte";const { children } = $props();</script>
 
 <div class="flex flex-col gap-4 print:gap-0 w-screen min-h-screen">
   <div class="flex flex-col lg:flex-row">

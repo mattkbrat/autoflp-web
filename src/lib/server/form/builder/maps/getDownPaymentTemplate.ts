@@ -1,8 +1,1 @@
-export const get = () => {
-	return {
-		"0": "",
-		"1": "",
-		"2": "",
-	};
-};
-export type Template = ReturnType<typeof get>;
+export const get = () => {	return {		"0": "",		"1": "",		"2": "",	};};export type Template = ReturnType<typeof get>;

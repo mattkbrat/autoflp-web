@@ -1,102 +1,5 @@
 <script lang="ts">
-import type { ExpectedWithPayments } from "$lib/server/database/deal";
-import { onMount } from "svelte";
-import { waitForElm, printCanvas } from "$lib/element";
-import { Chart } from "chart.js/auto";
-import { data } from "./expected-payments-data";
-import { page } from "$app/stores";
-import { goto } from "$app/navigation";
-const { expected }: { expected: ExpectedWithPayments } = $props();
-let ctx: HTMLCanvasElement | null = null;
-let chart = $state<ReturnType<typeof createChart>>(null);
-
-const now = new Date();
-
-let stacked = $state(true);
-let filterMonth = $state(
-	Number($page.url.searchParams?.get("month")) || now.getMonth() + 1,
-);
-let filterYear = $state(
-	Number($page.url.searchParams?.get("year")) ||
-		now.getFullYear() ||
-		now.getFullYear(),
-);
-
-const filter = () => {
-	if (!filterYear || !filterMonth) return;
-	const url = new URL($page.url);
-	url.searchParams.set("year", filterYear.toString());
-	url.searchParams.set("month", filterMonth.toString());
-	goto(url);
-};
-
-const chartOptions = $derived(
-	Object.assign(
-		{
-			plugins: {
-				title: {
-					display: true,
-					text: "Expected and Received Current Month's Payments",
-				},
-			},
-		},
-		stacked
-			? {
-					responsive: true,
-					scales: {
-						x: {
-							stacked: true,
-						},
-						y: {
-							stacked: true,
-						},
-					},
-				}
-			: {},
-	),
-);
-const createChart = () => {
-	if (!ctx) return null;
-	return new Chart(ctx, {
-		type: "bar",
-		data: chartData,
-		options: chartOptions,
-	});
-};
-
-const chartData = $derived(data(expected));
-
-$effect(() => {
-	if (!chart) return;
-	chart.options = chartOptions;
-	chart.update();
-});
-
-$effect(() => {
-	if (!chartData) return;
-	if (chart) {
-		chart.data = chartData;
-		chart.update();
-		return;
-	}
-
-	chart = createChart();
-});
-
-onMount(() => {
-	waitForElm("#expectedPayments").then((el) => {
-		if (!el || !(el instanceof HTMLCanvasElement)) {
-			console.log("Invalid element", el);
-			return;
-		}
-		ctx = el;
-	});
-
-	return () => {
-		chart?.destroy();
-	};
-});
-</script>
+import type { ExpectedWithPayments } from "$lib/server/database/deal";import { onMount } from "svelte";import { waitForElm, printCanvas } from "$lib/element";import { Chart } from "chart.js/auto";import { data } from "./expected-payments-data";import { page } from "$app/stores";import { goto } from "$app/navigation";const { expected }: { expected: ExpectedWithPayments } = $props();let ctx: HTMLCanvasElement | null = null;let chart = $state<ReturnType<typeof createChart>>(null);const now = new Date();let stacked = $state(true);let filterMonth = $state(	Number($page.url.searchParams?.get("month")) || now.getMonth() + 1,);let filterYear = $state(	Number($page.url.searchParams?.get("year")) ||		now.getFullYear() ||		now.getFullYear(),);const filter = () => {	if (!filterYear || !filterMonth) return;	const url = new URL($page.url);	url.searchParams.set("year", filterYear.toString());	url.searchParams.set("month", filterMonth.toString());	goto(url);};const chartOptions = $derived(	Object.assign(		{			plugins: {				title: {					display: true,					text: "Expected and Received Current Month's Payments",				},			},		},		stacked			? {					responsive: true,					scales: {						x: {							stacked: true,						},						y: {							stacked: true,						},					},				}			: {},	),);const createChart = () => {	if (!ctx) return null;	return new Chart(ctx, {		type: "bar",		data: chartData,		options: chartOptions,	});};const chartData = $derived(data(expected));$effect(() => {	if (!chart) return;	chart.options = chartOptions;	chart.update();});$effect(() => {	if (!chartData) return;	if (chart) {		chart.data = chartData;		chart.update();		return;	}	chart = createChart();});onMount(() => {	waitForElm("#expectedPayments").then((el) => {		if (!el || !(el instanceof HTMLCanvasElement)) {			console.log("Invalid element", el);			return;		}		ctx = el;	});	return () => {		chart?.destroy();	};});</script>
 
 <div class="bg-surface-800 p-4 outline outline-offset-2">
   <div class="flex justify-between">

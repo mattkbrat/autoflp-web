@@ -1,7 +1,5 @@
 <script lang="ts">
-import { dev } from "$app/environment";
-import FuzzyClock from "./FuzzyClock.svelte";
-</script>
+import { dev } from "$app/environment";import FuzzyClock from "./FuzzyClock.svelte";</script>
 
 <div class="flex-1 mx-4">
   <h1 class="text-4xl print:text-xs font-black">

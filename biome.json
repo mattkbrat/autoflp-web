@@ -6,6 +6,9 @@
 	"organizeImports": {
 		"enabled": true
 	},
+	"formatter": {
+		"lineEnding": "cr"
+	},
 	"linter": {
 		"enabled": true,
 		"rules": {

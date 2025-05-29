@@ -1,84 +1,5 @@
 <script lang="ts">
-import { enhance } from "$app/forms";
-import { goto } from "$app/navigation";
-import { fieldMap } from "$lib/accounts";
-import { fullNameFromPerson } from "$lib/format/fullNameFromPerson.js";
-import { allAccounts, handleSelect, title, toast } from "$lib/stores";
-import type { SelectedAccount } from "$lib/types";
-
-let formHandled = $state(0);
-let { data, form } = $props();
-let selected: SelectedAccount = $state({});
-
-$effect(() => {
-	if (
-		!form ||
-		("handled" in form && form.handled && form.handled <= formHandled)
-	)
-		return;
-
-	if ("status" in form && form.status === "error") {
-		toast({
-			title: form.title || "Failed to record account",
-			status: "error",
-			description: form?.message || "",
-		});
-		return;
-	}
-	if (!form.data?.account) {
-		toast({
-			title: "Failed to record account",
-			status: "error",
-			description: form?.message || "",
-		});
-		return;
-	}
-
-	toast({
-		title: "Recorded account",
-		status: "success",
-		json: JSON.stringify(form.data, null, 2),
-	});
-	allAccounts.update((curr) => {
-		const index = curr.findIndex((a) => a.id === form.data.account.id);
-		const {
-			data: {
-				account: { id: accountId, licenseNumber },
-				contact,
-			},
-		} = form;
-		if (index === -1) {
-			curr.unshift({
-				id: accountId,
-				licenseNumber,
-				contact,
-			});
-			goto(`/accounts/${accountId}`);
-		} else {
-			curr[index].id = accountId;
-			curr[index].licenseNumber = licenseNumber;
-			curr[index].contact = contact;
-		}
-
-		return curr;
-	});
-	formHandled = form.handled;
-});
-
-$effect(() => {
-	if (!data.account || selected.id === data.account?.id) return;
-	const { contact, ...rest } = data.account;
-	selected = { ...contact, ...rest };
-});
-
-$effect(() => {
-	title.set(
-		data.account
-			? fullNameFromPerson({ person: data.account?.contact })
-			: "Accounts",
-	);
-});
-</script>
+import { enhance } from "$app/forms";import { goto } from "$app/navigation";import { fieldMap } from "$lib/accounts";import { fullNameFromPerson } from "$lib/format/fullNameFromPerson.js";import { allAccounts, handleSelect, title, toast } from "$lib/stores";import type { SelectedAccount } from "$lib/types";let formHandled = $state(0);let { data, form } = $props();let selected: SelectedAccount = $state({});$effect(() => {	if (		!form ||		("handled" in form && form.handled && form.handled <= formHandled)	)		return;	if ("status" in form && form.status === "error") {		toast({			title: form.title || "Failed to record account",			status: "error",			description: form?.message || "",		});		return;	}	if (!form.data?.account) {		toast({			title: "Failed to record account",			status: "error",			description: form?.message || "",		});		return;	}	toast({		title: "Recorded account",		status: "success",		json: JSON.stringify(form.data, null, 2),	});	allAccounts.update((curr) => {		const index = curr.findIndex((a) => a.id === form.data.account.id);		const {			data: {				account: { id: accountId, licenseNumber },				contact,			},		} = form;		if (index === -1) {			curr.unshift({				id: accountId,				licenseNumber,				contact,			});			goto(`/accounts/${accountId}`);		} else {			curr[index].id = accountId;			curr[index].licenseNumber = licenseNumber;			curr[index].contact = contact;		}		return curr;	});	formHandled = form.handled;});$effect(() => {	if (!data.account || selected.id === data.account?.id) return;	const { contact, ...rest } = data.account;	selected = { ...contact, ...rest };});$effect(() => {	title.set(		data.account			? fullNameFromPerson({ person: data.account?.contact })			: "Accounts",	);});</script>
 
 <form
   action="?/update"

@@ -1,56 +1,5 @@
 <script lang="ts">
-import "./tabs.css";
-import { goto } from "$app/navigation";
-import { page } from "$app/state";
-import type { OnClick, TabComponentProps } from "./tabs.ts";
-
-const { title, tabs, children, ...r }: TabComponentProps = $props();
-
-const url = $derived(
-	page.url.hash ? page.url.href.split(page.url.hash)[0] : page.url.href,
-);
-const urlSplit = $derived(url.split("/"));
-const thisTab = $derived(
-	"useHash" in r && r.useHash
-		? page.url.hash.slice(1)
-		: tabs.findLast((t) => urlSplit.includes(typeof t === "string" ? t : t.id)),
-);
-
-const index = $derived(
-	"index" in r
-		? r.index.index
-		: tabs.findIndex((t) =>
-				typeof t !== "string"
-					? t.id === thisTab ||
-						(thisTab &&
-							typeof thisTab !== "string" &&
-							"text" in thisTab &&
-							t.text === thisTab.text)
-					: t === thisTab || t === tabs[0],
-			),
-);
-
-const query = page.url.search;
-const handleTabChange = ({
-	tab,
-	onClick,
-}: {
-	tab: number;
-	onClick?: OnClick;
-}) => {
-	if ("index" in r) {
-		r.index.onChange(tab);
-	}
-	if ("trackUrl" in r) {
-		goto(`?${query.toString()}#${tab}`, {
-			noScroll: true,
-		});
-	}
-	onClick?.();
-};
-
-const tabsListId = typeof title === "string" ? title : title.id;
-</script>
+import "./tabs.css";import { goto } from "$app/navigation";import { page } from "$app/state";import type { OnClick, TabComponentProps } from "./tabs.ts";const { title, tabs, children, ...r }: TabComponentProps = $props();const url = $derived(	page.url.hash ? page.url.href.split(page.url.hash)[0] : page.url.href,);const urlSplit = $derived(url.split("/"));const thisTab = $derived(	"useHash" in r && r.useHash		? page.url.hash.slice(1)		: tabs.findLast((t) => urlSplit.includes(typeof t === "string" ? t : t.id)),);const index = $derived(	"index" in r		? r.index.index		: tabs.findIndex((t) =>				typeof t !== "string"					? t.id === thisTab ||						(thisTab &&							typeof thisTab !== "string" &&							"text" in thisTab &&							t.text === thisTab.text)					: t === thisTab || t === tabs[0],			),);const query = page.url.search;const handleTabChange = ({	tab,	onClick,}: {	tab: number;	onClick?: OnClick;}) => {	if ("index" in r) {		r.index.onChange(tab);	}	if ("trackUrl" in r) {		goto(`?${query.toString()}#${tab}`, {			noScroll: true,		});	}	onClick?.();};const tabsListId = typeof title === "string" ? title : title.id;</script>
 
 <section
   class="tabs children"

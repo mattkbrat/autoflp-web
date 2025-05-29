@@ -1,15 +1,5 @@
 <script lang="ts">
-import { formatCurrency } from "$lib/format";
-import { differenceInDays, formatDate } from "date-fns";
-
-const now = new Date();
-const { selected, schedule } = $props();
-const totalDelinquent = $derived(schedule?.totalDiff || 0);
-const pmtIsLate = $derived(
-	schedule ? differenceInDays(now, schedule.nextDueDate) : 0,
-);
-const isLate = $derived(totalDelinquent < 0);
-</script>
+import { formatCurrency } from "$lib/format";import { differenceInDays, formatDate } from "date-fns";const now = new Date();const { selected, schedule } = $props();const totalDelinquent = $derived(schedule?.totalDiff || 0);const pmtIsLate = $derived(	schedule ? differenceInDays(now, schedule.nextDueDate) : 0,);const isLate = $derived(totalDelinquent < 0);</script>
 
 <div
   class="flex flex-row uppercase justify-around text-center flex-wrap bg-black/20 py-2"

@@ -1,5 +1,1 @@
-import { redirect } from "@sveltejs/kit";
-
-export const load = ({ locals }) => {
-	return redirect(307, "/home");
-};
+import { redirect } from "@sveltejs/kit";export const load = ({ locals }) => {	return redirect(307, "/home");};

@@ -1,31 +1,5 @@
 <script lang="ts">
-import { page } from "$app/stores";
-import ExpectedPayments from "$lib/components/charts/ExpectedPayments.svelte";
-import type { AccountDetail } from "$lib/server/database/deal";
-import { formatCurrency } from "$lib/format";
-import { onMount } from "svelte";
-import { title } from "$lib/stores";
-import Tabs from "$lib/components/tabs/Tabs.svelte";
-const { data } = $props();
-
-const salesmen = $derived(Object.keys(data.expected));
-
-let tab = $state("" as keyof typeof data.expected);
-
-$effect(() => {
-	if (tab) return;
-	tab = Object.keys(data)[0];
-});
-
-page.subscribe((p) => {
-	tab = p.url.hash ? decodeURIComponent(p.url.hash.slice(1)) : "";
-});
-
-let row = $derived(data.expected[tab] || {});
-onMount(() => {
-	title.set("Charts - Expected Payments");
-});
-</script>
+import { page } from "$app/stores";import ExpectedPayments from "$lib/components/charts/ExpectedPayments.svelte";import type { AccountDetail } from "$lib/server/database/deal";import { formatCurrency } from "$lib/format";import { onMount } from "svelte";import { title } from "$lib/stores";import Tabs from "$lib/components/tabs/Tabs.svelte";const { data } = $props();const salesmen = $derived(Object.keys(data.expected));let tab = $state("" as keyof typeof data.expected);$effect(() => {	if (tab) return;	tab = Object.keys(data)[0];});page.subscribe((p) => {	tab = p.url.hash ? decodeURIComponent(p.url.hash.slice(1)) : "";});let row = $derived(data.expected[tab] || {});onMount(() => {	title.set("Charts - Expected Payments");});</script>
 
 <div class="print:hidden">
   <ExpectedPayments expected={data.expected} />

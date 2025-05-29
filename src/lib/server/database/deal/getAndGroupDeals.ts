@@ -1,2 +1,1 @@
-import { getDeals } from "./getDeals";
-import type { Deals } from "$lib/server/database/deal";
+import { getDeals } from "./getDeals";import type { Deals } from "$lib/server/database/deal";

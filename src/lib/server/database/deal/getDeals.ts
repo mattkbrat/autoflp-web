@@ -1,360 +1,1 @@
-import { prisma } from "$lib/server/database";
-import type { Prisma } from "@prisma/client";
-import type { AsyncReturnType } from "$lib/types";
-import { fullNameFromPerson } from "$lib/format";
-import { endOfMonth, startOfMonth } from "date-fns";
-import type { DateFilter } from "./get-expected-with-salesmen";
-type DealUniqueQuery = Prisma.DealFindUniqueArgs["where"];
-type DealQuery = Prisma.DealFindManyArgs["where"];
-
-export const getMonthlyOpenDeals = async (q?: DateFilter) => {
-	const dateFilter = q?.gte
-		? {
-				gte: startOfMonth(q?.gte ? new Date(q.gte) : new Date())
-					.toISOString()
-					.split("T")[0],
-				lte:
-					q?.gte || q?.lte
-						? endOfMonth(new Date(q.gte || q.lte || 0))
-								.toISOString()
-								.split("T")[0]
-						: undefined,
-			}
-		: undefined;
-
-	return prisma.deal.findMany({
-		where: {
-			state: 1,
-			date: dateFilter?.lte
-				? {
-						lte: dateFilter.lte,
-					}
-				: undefined,
-		},
-		select: {
-			pmt: true,
-			id: true,
-			date: true,
-			lien: true,
-			account: {
-				select: {
-					id: true,
-					contact: {
-						select: {
-							phonePrimary: true,
-							firstName: true,
-							lastName: true,
-							address_1: true,
-							address_2: true,
-							address_3: true,
-							city: true,
-							country: true,
-							stateProvince: true,
-						},
-					},
-				},
-			},
-			inventory: {
-				select: {
-					make: true,
-					model: true,
-					year: true,
-					vin: true,
-					inventory_salesman: {
-						select: {
-							salesman: {
-								select: {
-									id: true,
-								},
-							},
-						},
-					},
-				},
-			},
-			payments: {
-				select: {
-					amount: true,
-					date: true,
-				},
-				take: 1,
-				where: dateFilter
-					? {
-							date: {
-								gte: dateFilter.gte,
-								lte: dateFilter.lte,
-							},
-						}
-					: undefined,
-				orderBy: {
-					date: "desc",
-				},
-			},
-		},
-
-		orderBy: {
-			pmt: "desc",
-		},
-	});
-};
-
-export const getDeals = async (account?: string, state?: number) => {
-	return prisma.deal.findMany({
-		where: {
-			accountId: account,
-			state,
-		},
-		include: {
-			account: {
-				select: {
-					id: true,
-					contact: {
-						select: {
-							firstName: true,
-							lastName: true,
-							namePrefix: true,
-							nameSuffix: true,
-							middleInitial: true,
-						},
-					},
-				},
-			},
-			inventory: {
-				select: {
-					make: true,
-					model: true,
-					vin: true,
-				},
-			},
-		},
-		orderBy: [
-			{
-				account: {
-					contact: {
-						lastName: "asc",
-					},
-				},
-			},
-			{
-				state: "desc",
-			},
-			{
-				inventory: {
-					make: "asc",
-				},
-			},
-			{
-				inventory: {
-					model: "asc",
-				},
-			},
-			{
-				date: "desc",
-			},
-		],
-	});
-};
-
-export const getDeal = async (query: DealUniqueQuery) => {
-	return prisma.deal.findUnique({ where: query });
-};
-
-export const getDetailedDeal = async (query: DealUniqueQuery) => {
-	return prisma.deal.findUnique({
-		where: query,
-		include: {
-			account: {
-				include: {
-					contact: true,
-				},
-			},
-			inventory: {
-				include: {
-					inventory_salesman: {
-						select: {
-							salesman: {
-								select: {
-									contact: {
-										select: {
-											firstName: true,
-											lastName: true,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			creditor: {
-				include: {
-					contact: true,
-				},
-			},
-			dealCharges: {
-				select: {
-					charge: true,
-				},
-			},
-			dealTrades: {
-				select: {
-					value: true,
-					vin: true,
-					inventory: true,
-				},
-			},
-		},
-	});
-};
-
-export const getDetailedDeals = async (
-	query?: DealQuery,
-	pagination?: { start: number; items: number },
-) => {
-	return prisma.deal.findMany({
-		where: query,
-		skip: pagination ? pagination.start * pagination.items : undefined,
-		take: pagination ? pagination.items : undefined,
-		orderBy: {
-			date: "desc",
-		},
-		include: {
-			account: {
-				include: {
-					contact: true,
-				},
-			},
-			inventory: {
-				include: {
-					inventory_salesman: {
-						select: {
-							salesmanId: true,
-						},
-					},
-				},
-			},
-			creditor: {
-				include: {
-					contact: true,
-				},
-			},
-			dealCharges: {
-				select: {
-					charge: true,
-				},
-			},
-			dealTrades: {
-				select: {
-					value: true,
-					vin: true,
-					inventory: true,
-				},
-			},
-		},
-	});
-};
-
-export const groupDeals = (deals: Deals) => {
-	return deals.reduce(
-		(acc, curr) => {
-			const key = fullNameFromPerson({
-				person: curr.account.contact,
-			}).toUpperCase();
-
-			const { account, ...thisDeal } = curr;
-			if (!acc[key]) {
-				acc[key] = [thisDeal];
-			} else {
-				acc[key].push(thisDeal);
-			}
-
-			return acc;
-		},
-		{} as { [key: string]: Omit<Deals[number], "account">[] },
-	);
-};
-
-export const getAndGroupDeals = async () => {
-	return getDeals().then(groupDeals);
-};
-
-export const getOpenInventoryDeals = async (
-	vin: string,
-	query?: {
-		exclude?: string[];
-	},
-) => {
-	return prisma.deal.findMany({
-		where: {
-			inventoryId: vin,
-			state: 1,
-			id: query?.exclude
-				? {
-						notIn: query.exclude,
-					}
-				: undefined,
-		},
-	});
-};
-
-export const getBilling = async (dealIds?: string[]) => {
-	return prisma.deal.findMany({
-		where: {
-			AND: [
-				{
-					id: {
-						in: dealIds,
-					},
-				},
-				{
-					state: dealIds ? undefined : 1,
-				},
-				{
-					pmt: {
-						not: null,
-					},
-				},
-				{
-					lien: {
-						not: null,
-					},
-				},
-				{
-					lien: {
-						not: "0",
-					},
-				},
-			],
-		},
-		include: {
-			creditor: {
-				select: {
-					businessName: true,
-				},
-			},
-			account: {
-				select: {
-					contact: true,
-				},
-			},
-			inventory: {
-				select: {
-					make: true,
-					year: true,
-				},
-			},
-			payments: {
-				select: {
-					amount: true,
-					date: true,
-					id: true,
-				},
-			},
-		},
-	});
-};
-
-export type Deals = Prisma.PromiseReturnType<typeof getDeals>;
-export type SimpleDeal = Prisma.PromiseReturnType<typeof getDeal>;
-export type DetailedDeal = Prisma.PromiseReturnType<typeof getDetailedDeal>;
-export type GroupedDeals = AsyncReturnType<typeof getAndGroupDeals>;
-export type BillingAccounts = AsyncReturnType<typeof getBilling>;
+import { prisma } from "$lib/server/database";import type { Prisma } from "@prisma/client";import type { AsyncReturnType } from "$lib/types";import { fullNameFromPerson } from "$lib/format";import { endOfMonth, startOfMonth } from "date-fns";import type { DateFilter } from "./get-expected-with-salesmen";type DealUniqueQuery = Prisma.DealFindUniqueArgs["where"];type DealQuery = Prisma.DealFindManyArgs["where"];export const getMonthlyOpenDeals = async (q?: DateFilter) => {	const dateFilter = q?.gte		? {				gte: startOfMonth(q?.gte ? new Date(q.gte) : new Date())					.toISOString()					.split("T")[0],				lte:					q?.gte || q?.lte						? endOfMonth(new Date(q.gte || q.lte || 0))								.toISOString()								.split("T")[0]						: undefined,			}		: undefined;	return prisma.deal.findMany({		where: {			state: 1,			date: dateFilter?.lte				? {						lte: dateFilter.lte,					}				: undefined,		},		select: {			pmt: true,			id: true,			date: true,			lien: true,			account: {				select: {					id: true,					contact: {						select: {							phonePrimary: true,							firstName: true,							lastName: true,							address_1: true,							address_2: true,							address_3: true,							city: true,							country: true,							stateProvince: true,						},					},				},			},			inventory: {				select: {					make: true,					model: true,					year: true,					vin: true,					inventory_salesman: {						select: {							salesman: {								select: {									id: true,								},							},						},					},				},			},			payments: {				select: {					amount: true,					date: true,				},				take: 1,				where: dateFilter					? {							date: {								gte: dateFilter.gte,								lte: dateFilter.lte,							},						}					: undefined,				orderBy: {					date: "desc",				},			},		},		orderBy: {			pmt: "desc",		},	});};export const getDeals = async (account?: string, state?: number) => {	return prisma.deal.findMany({		where: {			accountId: account,			state,		},		include: {			account: {				select: {					id: true,					contact: {						select: {							firstName: true,							lastName: true,							namePrefix: true,							nameSuffix: true,							middleInitial: true,						},					},				},			},			inventory: {				select: {					make: true,					model: true,					vin: true,				},			},		},		orderBy: [			{				account: {					contact: {						lastName: "asc",					},				},			},			{				state: "desc",			},			{				inventory: {					make: "asc",				},			},			{				inventory: {					model: "asc",				},			},			{				date: "desc",			},		],	});};export const getDeal = async (query: DealUniqueQuery) => {	return prisma.deal.findUnique({ where: query });};export const getDetailedDeal = async (query: DealUniqueQuery) => {	return prisma.deal.findUnique({		where: query,		include: {			account: {				include: {					contact: true,				},			},			inventory: {				include: {					inventory_salesman: {						select: {							salesman: {								select: {									contact: {										select: {											firstName: true,											lastName: true,										},									},								},							},						},					},				},			},			creditor: {				include: {					contact: true,				},			},			dealCharges: {				select: {					charge: true,				},			},			dealTrades: {				select: {					value: true,					vin: true,					inventory: true,				},			},		},	});};export const getDetailedDeals = async (	query?: DealQuery,	pagination?: { start: number; items: number },) => {	return prisma.deal.findMany({		where: query,		skip: pagination ? pagination.start * pagination.items : undefined,		take: pagination ? pagination.items : undefined,		orderBy: {			date: "desc",		},		include: {			account: {				include: {					contact: true,				},			},			inventory: {				include: {					inventory_salesman: {						select: {							salesmanId: true,						},					},				},			},			creditor: {				include: {					contact: true,				},			},			dealCharges: {				select: {					charge: true,				},			},			dealTrades: {				select: {					value: true,					vin: true,					inventory: true,				},			},		},	});};export const groupDeals = (deals: Deals) => {	return deals.reduce(		(acc, curr) => {			const key = fullNameFromPerson({				person: curr.account.contact,			}).toUpperCase();			const { account, ...thisDeal } = curr;			if (!acc[key]) {				acc[key] = [thisDeal];			} else {				acc[key].push(thisDeal);			}			return acc;		},		{} as { [key: string]: Omit<Deals[number], "account">[] },	);};export const getAndGroupDeals = async () => {	return getDeals().then(groupDeals);};export const getOpenInventoryDeals = async (	vin: string,	query?: {		exclude?: string[];	},) => {	return prisma.deal.findMany({		where: {			inventoryId: vin,			state: 1,			id: query?.exclude				? {						notIn: query.exclude,					}				: undefined,		},	});};export const getBilling = async (dealIds?: string[]) => {	return prisma.deal.findMany({		where: {			AND: [				{					id: {						in: dealIds,					},				},				{					state: dealIds ? undefined : 1,				},				{					pmt: {						not: null,					},				},				{					lien: {						not: null,					},				},				{					lien: {						not: "0",					},				},			],		},		include: {			creditor: {				select: {					businessName: true,				},			},			account: {				select: {					contact: true,				},			},			inventory: {				select: {					make: true,					year: true,				},			},			payments: {				select: {					amount: true,					date: true,					id: true,				},			},		},	});};export type Deals = Prisma.PromiseReturnType<typeof getDeals>;export type SimpleDeal = Prisma.PromiseReturnType<typeof getDeal>;export type DetailedDeal = Prisma.PromiseReturnType<typeof getDetailedDeal>;export type GroupedDeals = AsyncReturnType<typeof getAndGroupDeals>;export type BillingAccounts = AsyncReturnType<typeof getBilling>;

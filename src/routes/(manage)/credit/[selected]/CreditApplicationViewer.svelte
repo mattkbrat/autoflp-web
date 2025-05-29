@@ -1,62 +1,5 @@
 <script lang="ts">
-import { notEmpty } from "$lib";
-import type {
-	ArrayElement,
-	CreditApplicationWithData,
-	CreditAppImages,
-} from "$lib/types";
-import { onMount } from "svelte";
-
-type Credit = NonNullable<Partial<CreditApplicationWithData>>;
-
-export let credit: Credit;
-export let images: CreditAppImages;
-
-$: sigPrint = `${
-	(credit.lastName &&
-		`${credit.lastName}, ${credit.firstName} ${
-			credit.middleInitial?.[0] || ""
-		}`) ||
-	credit.users?.name ||
-	""
-}`;
-
-onMount(() => {
-	for (const [k, v] of Object.entries(credit)) {
-		if (v) continue;
-		// @ts-ignore: TOOD: Fix this
-		credit[k as keyof Credit] = "" as Credit[keyof Credit];
-	}
-});
-
-$: isRenting = credit.housingOrRenting === "renting";
-
-const referenceNumbers = [1, 2, 3, 4, 5, 6] as const;
-
-const getReference = (number: number) => {
-	if (!referenceNumbers.includes(number as 1)) {
-		return {};
-	}
-
-	const typedNumber = number as 1;
-	const n = credit[`number_${typedNumber}`];
-	const street = credit[`street_${typedNumber}`];
-	const floor = credit[`floor_${typedNumber}`];
-	const line1 = [street, n && `#${n}`, floor && `f. ${floor}`]
-		.filter(notEmpty)
-		.join(" ")
-		.trim();
-	return {
-		name: credit[`name_${typedNumber}`],
-		street: line1 || "",
-		city: credit[`city_${typedNumber}`] || "",
-		state: credit[`state_${typedNumber}`] || "",
-		zip: credit[`zip_${typedNumber}`] || "",
-		phone: credit[`phone_${typedNumber}`] || "",
-		phone2: credit[`phone2_${typedNumber}`] || "",
-	};
-};
-</script>
+import { notEmpty } from "$lib";import type {	ArrayElement,	CreditApplicationWithData,	CreditAppImages,} from "$lib/types";import { onMount } from "svelte";type Credit = NonNullable<Partial<CreditApplicationWithData>>;export let credit: Credit;export let images: CreditAppImages;$: sigPrint = `${	(credit.lastName &&		`${credit.lastName}, ${credit.firstName} ${			credit.middleInitial?.[0] || ""		}`) ||	credit.users?.name ||	""}`;onMount(() => {	for (const [k, v] of Object.entries(credit)) {		if (v) continue;		// @ts-ignore: TOOD: Fix this		credit[k as keyof Credit] = "" as Credit[keyof Credit];	}});$: isRenting = credit.housingOrRenting === "renting";const referenceNumbers = [1, 2, 3, 4, 5, 6] as const;const getReference = (number: number) => {	if (!referenceNumbers.includes(number as 1)) {		return {};	}	const typedNumber = number as 1;	const n = credit[`number_${typedNumber}`];	const street = credit[`street_${typedNumber}`];	const floor = credit[`floor_${typedNumber}`];	const line1 = [street, n && `#${n}`, floor && `f. ${floor}`]		.filter(notEmpty)		.join(" ")		.trim();	return {		name: credit[`name_${typedNumber}`],		street: line1 || "",		city: credit[`city_${typedNumber}`] || "",		state: credit[`state_${typedNumber}`] || "",		zip: credit[`zip_${typedNumber}`] || "",		phone: credit[`phone_${typedNumber}`] || "",		phone2: credit[`phone2_${typedNumber}`] || "",	};};</script>
 
 <div class="grid grid-cols-5">
   <section

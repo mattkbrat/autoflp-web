@@ -1,7 +1,5 @@
 <script lang="ts">
-import { allSalesmen } from "$lib/stores";
-let { selected }: { selected: string[] } = $props();
-</script>
+import { allSalesmen } from "$lib/stores";let { selected }: { selected: string[] } = $props();</script>
 
 <select
   id="salesmen-select"

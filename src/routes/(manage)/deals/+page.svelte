@@ -1,183 +1,5 @@
 <script lang="ts">
-import { enhance } from "$app/forms";
-import CreditorSelect from "$lib/components/CreditorSelect.svelte";
-import { defaultDeal } from "$lib/finance";
-import { calcFinance } from "$lib/finance/calc";
-import {
-	formatCurrency,
-	formatDate,
-	formatInventory,
-	fullNameFromPerson,
-} from "$lib/format";
-import type { ParsedNHTA } from "$lib/server/inventory";
-import { allAccounts, allCreditors, allInventory, toast } from "$lib/stores";
-import {
-	accountID,
-	creditorID,
-	inventoryID,
-	dealID,
-	handleSelect,
-} from "$lib/stores/selected";
-import { getZip } from "$lib/index";
-import InventoryCombobox from "$lib/components/InventoryCombobox.svelte";
-import AccCombobox from "$lib/components/AccountCombobox.svelte";
-
-const deal = $state(defaultDeal);
-const { form } = $props();
-
-let currTrade = $state("");
-
-$effect(() => {
-	if (!$dealID) return;
-
-	handleSelect("deal", "");
-});
-
-let trades: {
-	make: string;
-	year: number;
-	model: string;
-	vin: string;
-	value: number;
-}[] = $state([]);
-
-$effect(() => {
-	if (trades.length === deal.trades.length) return;
-	deal.trades = trades.map((t) => t.vin);
-});
-
-$effect(() => {
-	const priceTrade = trades.reduce((acc, t) => {
-		return acc + t.value;
-	}, 0);
-
-	if (deal.priceTrade === priceTrade) return;
-
-	deal.priceTrade = priceTrade;
-});
-
-const creditor = $derived($allCreditors.find((c) => c.id === $creditorID));
-
-let lastCreditor = $state("");
-let forms: string[] = $state([]);
-
-$effect(() => {
-	if (!creditor || lastCreditor === creditor.id) {
-		console.log(lastCreditor, "last");
-		return;
-	}
-	deal.apr = +creditor.apr;
-	deal.filingFees = +creditor.filingFees;
-	lastCreditor = creditor.id;
-});
-
-const inventory = $derived($allInventory.find((i) => i.vin === $inventoryID));
-const account = $derived($allAccounts.find((a) => a.id === deal.account));
-
-$effect(() => {
-	if (!inventory || deal.vin === inventory.vin) return;
-	updateDealType();
-});
-const handleGetZip = async (forms: string[]) => {
-	if (!forms.length) {
-		console.log("Cannot get 0 forms");
-		return;
-	}
-	const account = $allAccounts.find((a) => a.id === deal.account);
-	if (!account?.contact) {
-		console.error("Could not submit deal", { account, deal });
-		throw new Error("No account assigned");
-	}
-	await getZip(forms, { deal, person: account.contact, type: "deal" });
-};
-
-$effect(() => {
-	if (!inventory) return;
-	deal.vin = inventory.vin;
-});
-
-$effect(() => {
-	if (!$accountID || deal.account === $accountID) return;
-
-	deal.account = $accountID || "";
-});
-
-const finance = $derived(calcFinance(deal));
-
-const isCredit = $derived(finance.type === "credit");
-
-$effect(() => {
-	if (deal.term !== 0 || deal.priceDown === finance.unpaidCashBalance) return;
-	deal.priceDown = finance.unpaidCashBalance;
-});
-$effect(() => {
-	if (deal.dealType === "cash" && deal.term !== 0) {
-		deal.term = 0;
-	} else if (deal.dealType === "credit" && deal.term === 0) {
-		deal.term = 12;
-	}
-});
-
-const handleSearched = async (result: unknown) => {
-	if (typeof result !== "object" || !result || !("data" in result)) return;
-	const parsed = result.data as ParsedNHTA;
-	if (!parsed) {
-		console.log("Could not parse", result);
-		return;
-	}
-	const { wanted } = parsed;
-
-	const newTrades = trades;
-	newTrades.push({
-		make: wanted.Make,
-		model: wanted.Model,
-		year: +(wanted["Model Year"] || 0) || 0,
-		value: 0,
-		vin: currTrade,
-	});
-
-	trades = newTrades;
-	currTrade = "";
-};
-
-$effect(() => {
-	if (!form) return;
-
-	if (!form.data) {
-		toast({
-			title: "Failed to record deal",
-			description: form.message,
-			json: JSON.stringify(form, null, 2),
-		});
-
-		return;
-	}
-
-	toast({
-		title: "Recorded deal",
-		description: "",
-		status: "success",
-	});
-	const { id: resultId, forms: dealForms } = form.data;
-	deal.id = typeof resultId === "string" ? resultId : "";
-	handleGetZip(dealForms).then(() => {
-		forms = dealForms;
-		form.data.forms = [];
-	});
-});
-
-function updateDealType(t?: "credit" | "cash") {
-	if (inventory) {
-		deal.priceSelling = Number(
-			t === "cash" ? inventory.cash : inventory.credit,
-		);
-	}
-
-	if (t) {
-		deal.dealType = t;
-	}
-}
-</script>
+import { enhance } from "$app/forms";import CreditorSelect from "$lib/components/CreditorSelect.svelte";import { defaultDeal } from "$lib/finance";import { calcFinance } from "$lib/finance/calc";import {	formatCurrency,	formatDate,	formatInventory,	fullNameFromPerson,} from "$lib/format";import type { ParsedNHTA } from "$lib/server/inventory";import { allAccounts, allCreditors, allInventory, toast } from "$lib/stores";import {	accountID,	creditorID,	inventoryID,	dealID,	handleSelect,} from "$lib/stores/selected";import { getZip } from "$lib/index";import InventoryCombobox from "$lib/components/InventoryCombobox.svelte";import AccCombobox from "$lib/components/AccountCombobox.svelte";const deal = $state(defaultDeal);const { form } = $props();let currTrade = $state("");$effect(() => {	if (!$dealID) return;	handleSelect("deal", "");});let trades: {	make: string;	year: number;	model: string;	vin: string;	value: number;}[] = $state([]);$effect(() => {	if (trades.length === deal.trades.length) return;	deal.trades = trades.map((t) => t.vin);});$effect(() => {	const priceTrade = trades.reduce((acc, t) => {		return acc + t.value;	}, 0);	if (deal.priceTrade === priceTrade) return;	deal.priceTrade = priceTrade;});const creditor = $derived($allCreditors.find((c) => c.id === $creditorID));let lastCreditor = $state("");let forms: string[] = $state([]);$effect(() => {	if (!creditor || lastCreditor === creditor.id) {		console.log(lastCreditor, "last");		return;	}	deal.apr = +creditor.apr;	deal.filingFees = +creditor.filingFees;	lastCreditor = creditor.id;});const inventory = $derived($allInventory.find((i) => i.vin === $inventoryID));const account = $derived($allAccounts.find((a) => a.id === deal.account));$effect(() => {	if (!inventory || deal.vin === inventory.vin) return;	updateDealType();});const handleGetZip = async (forms: string[]) => {	if (!forms.length) {		console.log("Cannot get 0 forms");		return;	}	const account = $allAccounts.find((a) => a.id === deal.account);	if (!account?.contact) {		console.error("Could not submit deal", { account, deal });		throw new Error("No account assigned");	}	await getZip(forms, { deal, person: account.contact, type: "deal" });};$effect(() => {	if (!inventory) return;	deal.vin = inventory.vin;});$effect(() => {	if (!$accountID || deal.account === $accountID) return;	deal.account = $accountID || "";});const finance = $derived(calcFinance(deal));const isCredit = $derived(finance.type === "credit");$effect(() => {	if (deal.term !== 0 || deal.priceDown === finance.unpaidCashBalance) return;	deal.priceDown = finance.unpaidCashBalance;});$effect(() => {	if (deal.dealType === "cash" && deal.term !== 0) {		deal.term = 0;	} else if (deal.dealType === "credit" && deal.term === 0) {		deal.term = 12;	}});const handleSearched = async (result: unknown) => {	if (typeof result !== "object" || !result || !("data" in result)) return;	const parsed = result.data as ParsedNHTA;	if (!parsed) {		console.log("Could not parse", result);		return;	}	const { wanted } = parsed;	const newTrades = trades;	newTrades.push({		make: wanted.Make,		model: wanted.Model,		year: +(wanted["Model Year"] || 0) || 0,		value: 0,		vin: currTrade,	});	trades = newTrades;	currTrade = "";};$effect(() => {	if (!form) return;	if (!form.data) {		toast({			title: "Failed to record deal",			description: form.message,			json: JSON.stringify(form, null, 2),		});		return;	}	toast({		title: "Recorded deal",		description: "",		status: "success",	});	const { id: resultId, forms: dealForms } = form.data;	deal.id = typeof resultId === "string" ? resultId : "";	handleGetZip(dealForms).then(() => {		forms = dealForms;		form.data.forms = [];	});});function updateDealType(t?: "credit" | "cash") {	if (inventory) {		deal.priceSelling = Number(			t === "cash" ? inventory.cash : inventory.credit,		);	}	if (t) {		deal.dealType = t;	}}</script>
 
 {#if forms.length > 0}
   <div>

@@ -1,8 +1,5 @@
 <script lang="ts">
-import { type NavType, handleAccNav } from "$lib/navState";
-import { allCreditors } from "$lib/stores";
-import { creditorID, handleSelect } from "$lib/stores/selected";
-</script>
+import { type NavType, handleAccNav } from "$lib/navState";import { allCreditors } from "$lib/stores";import { creditorID, handleSelect } from "$lib/stores/selected";</script>
 
 <select
   id="creditor-select"

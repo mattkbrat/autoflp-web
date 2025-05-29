@@ -1,20 +1,5 @@
 <script lang="ts">
-import type { PaymentsSchedule } from "$lib/finance/payment-history";
-import { formatCurrency } from "$lib/format";
-const { schedule }: { schedule: PaymentsSchedule } = $props();
-
-// biome-ignore lint/style/useConst: changed by binded button
-let showMissingPayments = $state(false);
-// biome-ignore lint/style/useConst: changed by binded button
-let showFuturePayments = $state(false);
-const filteredSchedule = $derived(
-	schedule.schedule?.filter((r) => {
-		if (r.monthType === "after") return showFuturePayments;
-		if (r.monthType === "before" && r.paid === 0) return showMissingPayments;
-		return true;
-	}),
-);
-</script>
+import type { PaymentsSchedule } from "$lib/finance/payment-history";import { formatCurrency } from "$lib/format";const { schedule }: { schedule: PaymentsSchedule } = $props();// biome-ignore lint/style/useConst: changed by binded buttonlet showMissingPayments = $state(false);// biome-ignore lint/style/useConst: changed by binded buttonlet showFuturePayments = $state(false);const filteredSchedule = $derived(	schedule.schedule?.filter((r) => {		if (r.monthType === "after") return showFuturePayments;		if (r.monthType === "before" && r.paid === 0) return showMissingPayments;		return true;	}),);</script>
 
 <section class="flex-1 bg-black/20 min-w-max">
   <div class="flex gap-2 btn-group print:hidden justify-between">

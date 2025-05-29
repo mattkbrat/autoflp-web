@@ -1,71 +1,5 @@
 <script lang="ts">
-import { enhance } from "$app/forms";
-import { fullNameFromPerson } from "$lib/format/fullNameFromPerson";
-import { toast } from "$lib/stores";
-
-const { data, form } = $props();
-
-let submitButton: HTMLButtonElement;
-
-type Changes = {
-	licenses: UpdateObject;
-	merge: {
-		primary: string;
-		ids: MergeAccount[];
-	};
-	salesmen: string[];
-};
-
-const defaultChanges = {
-	licenses: {},
-	salesmen: data.salesmen,
-	merge: {
-		primary: "",
-		ids: [],
-	},
-};
-
-let lastSubmitted = $state(0);
-
-type MergeAccount = { contact: string; id: string };
-
-type UpdateObject = { [id: string]: string };
-
-let changes: Changes = $state(defaultChanges);
-
-const updateMergeList = ({ contact, id }: MergeAccount, selected: boolean) => {
-	const newAccounts = selected
-		? changes.merge.ids.slice()
-		: changes.merge.ids.filter((a) => a.id !== id);
-	if (selected) {
-		newAccounts.push({ contact, id });
-	}
-
-	changes.merge.ids = newAccounts;
-};
-$effect(() => {
-	if (!form || form.timestamp === lastSubmitted) return;
-	if (!form.success) {
-		toast({
-			title: "Failed to merge accounts",
-			status: "error",
-			description: form?.message,
-		});
-		return;
-	}
-
-	lastSubmitted = form.timestamp;
-	changes = {
-		...changes,
-		licenses: {},
-		salesmen: data.salesmen,
-		merge: {
-			primary: "",
-			ids: [],
-		},
-	};
-});
-</script>
+import { enhance } from "$app/forms";import { fullNameFromPerson } from "$lib/format/fullNameFromPerson";import { toast } from "$lib/stores";const { data, form } = $props();let submitButton: HTMLButtonElement;type Changes = {	licenses: UpdateObject;	merge: {		primary: string;		ids: MergeAccount[];	};	salesmen: string[];};const defaultChanges = {	licenses: {},	salesmen: data.salesmen,	merge: {		primary: "",		ids: [],	},};let lastSubmitted = $state(0);type MergeAccount = { contact: string; id: string };type UpdateObject = { [id: string]: string };let changes: Changes = $state(defaultChanges);const updateMergeList = ({ contact, id }: MergeAccount, selected: boolean) => {	const newAccounts = selected		? changes.merge.ids.slice()		: changes.merge.ids.filter((a) => a.id !== id);	if (selected) {		newAccounts.push({ contact, id });	}	changes.merge.ids = newAccounts;};$effect(() => {	if (!form || form.timestamp === lastSubmitted) return;	if (!form.success) {		toast({			title: "Failed to merge accounts",			status: "error",			description: form?.message,		});		return;	}	lastSubmitted = form.timestamp;	changes = {		...changes,		licenses: {},		salesmen: data.salesmen,		merge: {			primary: "",			ids: [],		},	};});</script>
 
 <h2 class="underline text-lg">Missing Accounts</h2>
 

@@ -1,2 +1,1 @@
-export * from "./inventory";
-export * from "./credit";
+export * from "./inventory";export * from "./credit";

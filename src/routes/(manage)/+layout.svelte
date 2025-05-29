@@ -1,17 +1,5 @@
 <script lang="ts">
-import Head from "$lib/components/Head.svelte";
-import Toast from "$lib/components/Toast.svelte";
-import { allAccounts, allInventory, deals } from "$lib/stores";
-import { onMount } from "svelte";
-
-const { data, children } = $props();
-
-onMount(() => {
-	deals.set(data.deals);
-	allInventory.set(data.inventory);
-	allAccounts.set(data.accounts);
-});
-</script>
+import Head from "$lib/components/Head.svelte";import Toast from "$lib/components/Toast.svelte";import { allAccounts, allInventory, deals } from "$lib/stores";import { onMount } from "svelte";const { data, children } = $props();onMount(() => {	deals.set(data.deals);	allInventory.set(data.inventory);	allAccounts.set(data.accounts);});</script>
 
 <Toast />
 <div class="flex flex-col gap-4 flex-1">

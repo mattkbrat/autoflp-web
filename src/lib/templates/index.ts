@@ -1,1 +1,1 @@
-export { defaultCredit } from "./creditApplication";
+export { defaultCredit } from "./creditApplication";

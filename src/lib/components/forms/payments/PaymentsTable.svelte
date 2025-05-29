@@ -1,46 +1,5 @@
 <script lang="ts">
-import { enhance } from "$app/forms";
-import { formatCurrency } from "$lib/format";
-
-import type { DetailedDeal } from "$lib/server/database/deal";
-import type { PaymentsSchedule } from "$lib/finance/payment-history";
-import type { Payment } from "@prisma/client";
-
-let defaultPmt = $state({ account: "", amount: 0, deal: "" });
-const {
-	selected,
-	schedule,
-	payments,
-}: {
-	selected: NonNullable<DetailedDeal>;
-	schedule: PaymentsSchedule;
-	payments: Payment[];
-} = $props();
-
-const totalOwed = $derived(schedule?.remaining || 0);
-$effect(() => {
-	if (
-		!selected ||
-		(defaultPmt.account === selected.account.id &&
-			defaultPmt.deal === selected.id)
-	) {
-		return;
-	}
-
-	defaultPmt = {
-		account: selected.account.id,
-		deal: selected.id,
-		amount: Math.floor(
-			Math.min(selected ? +(selected.pmt || 0) : 0, totalOwed),
-		),
-	};
-	// waitForElm<HTMLInputElement>("#pmt-date-input").then((el) => {
-	//   if (!el) return;
-	//   today = now.toISOString().split("T")[0];
-	//   el.value = today;
-	// });
-});
-</script>
+import { enhance } from "$app/forms";import { formatCurrency } from "$lib/format";import type { DetailedDeal } from "$lib/server/database/deal";import type { PaymentsSchedule } from "$lib/finance/payment-history";import type { Payment } from "@prisma/client";let defaultPmt = $state({ account: "", amount: 0, deal: "" });const {	selected,	schedule,	payments,}: {	selected: NonNullable<DetailedDeal>;	schedule: PaymentsSchedule;	payments: Payment[];} = $props();const totalOwed = $derived(schedule?.remaining || 0);$effect(() => {	if (		!selected ||		(defaultPmt.account === selected.account.id &&			defaultPmt.deal === selected.id)	) {		return;	}	defaultPmt = {		account: selected.account.id,		deal: selected.id,		amount: Math.floor(			Math.min(selected ? +(selected.pmt || 0) : 0, totalOwed),		),	};	// waitForElm<HTMLInputElement>("#pmt-date-input").then((el) => {	//   if (!el) return;	//   today = now.toISOString().split("T")[0];	//   el.value = today;	// });});</script>
 
 <section
   class="print:hidden bg-black/20 min-w-max flex-1 content-center pb-4 flex flex-col"
